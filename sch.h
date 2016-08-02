@@ -89,6 +89,8 @@ struct sch_obj {
 
 struct sheet {
 	struct sch_obj *objs;
+	struct sch_obj **next_obj;
+	struct sheet *parent;
 	struct sheet *next;
 };
 
@@ -98,8 +100,8 @@ struct sch_ctx {
 	bool recurse;
 
 	struct sch_obj obj;
-	struct sch_obj **next_obj;
 
+	struct sheet *curr_sheet;
 	struct sheet *sheets;
 	struct sheet **next_sheet;
 

@@ -271,8 +271,8 @@ static void submit_obj(struct sch_ctx *ctx, enum sch_obj_type type)
 	obj->type = type;
 	obj->next = NULL;
 
-	*ctx->next_obj = obj;
-	ctx->next_obj = &obj->next;
+	*ctx->curr_sheet->next_obj = obj;
+	ctx->curr_sheet->next_obj = &obj->next;
 }
 
 
@@ -282,9 +282,11 @@ static struct sheet *new_sheet(struct sch_ctx *ctx)
 
 	sheet = alloc_type(struct sheet);
 	sheet->objs = NULL;
+	sheet->next_obj = &sheet->objs;
 	sheet->next = NULL;
 
-	ctx->next_obj = &sheet->objs;
+	sheet->parent = ctx->curr_sheet;
+	ctx->curr_sheet = sheet;
 
 	*ctx->next_sheet = sheet;
 	ctx->next_sheet = &sheet->next;
@@ -293,23 +295,27 @@ static struct sheet *new_sheet(struct sch_ctx *ctx)
 }
 
 
+static void end_sheet(struct sch_ctx *ctx)
+{
+	ctx->curr_sheet = ctx->curr_sheet->parent;
+	assert(ctx->curr_sheet);
+}
+
+
 static bool parse_line(const struct file *file, void *user, const char *line);
 
 
 static void recurse_sheet(struct sch_ctx *ctx, const struct file *related)
 {
-	struct sch_obj **saved_next_obj = ctx->next_obj;
 	const char *name = ctx->obj.u.sheet.file;
 	struct file file;
-
-	/* @@@ clean this up: saved_next_obj is still pending */
 
 	new_sheet(ctx);
 	ctx->state = sch_descr;
 	file_open(&file, name, related);
 	file_read(&file, parse_line, ctx);
 	file_close(&file);
-	ctx->next_obj = saved_next_obj;
+	end_sheet(ctx);
 }
 
 
@@ -527,6 +533,7 @@ void sch_init(struct sch_ctx *ctx, bool recurse)
 {
 	ctx->state = sch_descr;
 	ctx->recurse = recurse;
+	ctx->curr_sheet = NULL;
 	ctx->sheets = NULL;
 	ctx->next_sheet = &ctx->sheets;
 	new_sheet(ctx);
