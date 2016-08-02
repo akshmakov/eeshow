@@ -29,7 +29,8 @@
 struct vcs_git;
 struct file;
 
-struct vcs_git *vcs_git_open(const char *revision, const char *name);
+struct vcs_git *vcs_git_open(const char *revision, const char *name,
+    const struct vcs_git *related);
 void vcs_git_read(void *ctx, struct file *file,
     bool (*parse)(const struct file *file, void *user, const char *line),
     void *user);

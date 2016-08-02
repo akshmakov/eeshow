@@ -27,6 +27,13 @@
 
 
 struct vcs_git {
+	const char *name;
+	const char *revision;
+	const struct vcs_git *related;
+
+	git_repository *repo;
+	git_tree *tree;
+
 	const void *data;
 	unsigned size;
 };
@@ -305,6 +312,18 @@ static const void *get_data(git_repository *repo, git_tree_entry *entry,
 		exit(1);
 	}
 
+	if (verbose > 2) {
+		git_buf buf = { 0 } ;
+
+		if (git_object_short_id(&buf, obj))  {
+			const git_error *e = giterr_last();
+
+			fprintf(stderr, "%s\n", e->message);
+			exit(1);
+		}
+		fprintf(stderr, "object %s\n", buf.ptr);
+		git_buf_free(&buf);
+	}
 	blob = (git_blob *) obj;
 	*size = git_blob_rawsize(blob);
 	return git_blob_rawcontent(blob);
@@ -326,12 +345,78 @@ static bool send_line(const char *s, unsigned len,
 }
 
 
-struct vcs_git *vcs_git_open(const char *revision, const char *name)
+static bool related_same_repo(struct vcs_git *vcs_git)
+{
+	/* @@@ use same revision */
+	fprintf(stderr, "related_same_repo is no yet implemented\n");
+	return 0;
+}
+
+
+static bool related_other_repo(struct vcs_git *vcs_git)
+{
+	/* @@@ find revision <= date of revision in related */
+	fprintf(stderr, "related_other_repo is no yet implemented\n");
+	return 0;
+}
+
+
+static bool related_only_repo(struct vcs_git *vcs_git)
+{
+	const struct vcs_git *related = vcs_git->related;
+	char *tmp;
+	git_tree_entry *entry;
+
+	if (verbose > 1)
+		fprintf(stderr, "trying graft \"%s\" \"%s\"\n",
+		    related->name, vcs_git->name);
+	tmp = file_graft_relative(related->name, vcs_git->name);
+	if (!tmp)
+		return 0;
+
+	vcs_git->repo = related->repo;
+	vcs_git->tree = related->tree;
+
+	/* @@@ code below also exists in vcs_git_open */
+
+	entry = find_file(vcs_git->repo, vcs_git->tree, tmp);
+	if (verbose)
+		fprintf(stderr, "reading %s\n", tmp);
+
+	vcs_git->data = get_data(vcs_git->repo, entry, &vcs_git->size);
+
+	free((char *) vcs_git->name);
+	vcs_git->name = tmp;
+
+	return 1;
+}
+
+
+static bool try_related(struct vcs_git *vcs_git)
+{
+	if (!vcs_git->related)
+		return 0;
+	if (vcs_git->revision)
+		return 0;
+
+	vcs_git->repo = select_repo(vcs_git->name);
+	if (vcs_git->repo) {
+		if (!strcmp(git_repository_path(vcs_git->related->repo),
+		    git_repository_path(vcs_git->repo)))
+			return related_same_repo(vcs_git);
+		else
+			return related_other_repo(vcs_git);
+	}
+
+	return related_only_repo(vcs_git);
+}
+
+
+struct vcs_git *vcs_git_open(const char *revision, const char *name,
+    const struct vcs_git *related)
 {
 	static bool initialized = 0;
 	struct vcs_git *vcs_git = alloc_type(struct vcs_git);
-	git_repository *repo;
-	git_tree *tree;
 	git_tree_entry *entry;
 
 	if (!initialized) {
@@ -339,21 +424,30 @@ struct vcs_git *vcs_git_open(const char *revision, const char *name)
 		initialized = 1;
 	}
 
-	repo = select_repo(name);
-	if (!repo) {
-		fprintf(stderr, "%s:%s not found\n", revision, name);
+	vcs_git->name = stralloc(name);
+	vcs_git->revision = revision ? stralloc(revision) : NULL;
+	vcs_git->related = related;
+
+	if (try_related(vcs_git))
+		return vcs_git;
+
+	vcs_git->repo = select_repo(name);
+	if (!vcs_git->repo) {
+		fprintf(stderr, "%s: not found\n", name);
 		exit(1);
 	}
 	if (verbose > 1)
 		fprintf(stderr, "using repository %s\n",
-		    git_repository_path(repo));
+		    git_repository_path(vcs_git->repo));
 
-	tree = pick_revision(repo, revision);
-	entry = find_file(repo, tree, name);
+	if (!revision)
+		revision = "HEAD";
+	vcs_git->tree = pick_revision(vcs_git->repo, revision);
+	entry = find_file(vcs_git->repo, vcs_git->tree, name);
 	if (verbose)
 		fprintf(stderr, "reading %s:%s\n", revision, name);
 
-	vcs_git->data = get_data(repo, entry, &vcs_git->size);
+	vcs_git->data = get_data(vcs_git->repo, entry, &vcs_git->size);
 
 	return vcs_git;
 }
@@ -384,5 +478,9 @@ void vcs_git_read(void *ctx, struct file *file,
 
 void vcs_git_close(void *ctx)
 {
-	free(ctx);
+	struct vcs_git *vcs_git = ctx;
+
+	free((char *) vcs_git->name);
+	free((char *) vcs_git->revision);
+	free(vcs_git);
 }

@@ -10,6 +10,7 @@
  * (at your option) any later version.
  */
 
+#include <stddef.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -28,27 +29,41 @@ bool file_cat(const struct file *file, void *user, const char *line)
 }
 
 
+char *file_graft_relative(const char *base, const char *name)
+{
+	const char *slash;
+	char *res;
+	unsigned len;
+
+	if (*name == '/')
+		return NULL;
+
+	slash = strrchr(base, '/');
+	if (!slash)
+		return NULL;
+
+	len = slash + 1 - base;
+	res = alloc_size(len + strlen(name) + 1);
+	memcpy(res, base, len);
+	strcpy(res + len, name);
+
+	return res;
+}
+
+
 static bool try_related(struct file *file)
 {
-	const char *related;
-	const char *slash;
 	char *tmp;
-	unsigned len;
 
 	if (!file->related)
 		return 0;
+
+	tmp = file_graft_relative(file->related->name, file->name);
+	if (!tmp)
+		return NULL;
+
 	if (*file->name == '/')
 		return 0;
-
-	related = file->related->name;
-	slash = strrchr(related, '/');
-	if (!slash)
-		return 0;
-
-	len = slash + 1 - related;
-	tmp = alloc_size(len + strlen(file->name) + 1);
-	memcpy(tmp, related, len);
-	strcpy(tmp + len, file->name);
 
 	file->file = fopen(tmp, "r");
 	if (!file->file) {
@@ -90,14 +105,51 @@ static bool try_related(struct file *file)
  * @@@ explicit revision should always win over related.
  */
 
+static void *open_vcs(struct file *file)
+{
+	char *colon;
+
+	colon = strchr(file->name, ':');
+	if (colon) {
+		char *tmp;
+
+		tmp = stralloc(file->name);
+		tmp[colon - file->name] = 0;
+		file->vcs = vcs_git_open(tmp, colon + 1,
+		    file->related ? file->related->vcs : NULL);
+		if (file->vcs) {
+			free(tmp);
+			return file->vcs;
+		}
+		if (verbose > 1)
+			fprintf(stderr, "could not open %s:%s\n",
+			    tmp, colon + 1);
+		return NULL;
+	} else {
+		file->vcs = vcs_git_open(NULL, file->name,
+		    file->related ? file->related->vcs : NULL);
+		if (file->vcs)
+			return file->vcs;
+		if (verbose > 1)
+			fprintf(stderr, "could not open %s\n", file->name);
+		return 0;
+	}
+}
+
+
 void file_open(struct file *file, const char *name, const struct file *related)
 {
-	char *colon, *tmp;
-
 	file->name = stralloc(name);
 	file->lineno = 0;
 	file->related = related;
+	file->file = NULL;
 	file->vcs = NULL;
+
+	if (related && related->vcs) {
+		file->vcs = open_vcs(file);
+		if (file->vcs)
+			return;
+	}
 
 	file->file = fopen(name, "r");
 	if (file->file) {
@@ -112,21 +164,17 @@ void file_open(struct file *file, const char *name, const struct file *related)
 	if (verbose)
 		perror(name);
 
-	colon = strchr(name, ':');
-	if (!colon) {
+	if (!strchr(name, ':')) {
 		if (!verbose)
 			perror(name);
 		exit(1);
 	}
 
-	tmp = stralloc(name);
-	tmp[colon - name] = 0;
-	file->vcs = vcs_git_open(tmp, colon + 1);
+	file->vcs = open_vcs(file);
 	if (!file->vcs) {
-		fprintf(stderr, "could not open %s:%s\n", tmp, colon + 1);
+		fprintf(stderr, "could not open %s\n", name);
 		exit(1);
 	}
-	free(tmp);
 }
 
 
