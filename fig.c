@@ -197,9 +197,14 @@ static void fig_header(void)
 	printf("Single\n");
 	printf("-2\n");
 	printf("1200 2\n");
+}
 
+
+static void fig_color32(void)
+{
 	/* User32, COLOR_DARK_YELLOW */
 	printf("0 32 #848400\n");
+
 }
 
 
@@ -238,6 +243,7 @@ static void *fig_init(int argc, char *const *argv)
 	int arg;
 	FILE *file;
 	char buf[1000];
+	int lines_to_colors = 8;
 
 	while ((c = getopt(argc, argv, "t:")) != EOF)
 		switch (c) {
@@ -258,6 +264,7 @@ static void *fig_init(int argc, char *const *argv)
 
 	if (!template) {
 		fig_header();
+		fig_color32();
 		return NULL;
 	}
 
@@ -269,6 +276,14 @@ static void *fig_init(int argc, char *const *argv)
 	while (fgets(buf, sizeof(buf), file)) {
 		while (apply_vars(buf, n_vars, vars));
 		printf("%s", buf);
+		if (*buf == '#')
+			continue;
+		if (!--lines_to_colors)
+			fig_color32();
+		/*
+		 * @@@ known bug: if the template is empty, we won't output
+		 * color 32.
+		 */
 	}
 	fclose(file);
 
