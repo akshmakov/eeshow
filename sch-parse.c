@@ -296,42 +296,20 @@ static struct sheet *new_sheet(struct sch_ctx *ctx)
 static bool parse_line(const struct file *file, void *user, const char *line);
 
 
-static void recurse_sheet(struct sch_ctx *ctx, const struct file *parent_file)
+static void recurse_sheet(struct sch_ctx *ctx, const struct file *related)
 {
 	struct sch_obj **saved_next_obj = ctx->next_obj;
-	const char *parent = parent_file->name;
 	const char *name = ctx->obj.u.sheet.file;
-	char *tmp = NULL;
 	struct file file;
-	struct sch_file dsc = {
-		.parent	= ctx->file,
-	};
 
-	/* @@@ clean this up */
-
-	if (access(name, R_OK)) {
-		const char *slash;
-
-		slash = strrchr(parent, '/');
-		if (slash) {
-			unsigned len = slash + 1 - parent;
-
-			tmp = alloc_size(len + strlen(name) + 1);
-			memcpy(tmp, parent, len);
-			strcpy(tmp + len, name);
-			name = tmp;
-		}
-	}
+	/* @@@ clean this up: saved_next_obj is still pending */
 
 	new_sheet(ctx);
-	ctx->file = &dsc;
 	ctx->state = sch_descr;
-	file_open(&file, name, NULL);
+	file_open(&file, name, related);
 	file_read(&file, parse_line, ctx);
 	file_close(&file);
-	ctx->file = dsc.parent;
 	ctx->next_obj = saved_next_obj;
-	free(tmp);
 }
 
 
@@ -541,11 +519,7 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 void sch_parse(struct sch_ctx *ctx, const char *name, const struct lib *lib)
 {
 	struct file file;
-	struct sch_file dsc = {
-		.parent	= NULL,
-	};
 
-	ctx->file = &dsc;
 	ctx->lib = lib;
 	file_open(&file, name, NULL);
 	file_read(&file, parse_line, ctx);

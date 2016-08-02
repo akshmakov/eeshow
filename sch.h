@@ -91,10 +91,6 @@ struct sheet {
 	struct sheet *next;
 };
 
-struct sch_file {
-	struct sch_file *parent;
-};
-
 struct sch_ctx {
 	enum sch_state state;
 
@@ -107,8 +103,6 @@ struct sch_ctx {
 	struct sheet **next_sheet;
 
 	const struct lib *lib;
-
-	struct sch_file *file;
 };
 
 

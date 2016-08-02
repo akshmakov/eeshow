@@ -28,8 +28,69 @@ bool file_cat(const struct file *file, void *user, const char *line)
 }
 
 
-void file_open(struct file *file, const char *name,
-    const struct file *related)
+static bool try_related(struct file *file)
+{
+	const char *related;
+	const char *slash;
+	char *tmp;
+	unsigned len;
+
+	if (!file->related)
+		return 0;
+	if (*file->name == '/')
+		return 0;
+
+	related = file->related->name;
+	slash = strrchr(related, '/');
+	if (!slash)
+		return 0;
+
+	len = slash + 1 - related;
+	tmp = alloc_size(len + strlen(file->name) + 1);
+	memcpy(tmp, related, len);
+	strcpy(tmp + len, file->name);
+
+	file->file = fopen(tmp, "r");
+	if (!file->file) {
+		free(tmp);
+		return 0;
+	}
+
+	if (verbose)
+		fprintf(stderr, "reading %s\n", tmp);
+
+	free((char *) file->name);
+	file->name = tmp;
+	return 1;
+}
+
+
+/*
+ * @@@ logic isn't quite complete yet. It should go something like this:
+ *
+ * - if there is no related item,
+ *   - try file,
+ *   - if there is a colon, try VCS,
+ *   - give up
+ * - if there is a related item,
+ *   - if it is a VCS,
+ *     - try the revision matching or predating (if different repo) that of the
+ *       related repo,
+ (     - fall through and try as if it was a file
+ *   - try opening as file. If this fails,
+ *     - if the name of the file to open is absolute, give up
+ *     - try `dirname related`/file_ope_open
+ *     - give up
+ *
+ * @@@ should we see if non-VCS file is in a VCS ? E.g.,
+ * /home/my-libs/foo.lib 1234:/home/my-project/foo.sch
+ * or maybe use : as indictor for VCS, i.e.,
+ * :/home/my-libs/foo.lib ...
+ *
+ * @@@ explicit revision should always win over related.
+ */
+
+void file_open(struct file *file, const char *name, const struct file *related)
 {
 	char *colon, *tmp;
 
@@ -44,6 +105,9 @@ void file_open(struct file *file, const char *name,
 			fprintf(stderr, "reading %s\n", name);
 		return;
 	}
+
+	if (try_related(file))
+		return;
 
 	if (verbose)
 		perror(name);
