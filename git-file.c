@@ -22,7 +22,14 @@
 
 #include "util.h"
 #include "main.h"
+#include "file.h"
 #include "git-file.h"
+
+
+struct vcs_git {
+	const void *data;
+	unsigned size;
+};
 
 
 static git_repository *select_repo(const char *path)
@@ -305,48 +312,27 @@ static const void *get_data(git_repository *repo, git_tree_entry *entry,
 
 
 static bool send_line(const char *s, unsigned len,
-    bool (*parse)(void *user, const char *line), void *user)
+    bool (*parse)(const struct file *file, void *user, const char *line),
+    void *user, const struct file *file)
 {
 	char *tmp = alloc_size(len + 1);
 	bool res;
 
 	memcpy(tmp, s, len);
 	tmp[len] = 0;
-	res = parse(user, tmp);
+	res = parse(file, user, tmp);
 	free(tmp);
 	return res;
 }
 
 
-static void send_data(const char *data, unsigned size,
-    bool (*parse)(void *user, const char *line), void *user)
-{
-	const char *end = data + size;
-	const char *p = data;
-	const char *nl;
-
-	while (p != end) {
-		nl = memchr(p, '\n', end - p);
-		if (!nl) {
-			send_line(p, end - p, parse, user);
-			return;
-		}
-		if (!send_line(p, nl - p, parse, user))
-			return;
-		p = nl + 1;
-	}
-}
-
-
-void vcs_git_read(const char *revision, const char *name, 
-    bool (*parse)(void *user, const char *line), void *user)
+struct vcs_git *vcs_git_open(const char *revision, const char *name)
 {
 	static bool initialized = 0;
+	struct vcs_git *vcs_git = alloc_type(struct vcs_git);
 	git_repository *repo;
 	git_tree *tree;
 	git_tree_entry *entry;
-	const void *data;
-	unsigned size;
 
 	if (!initialized) {
 		git_libgit2_init();
@@ -366,6 +352,37 @@ void vcs_git_read(const char *revision, const char *name,
 	entry = find_file(repo, tree, name);
 	if (verbose)
 		fprintf(stderr, "reading %s:%s\n", revision, name);
-	data = get_data(repo, entry, &size);
-	send_data(data, size, parse, user);
+
+	vcs_git->data = get_data(repo, entry, &vcs_git->size);
+
+	return vcs_git;
+}
+
+
+void vcs_git_read(void *ctx, struct file *file,
+    bool (*parse)(const struct file *file, void *user, const char *line), 
+    void *user)
+{
+	const struct vcs_git *vcs_git = ctx;
+	const char *end = vcs_git->data + vcs_git->size;
+	const char *p = vcs_git->data;
+	const char *nl;
+
+	while (p != end) {
+		nl = memchr(p, '\n', end - p);
+		file->lineno++;
+		if (!nl) {
+			send_line(p, end - p, parse, user, file);
+			return;
+		}
+		if (!send_line(p, nl - p, parse, user, file))
+			return;
+		p = nl + 1;
+	}
+}
+
+
+void vcs_git_close(void *ctx)
+{
+	free(ctx);
 }

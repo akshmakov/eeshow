@@ -130,7 +130,8 @@ static bool parse_arc(struct lib_obj *obj, const char *line)
 /* ----- Library parser ---------------------------------------------------- */
 
 
-static bool lib_parse_line(void *user, const char *line)
+static bool lib_parse_line(const struct file *file,
+    void *user, const char *line)
 {
 	struct lib *lib = user;
 	int n = 0;
@@ -253,11 +254,15 @@ static bool lib_parse_line(void *user, const char *line)
 }
 
 
-void lib_parse(struct lib *lib, const char *file)
+void lib_parse(struct lib *lib, const char *name)
 {
+	struct file file;
+
 	lib->state = lib_skip;
 	lib->lineno = 0;
-	file_read(file, lib_parse_line, lib);
+	file_open(&file, name, NULL);
+	file_read(&file, lib_parse_line, lib);
+	file_close(&file);
 }
 
 

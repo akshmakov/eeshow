@@ -16,7 +16,23 @@
 #include <stdbool.h>
 
 
-void vcs_git_read(const char *revision, const char *name,
-    bool (*parse)(void *user, const char *line), void *user);
+/*
+ * future-proofing: if someone wants to add back-ends for other version control
+ * systems, the identifiers will already be there.
+ */
+
+#define	vcs_open	vcs_git_open
+#define	vcs_read	vcs_git_read
+#define	vcs_close	vcs_git_close
+
+
+struct vcs_git;
+struct file;
+
+struct vcs_git *vcs_git_open(const char *revision, const char *name);
+void vcs_git_read(void *ctx, struct file *file,
+    bool (*parse)(const struct file *file, void *user, const char *line),
+    void *user);
+void vcs_git_close(void *ctx);
 
 #endif /* !GIT_FILE_H */

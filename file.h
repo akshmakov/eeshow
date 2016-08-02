@@ -14,9 +14,25 @@
 #define	FILE_H
 
 #include <stdbool.h>
+#include <stdio.h>
 
-bool file_cat(void *user, const char *line);
-void file_read(const char *name, bool (*parse)(void *user, const char *line),
+
+struct file {
+	FILE *file;		/* NULL if using a version control system */
+	void *vcs;		/* VCS descriptor or NULL */
+	const char *name;	/* name/designator given to file_open */
+	unsigned lineno;
+	const struct file *related; /* NULL if not related to anything */
+};
+
+
+bool file_cat(const struct file *file, void *user, const char *line);
+
+void file_open(struct file *file, const char *name,
+    const struct file *related);
+void file_read(struct file *file,
+    bool (*parse)(const struct file *file, void *user, const char *line),
     void *user);
+void file_close(struct file *file);
 
 #endif /* !FILE_H */

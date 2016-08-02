@@ -109,9 +109,13 @@ int main(int argc, char *const *argv)
 		}
 
 	if (cat) {
+		struct file file;
+
 		if (argc != optind)
 			usage(*argv);
-		file_read(cat, file_cat, NULL);
+		file_open(&file, cat, NULL);
+		file_read(&file, file_cat, NULL);
+		file_close(&file);
 		return 0;
 	}
 
