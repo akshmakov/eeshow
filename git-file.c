@@ -133,7 +133,6 @@ static char *canonical_path_into_repo(const char *repo_dir, const char *path)
 	if (slash && slash != tmp && !slash[1])
 		*slash = 0;
 
-
 	/*
 	 * If path does point to inexistent object, separate into the part that
 	 * is valid on the current system and the tail containing dead things.
@@ -345,11 +344,28 @@ static bool send_line(const char *s, unsigned len,
 }
 
 
+static void access_file_data(struct vcs_git *vcs_git, const char *name)
+{
+	git_tree_entry *entry;
+
+	entry = find_file(vcs_git->repo, vcs_git->tree, name);
+	if (verbose)
+		fprintf(stderr, "reading %s\n", name);
+
+	vcs_git->data = get_data(vcs_git->repo, entry, &vcs_git->size);
+}
+
+
 static bool related_same_repo(struct vcs_git *vcs_git)
 {
-	/* @@@ use same revision */
-	fprintf(stderr, "related_same_repo is no yet implemented\n");
-	return 0;
+	const struct vcs_git *related = vcs_git->related;
+
+	vcs_git->repo = related->repo;
+	vcs_git->tree = related->tree;
+
+	access_file_data(vcs_git, vcs_git->name);
+
+	return 1;
 }
 
 
@@ -365,7 +381,6 @@ static bool related_only_repo(struct vcs_git *vcs_git)
 {
 	const struct vcs_git *related = vcs_git->related;
 	char *tmp;
-	git_tree_entry *entry;
 
 	if (verbose > 1)
 		fprintf(stderr, "trying graft \"%s\" \"%s\"\n",
@@ -377,13 +392,7 @@ static bool related_only_repo(struct vcs_git *vcs_git)
 	vcs_git->repo = related->repo;
 	vcs_git->tree = related->tree;
 
-	/* @@@ code below also exists in vcs_git_open */
-
-	entry = find_file(vcs_git->repo, vcs_git->tree, tmp);
-	if (verbose)
-		fprintf(stderr, "reading %s\n", tmp);
-
-	vcs_git->data = get_data(vcs_git->repo, entry, &vcs_git->size);
+	access_file_data(vcs_git, tmp);
 
 	free((char *) vcs_git->name);
 	vcs_git->name = tmp;
@@ -417,7 +426,6 @@ struct vcs_git *vcs_git_open(const char *revision, const char *name,
 {
 	static bool initialized = 0;
 	struct vcs_git *vcs_git = alloc_type(struct vcs_git);
-	git_tree_entry *entry;
 
 	if (!initialized) {
 		git_libgit2_init();
@@ -443,11 +451,8 @@ struct vcs_git *vcs_git_open(const char *revision, const char *name,
 	if (!revision)
 		revision = "HEAD";
 	vcs_git->tree = pick_revision(vcs_git->repo, revision);
-	entry = find_file(vcs_git->repo, vcs_git->tree, name);
-	if (verbose)
-		fprintf(stderr, "reading %s:%s\n", revision, name);
 
-	vcs_git->data = get_data(vcs_git->repo, entry, &vcs_git->size);
+	access_file_data(vcs_git, name);
 
 	return vcs_git;
 }
