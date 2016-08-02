@@ -1,0 +1,25 @@
+# Prerequisites (depends on distribution)
+
+apt-get install libcairo2-dev
+apt-get install libgit2-dev
+apt-get install qiv
+
+# Get all the things we need
+
+git clone http://neo900.org/git/ee.git newdir
+cd newdir/hw
+git clone git://projects.qi-hardware.com/kicad-libs.git
+git clone git://projects.qi-hardware.com/eda-tools.git
+make -C eda-tools/eeshow
+
+# Generate PNG for old, new, and difference
+
+LIBS="neo900.lib kicad-libs/components/powered.lib"
+eda-tools/eeshow/eeshow $LIBS 6a9f71:neo900_SS_5.sch -- png -s 2 -o old.png
+eda-tools/eeshow/eeshow $LIBS neo900_SS_5.sch -- png -s 2 -o new.png
+eda-tools/eeshow/eeshow $LIBS 6a9f71:neo900_SS_5.sch -- \
+  diff -s 2 -o diff.png $LIBS neo900_SS_5.sch
+
+# View the result
+
+qiv -t diff.png old.png new.png

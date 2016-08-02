@@ -1,0 +1,124 @@
+/*
+ * lib.h - Parse Eeschema .lib file
+ *
+ * Written 2016 by Werner Almesberger
+ * Copyright 2016 by Werner Almesberger
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ */
+
+
+#ifndef LIB_H
+#define LIB_H
+
+#include <stdbool.h>
+
+
+enum lib_state {
+	lib_skip,	/* before a definition */
+	lib_def,	/* in definition */
+	lib_draw,	/* in drawings */
+};
+
+struct lib_obj {
+	enum lib_obj_type {
+		lib_obj_poly,
+		lib_obj_rect,
+		lib_obj_circ,
+		lib_obj_arc,
+		lib_obj_text,
+		lib_obj_pin,
+	} type;
+	unsigned unit;
+	unsigned convert;
+	union {
+		struct lib_poly {
+			int thick;
+			char fill;
+			int points;
+			int *x;
+			int *y;
+		} poly;
+		struct lib_rect {
+			int thick;
+			char fill;
+			int sx, sy;
+			int ex, ey;
+		} rect;
+		struct lib_circ {
+			int x, y;
+			int r;
+			int thick;
+			char fill;
+		} circ;
+		struct lib_arc {
+			int x, y;
+			int r;
+			int start_a, end_a;
+			int thick;
+			char fill;
+		} arc;
+		struct lib_text {
+			int orient;
+			int x, y;
+			int dim;
+			char *s;
+			enum text_style style;
+			char hor_align;
+			char vert_align;
+		} text;
+		struct lib_pin {
+			char *name;
+			char *number;
+			int x, y;
+			int length;
+			char orient;
+			int number_size;
+			int name_size;
+			char etype;
+			// @@@ shape
+		} pin;
+	} u;
+	struct lib_obj *next;
+};
+
+struct comp {
+	const char *name;
+	unsigned units;
+
+	unsigned visible;       /* visible fields, bit mask */
+	bool show_pin_name;
+	bool show_pin_num;
+	unsigned name_offset;
+
+	struct lib_obj *objs;
+	struct comp *next;
+};
+
+struct lib {
+	enum lib_state state;
+	unsigned lineno;
+
+	struct comp *comps;
+
+	struct comp *curr_comp; /* current component */
+	struct comp **next_comp;
+	struct lib_obj **next_obj;
+
+};
+
+
+extern struct comp *comps;
+
+
+const struct comp *lib_find(const struct lib *lib, const char *name);
+bool lib_field_visible(const struct comp *comp, int n);
+void lib_render(const struct comp *comp, unsigned unit, const int m[6]);
+
+void lib_parse(struct lib *lib, const char *file);
+void lib_init(struct lib *lib);
+
+#endif /* !LIB_H */

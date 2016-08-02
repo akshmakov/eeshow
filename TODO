@@ -1,0 +1,24 @@
+- better text size guessing also for FIG
+- unify alignment, direction
+- support fonts attributes ?
+- support line thickness ?
+- ~ as overline (grep for ~ in out.fig)
+- glabel: build for "right" style, then rotate poly (like hlabel)
+- show open pins / wires
+- check remaining alignment / direction / rotation cases in switch statements
+- support mirroring (and detect-complain if unexpected) [should be done now]
+- pin shapes (inverted, clock, etc.)
+- optionally display pin type
+- find libraries (e.g., from .pro)
+- PDF TOC
+- let user set PNG size or zoom level
+- parse .kicad_wks
+- on parse error, politely complain, don't terminate;
+  convert abort / assert(0) to proper error indications
+- implement destructors
+- check for memory leaks
+- record.c (bb_rot): implement bounding boxes for text
+- nesting gfx in diff is a huge kludge, caused by global vars in gfx.c
+- move path name guessing into file.c
+- return indication of whether diff found any differences
+- in diff, pass only options understood by cairo_png
