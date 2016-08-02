@@ -92,8 +92,6 @@ struct sheet {
 };
 
 struct sch_file {
-	const char *name;
-	int lineno;
 	struct sch_file *parent;
 };
 

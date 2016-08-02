@@ -296,38 +296,37 @@ static struct sheet *new_sheet(struct sch_ctx *ctx)
 static bool parse_line(const struct file *file, void *user, const char *line);
 
 
-static void recurse_sheet(struct sch_ctx *ctx)
+static void recurse_sheet(struct sch_ctx *ctx, const struct file *parent_file)
 {
 	struct sch_obj **saved_next_obj = ctx->next_obj;
-	const char *parent = ctx->file->name;
+	const char *parent = parent_file->name;
+	const char *name = ctx->obj.u.sheet.file;
 	char *tmp = NULL;
 	struct file file;
 	struct sch_file dsc = {
-		.name	= ctx->obj.u.sheet.file,
-		.lineno	= 0,
 		.parent	= ctx->file,
 	};
 
 	/* @@@ clean this up */
 
-	if (access(dsc.name, R_OK)) {
+	if (access(name, R_OK)) {
 		const char *slash;
 
 		slash = strrchr(parent, '/');
 		if (slash) {
 			unsigned len = slash + 1 - parent;
 
-			tmp = alloc_size(len + strlen(dsc.name) + 1);
+			tmp = alloc_size(len + strlen(name) + 1);
 			memcpy(tmp, parent, len);
-			strcpy(tmp + len, dsc.name);
-			dsc.name = tmp;
+			strcpy(tmp + len, name);
+			name = tmp;
 		}
 	}
 
 	new_sheet(ctx);
 	ctx->file = &dsc;
 	ctx->state = sch_descr;
-	file_open(&file, dsc.name, NULL);
+	file_open(&file, name, NULL);
 	file_read(&file, parse_line, ctx);
 	file_close(&file);
 	ctx->file = dsc.parent;
@@ -342,8 +341,6 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 	struct sch_obj *obj = &ctx->obj;
 	int n = 0;
 	char *s;
-
-	ctx->file->lineno++;
 
 	switch (ctx->state) {
 	case sch_basic:
@@ -491,7 +488,7 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 		if (sscanf(line, "$EndSheet%n", &n) == 0 && n) {
 			submit_obj(ctx, sch_obj_sheet);
 			if (ctx->recurse)
-				recurse_sheet(ctx);
+				recurse_sheet(ctx, file);
 			ctx->state = sch_basic;
 			return 1;
 		}
@@ -536,7 +533,7 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 		abort();
 	}
 	fprintf(stderr, "%s:%u: cannot parse\n\"%s\"\n",
-	    ctx->file->name, ctx->file->lineno, line);
+	    file->name, file->lineno, line);
 	exit(1);
 }
 
@@ -545,8 +542,6 @@ void sch_parse(struct sch_ctx *ctx, const char *name, const struct lib *lib)
 {
 	struct file file;
 	struct sch_file dsc = {
-		.name	= name,
-		.lineno	= 0,
 		.parent	= NULL,
 	};
 

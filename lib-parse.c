@@ -141,8 +141,6 @@ static bool lib_parse_line(const struct file *file,
 	unsigned zero1, zero2;
 	char vis;
 
-	lib->lineno++;
-
 	switch (lib->state) {
 	case lib_skip:
 		if (parse_def(lib, line)) {
@@ -229,7 +227,7 @@ static bool lib_parse_line(const struct file *file,
 		if (n == 12) {
 			if (zero1) {
 				fprintf(stderr, "%u: only understand 0 x x\n"
-				    "\"%s\"\n", lib->lineno, line);
+				    "\"%s\"\n", file->lineno, line);
 				exit(1);
 			}
 			obj->u.text.style = decode_style(style);
@@ -249,7 +247,7 @@ static bool lib_parse_line(const struct file *file,
 	default:
 		abort();
 	}
-	fprintf(stderr, "%u: cannot parse\n\"%s\"\n", lib->lineno, line);
+	fprintf(stderr, "%u: cannot parse\n\"%s\"\n", file->lineno, line);
 	exit(1);
 }
 
@@ -259,7 +257,6 @@ void lib_parse(struct lib *lib, const char *name)
 	struct file file;
 
 	lib->state = lib_skip;
-	lib->lineno = 0;
 	file_open(&file, name, NULL);
 	file_read(&file, lib_parse_line, lib);
 	file_close(&file);

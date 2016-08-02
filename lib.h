@@ -100,7 +100,6 @@ struct comp {
 
 struct lib {
 	enum lib_state state;
-	unsigned lineno;
 
 	struct comp *comps;
 
