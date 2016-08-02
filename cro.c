@@ -121,7 +121,7 @@ static void cr_line(void *ctx, int sx, int sy, int ex, int ey,
     int color, unsigned layer)
 {
 	struct cro_ctx *cc = ctx;
-	static const double dashes[] = { 4, 2 };
+	static const double dashes[] = { 2, 4 };
 
 	cairo_new_path(cc->cr);
 	cairo_move_to(cc->cr, cx(cc, sx), cy(cc, sy));
@@ -350,6 +350,7 @@ static void cr_png_end(void *ctx)
 	cairo_select_font_face(cc->cr, "Helvetica", CAIRO_FONT_SLANT_NORMAL,
 	    CAIRO_FONT_WEIGHT_BOLD);
 	cairo_set_line_width(cc->cr, 2);
+	cairo_set_line_cap(cc->cr, CAIRO_LINE_CAP_ROUND);
 
 	record_replay(&cc->record);
 	record_destroy(&cc->record);
@@ -391,6 +392,8 @@ static void cr_pdf_end(void *ctx)
 	cairo_select_font_face(cc->cr, "Helvetica", CAIRO_FONT_SLANT_NORMAL,
 	    CAIRO_FONT_WEIGHT_BOLD);
 	cairo_set_line_width(cc->cr, 0.5 * cc->scale);
+	/* @@@ CAIRO_LINE_CAP_ROUND makes all non-dashed lines disappear */
+	cairo_set_line_cap(cc->cr, CAIRO_LINE_CAP_SQUARE);
 
 	for (i = 0; i != cc->n_sheets; i++) {
 		set_color(cc->cr, COLOR_WHITE);
@@ -432,6 +435,7 @@ uint32_t *cro_img_end(void *ctx, int *w, int *h, int *stride)
 	cairo_select_font_face(cc->cr, "Helvetica", CAIRO_FONT_SLANT_NORMAL,
 	    CAIRO_FONT_WEIGHT_BOLD);
 	cairo_set_line_width(cc->cr, 2);
+	cairo_set_line_cap(cc->cr, CAIRO_LINE_CAP_ROUND);
 
 	record_replay(&cc->record);
 	record_destroy(&cc->record);

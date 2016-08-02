@@ -22,3 +22,4 @@
 - move path name guessing into file.c
 - return indication of whether diff found any differences
 - in diff, pass only options understood by cairo_png
+- find out why in Cairo PDF non-dashed lines disappear if CAIRO_LINE_CAP_ROUND
