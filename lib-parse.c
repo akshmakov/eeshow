@@ -252,12 +252,12 @@ static bool lib_parse_line(const struct file *file,
 }
 
 
-void lib_parse(struct lib *lib, const char *name)
+void lib_parse(struct lib *lib, const char *name, const struct file *related)
 {
 	struct file file;
 
 	lib->state = lib_skip;
-	file_open(&file, name, NULL);
+	file_open(&file, name, related);
 	file_read(&file, lib_parse_line, lib);
 	file_close(&file);
 }

@@ -516,14 +516,10 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 }
 
 
-void sch_parse(struct sch_ctx *ctx, const char *name, const struct lib *lib)
+void sch_parse(struct sch_ctx *ctx, struct file *file, const struct lib *lib)
 {
-	struct file file;
-
 	ctx->lib = lib;
-	file_open(&file, name, NULL);
-	file_read(&file, parse_line, ctx);
-	file_close(&file);
+	file_read(file, parse_line, ctx);
 }
 
 

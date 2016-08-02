@@ -16,6 +16,8 @@
 
 #include <stdbool.h>
 
+#include "file.h"
+
 
 enum lib_state {
 	lib_skip,	/* before a definition */
@@ -117,7 +119,7 @@ const struct comp *lib_find(const struct lib *lib, const char *name);
 bool lib_field_visible(const struct comp *comp, int n);
 void lib_render(const struct comp *comp, unsigned unit, const int m[6]);
 
-void lib_parse(struct lib *lib, const char *name);
+void lib_parse(struct lib *lib, const char *name, const struct file *related);
 void lib_init(struct lib *lib);
 
 #endif /* !LIB_H */

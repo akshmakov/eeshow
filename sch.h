@@ -18,6 +18,7 @@
 
 #include "dwg.h"
 #include "text.h"
+#include "file.h"
 #include "lib.h"
 
 
@@ -109,7 +110,7 @@ struct sch_ctx {
 void decode_alignment(struct text *txt, char hor, char vert);
 
 void sch_render(const struct sheet *sheet);
-void sch_parse(struct sch_ctx *ctx, const char *name, const struct lib *lib);
+void sch_parse(struct sch_ctx *ctx, struct file *file, const struct lib *lib);
 void sch_init(struct sch_ctx *ctx, bool recurse);
 
 #endif /* !SCH_H */

@@ -81,6 +81,7 @@ int main(int argc, char *const *argv)
 {
 	struct lib lib;
 	struct sch_ctx sch_ctx;
+	struct file sch_file;
 	bool recurse = 0;
 	const char *cat = NULL;
 	char c;
@@ -122,9 +123,12 @@ int main(int argc, char *const *argv)
 	if (dashdash - optind < 1)
 		usage(*argv);
 
+	sch_init(&sch_ctx, recurse);
+	file_open(&sch_file, argv[dashdash - 1], NULL);
+
 	lib_init(&lib);
 	for (arg = optind; arg != dashdash - 1; arg++)
-		lib_parse(&lib, argv[arg]);
+		lib_parse(&lib, argv[arg], &sch_file);
 
 	if (dashdash == argc) {
 		gfx_argc = 1;
@@ -151,8 +155,9 @@ found:
 
 	optind = 0; /* reset getopt */
 
-	sch_init(&sch_ctx, recurse);
-	sch_parse(&sch_ctx, argv[dashdash - 1], &lib);
+	sch_parse(&sch_ctx, &sch_file, &lib);
+	file_close(&sch_file);
+
 	gfx_init(*ops, gfx_argc, gfx_argv);
 	if (recurse) {
 		const struct sheet *sheet;

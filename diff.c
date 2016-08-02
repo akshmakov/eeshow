@@ -20,6 +20,7 @@
 #include "util.h"
 #include "main.h"
 #include "cro.h"
+#include "file.h"
 #include "sch.h"
 #include "lib.h"
 #include "diff.h"
@@ -111,6 +112,7 @@ static void *diff_init(int argc, char *const *argv)
 	char c;
 	int arg;
 	struct sch_ctx new_sch;
+	struct file sch_file;
 	struct lib new_lib;
 
 	diff = alloc_type(struct diff);
@@ -136,9 +138,11 @@ static void *diff_init(int argc, char *const *argv)
 	if (argc - optind < 1)
 		usage(*argv);
 
+	file_open(&sch_file, argv[argc - 1], NULL);
 	for (arg = optind; arg != argc - 1; arg++)
-		lib_parse(&new_lib, argv[arg]);
-	sch_parse(&new_sch, argv[argc - 1], &new_lib);
+		lib_parse(&new_lib, argv[arg], &sch_file);
+	sch_parse(&new_sch, &sch_file, &new_lib);
+	file_close(&sch_file);
 
 	optind = 0;
 	gfx_init(&cro_img_ops, argc, argv);
