@@ -71,6 +71,6 @@ void file_read(const char *name, bool (*parse)(void *user, const char *line),
 
 	tmp = stralloc(name);
 	tmp[colon - name] = 0;
-	git_read(tmp, colon + 1, parse, user);
+	vcs_git_read(tmp, colon + 1, parse, user);
 	free(tmp);
 }

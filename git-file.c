@@ -1,5 +1,5 @@
 /*
- * git-file.c - Open and read a file from git
+ * git-file.c - Open and read a file from git version control system
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -338,7 +338,7 @@ static void send_data(const char *data, unsigned size,
 }
 
 
-void git_read(const char *revision, const char *name, 
+void vcs_git_read(const char *revision, const char *name, 
     bool (*parse)(void *user, const char *line), void *user)
 {
 	static bool initialized = 0;
