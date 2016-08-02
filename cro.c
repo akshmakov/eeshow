@@ -390,7 +390,7 @@ static void cr_pdf_end(void *ctx)
 
 	cairo_select_font_face(cc->cr, "Helvetica", CAIRO_FONT_SLANT_NORMAL,
 	    CAIRO_FONT_WEIGHT_BOLD);
-	cairo_set_line_width(cc->cr, 2);
+	cairo_set_line_width(cc->cr, 0.5 * cc->scale);
 
 	for (i = 0; i != cc->n_sheets; i++) {
 		set_color(cc->cr, COLOR_WHITE);
