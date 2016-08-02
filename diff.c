@@ -258,8 +258,7 @@ static void diff_end(void *ctx)
 	differences(diff, old_img, diff->new_img);
 	show_areas(diff, old_img);
 
-	if (diff->output_name)
-		cro_img_write(diff->cr_ctx, diff->output_name);
+	cro_img_write(diff->cr_ctx, diff->output_name);
 }
 
 

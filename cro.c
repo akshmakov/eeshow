@@ -321,6 +321,19 @@ static void end_common(struct cro_ctx *cc, int *w, int *h)
 }
 
 
+static cairo_status_t stream_to_stdout(void *closure,
+    const unsigned char *data, unsigned length)
+{
+	ssize_t wrote;
+
+	wrote = write(1, data, length);
+	if (wrote == (ssize_t) length)
+		return CAIRO_STATUS_SUCCESS;
+	perror("stdout");
+	return CAIRO_STATUS_WRITE_ERROR;
+}
+
+
 static void cr_png_end(void *ctx)
 {
 	struct cro_ctx *cc = ctx;
@@ -341,8 +354,7 @@ static void cr_png_end(void *ctx)
 	record_replay(&cc->record);
 	record_destroy(&cc->record);
 
-	if (cc->output_name)
-		cairo_surface_write_to_png(cc->s, cc->output_name);
+	cro_img_write(cc, cc->output_name);
 }
 
 
@@ -369,7 +381,11 @@ static void cr_pdf_end(void *ctx)
 
 	end_common(cc, &w, &h);
 
-	cc->s = cairo_pdf_surface_create(cc->output_name, w, h);
+	if (cc->output_name)
+		cc->s = cairo_pdf_surface_create(cc->output_name, w, h);
+	else
+		cc->s = cairo_pdf_surface_create_for_stream(stream_to_stdout,
+		    NULL, w, h);
 	cc->cr = cairo_create(cc->s);
 
 	cairo_select_font_face(cc->cr, "Helvetica", CAIRO_FONT_SLANT_NORMAL,
@@ -428,7 +444,11 @@ void cro_img_write(void *ctx, const char *name)
 {
 	struct cro_ctx *cc = ctx;
 
-	cairo_surface_write_to_png(cc->s, name);
+	if (name)
+		cairo_surface_write_to_png(cc->s, name);
+	else
+		cairo_surface_write_to_png_stream(cc->s, stream_to_stdout,
+		    NULL);
 }
 
 

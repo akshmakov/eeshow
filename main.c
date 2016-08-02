@@ -60,7 +60,7 @@ void usage(const char *name)
 "Cairo PNG driver spec:\n"
 "  png [-o output.png] [-s scale]\n"
 "\n"
-"  -o output.png  generate PNG output and write to specified file\n"
+"  -o output.png  write PNG to specified file (default; standard output)\n"
 "  -s scale       scale by indicated factor (default: 1.0)\n"
 "\n"
 "Cairo PDF driver spec:\n"
