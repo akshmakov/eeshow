@@ -25,7 +25,7 @@ LDLIBS = -lm \
 
 include ../common/Makefile.c-common
 
-.PHONY:		test neo900 sch test testref png pngref diff view newref
+.PHONY:		test neo900 sch test testref png pngref pdf diff view newref
 
 all::		$(NAME)
 
@@ -76,6 +76,10 @@ neo900.pdf:	$(NAME) sch2pdf neo900-template.fig
 		./sch2pdf -o $@ -t neo900-template.fig \
 		    $(NEO900_HW)/neo900.lib $(KICAD_LIBS)/powered.lib \
 		    $(NEO900_HW)/neo900.sch
+
+pdf:		$(NAME)
+		./eeshow -r $(NEO900_HW)/neo900.lib $(KICAD_LIBS)/powered.lib \
+		    $(NEO900_HW)/neo900.sch -- pdf -o neo900.pdf
 
 #----- Regression test based on Neo900 schematics -----------------------------
 
