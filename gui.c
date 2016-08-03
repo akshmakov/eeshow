@@ -17,6 +17,7 @@
  * https://developer.gnome.org/gtk3/stable/gtk-migrating-2-to-3.html
  */
 
+#include <stdbool.h>
 #include <stdio.h>
 
 #include <gtk/gtk.h>
@@ -28,6 +29,18 @@
 #include "gui.h"
 
 
+struct gui_ctx;
+
+struct aoi {
+	int x, y, w, h;		/* activation box, eeschema coordinates */
+
+	bool (*hover)(struct gui_ctx *ctx, void *user, bool on);
+	void (*click)(struct gui_ctx *ctx, void *user);
+	void *user;
+
+	struct aoi *next;
+};
+
 struct gui_sheet {
 	const const struct sheet *sch;
 	struct cro_ctx *gfx_ctx;
@@ -35,9 +48,10 @@ struct gui_sheet {
 	int w, h;
 	int xmin, ymin;
 
+	struct aoi *aois;	/* areas of interest */
+
 	struct gui_sheet *next;
 };
-
 
 struct gui_ctx {
 	GtkWidget *da;
@@ -51,11 +65,69 @@ struct gui_ctx {
 	bool panning;
 	int pan_x, pan_y;
 
+	const struct aoi *aoi_hovering;	/* hovering over this aoi */
+
 	const struct gui_sheet *curr_sheet;
 				/* current sheet */
-
 	struct gui_sheet *sheets;
-} gui_ctx;
+};
+
+
+/* ----- Area of intereest ------------------------------------------------- */
+
+
+static void aoi_add(struct gui_sheet *sheet, const struct aoi *aoi)
+{
+	struct aoi *new;
+
+	new = alloc_type(struct aoi);
+	*new = *aoi;
+	new->next = sheet->aois;
+	sheet->aois = new;
+}
+
+
+static void aoi_hover(struct gui_ctx *ctx, int x, int y)
+{
+	const struct gui_sheet *sheet = ctx->curr_sheet;
+	const struct aoi *aoi = ctx->aoi_hovering;
+
+	if (aoi) {
+		if (x >= aoi->x && x < aoi->x + aoi->w &&
+		    y >= aoi->y && y < aoi->y + aoi->h)
+			return;
+		aoi->hover(ctx, aoi->user, 0);
+		ctx->aoi_hovering = NULL;
+	}
+
+	for (aoi = sheet->aois; aoi; aoi = aoi->next)
+		if (x >= aoi->x && x < aoi->x + aoi->w &&
+		    y >= aoi->y && y < aoi->y + aoi->h)
+			break;
+	if (aoi && aoi->hover && aoi->hover(ctx, aoi->user, 1))
+		ctx->aoi_hovering = aoi;
+}
+
+
+static void aoi_click(struct gui_ctx *ctx, int x, int y)
+{
+	const struct gui_sheet *sheet = ctx->curr_sheet;
+	const struct aoi *aoi = ctx->aoi_hovering;
+
+	x += sheet->xmin;
+	y += sheet->ymin;
+
+	if (aoi) {
+		aoi->hover(ctx, aoi->user, 0);
+		ctx->aoi_hovering = NULL;
+	}
+	for (aoi = sheet->aois; aoi; aoi = aoi->next)
+		if (x >= aoi->x && x < aoi->x + aoi->w &&
+		    y >= aoi->y && y < aoi->y + aoi->h)
+			break;
+	if (aoi && aoi->click)
+		aoi->click(ctx, aoi->user);
+}
 
 
 /* ----- Rendering --------------------------------------------------------- */
@@ -186,8 +258,10 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
 	ctx->curr_y = event->y;
 
 	canvas_coord(ctx, event->x, event->y, &x, &y);
-//	fprintf(stderr, "motion\n");
+
+	aoi_hover(ctx, x, y);
 	pan_update(ctx, event->x, event->y);
+
 	return TRUE;
 }
 
@@ -202,6 +276,7 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event,
 	fprintf(stderr, "button press\n");
 	switch (event->button) {
 	case 1:
+		aoi_click(ctx, x, y);
 		break;
 	case 2:
 		pan_begin(ctx, event->x, event->y);
@@ -277,10 +352,55 @@ static gboolean scroll_event(GtkWidget *widget, GdkEventScroll *event,
 }
 
 
+/* ----- AoI callbacks ----------------------------------------------------- */
+
+
+static void select_subsheet(struct gui_ctx *ctx, void *user)
+{
+	const struct sch_obj *obj = user;
+	const struct gui_sheet *sheet;
+
+	fprintf(stderr, "%s\n", obj->u.sheet.name);
+	for (sheet = ctx->sheets; sheet; sheet = sheet->next)
+		if (sheet->sch == obj->u.sheet.sheet) {
+			ctx->curr_sheet = sheet;
+			gtk_widget_queue_draw(ctx->da);
+			return;
+		}
+	abort();
+}
+
+
 /* ----- Initialization ---------------------------------------------------- */
 
 
-static void get_sheets( struct gui_ctx *ctx, const struct sheet *sheets)
+static void mark_aois(struct gui_sheet *sheet)
+{
+	const struct sch_obj *obj;
+
+	sheet->aois = NULL;
+	for (obj = sheet->sch->objs; obj; obj = obj->next)
+		switch (obj->type) {
+		case sch_obj_sheet: {
+				struct aoi aoi = {
+					.x	= obj->x,
+					.y	= obj->y,
+					.w	= obj->u.sheet.w,
+					.h	= obj->u.sheet.h,
+					.click	= select_subsheet,
+					.user	= (void *) obj,
+				};
+
+				aoi_add(sheet, &aoi);
+			}
+			break;
+		default:
+			break;
+		}
+}
+
+
+static void get_sheets(struct gui_ctx *ctx, const struct sheet *sheets)
 {
 	const struct sheet *sheet;
 	struct gui_sheet **next = &ctx->sheets;
@@ -290,6 +410,9 @@ static void get_sheets( struct gui_ctx *ctx, const struct sheet *sheets)
 		gui_sheet = alloc_type(struct gui_sheet);
 		gui_sheet->sch = sheet;
 		render(ctx, gui_sheet);
+
+		mark_aois(gui_sheet);
+
 		*next = gui_sheet;
 		next = &gui_sheet->next;
 	}
