@@ -17,6 +17,8 @@
 #include <unistd.h>
 #include <string.h>
 
+#include <gtk/gtk.h>
+
 #include "util.h"
 #include "fig.h"
 #include "cro.h"
@@ -25,6 +27,7 @@
 #include "file.h"
 #include "lib.h"
 #include "sch.h"
+#include "gui.h"
 #include "main.h"
 
 
@@ -43,7 +46,7 @@ void usage(const char *name)
 {
 	fprintf(stderr,
 "usage: %s [-r] [-v ...] [[rev:]file.lib ...] [rev:]file.sch\n"
-"       %*s-- driver_spec\n"
+"       %*s[-- driver_spec]\n"
 "       %s [-v ...] -C [rev:]file\n"
 "\n"
 "  rev  git revision\n"
@@ -77,7 +80,7 @@ void usage(const char *name)
 }
 
 
-int main(int argc, char *const *argv)
+int main(int argc, char **argv)
 {
 	struct lib lib;
 	struct sch_ctx sch_ctx;
@@ -86,13 +89,18 @@ int main(int argc, char *const *argv)
 	const char *cat = NULL;
 	char c;
 	int arg, dashdash;
+	bool have_dashdash = 0;
 	int gfx_argc;
 	char **gfx_argv;
 	const struct gfx_ops **ops = ops_list;
 
+	gtk_init(&argc, &argv);
+
 	for (dashdash = 1; dashdash != argc; dashdash++)
-		if (!strcmp(argv[dashdash], "--"))
+		if (!strcmp(argv[dashdash], "--")) {
+			have_dashdash = 1;
 			break;
+		}
 
 	while ((c = getopt(dashdash, argv, "rvC:")) != EOF)
 		switch (c) {
@@ -157,6 +165,9 @@ found:
 
 	sch_parse(&sch_ctx, &sch_file, &lib);
 	file_close(&sch_file);
+
+	if (!have_dashdash)
+		return gui(&sch_ctx);
 
 	gfx_init(*ops, gfx_argc, gfx_argv);
 	if (recurse) {

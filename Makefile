@@ -12,16 +12,19 @@
 
 NAME = eeshow
 OBJS = main.o sch-parse.o sch-render.o lib-parse.o lib-render.o \
+       gui.o \
        file.o git-file.o \
        style.o fig.o record.o cro.o diff.o gfx.o dwg.o text.o misc.o
 
 CFLAGS = -g  -Wall -Wextra -Wno-unused-parameter -Wshadow \
 	 -Wmissing-prototypes -Wmissing-declarations \
 	 `pkg-config --cflags cairo` \
-	 `pkg-config --cflags libgit2`
+	 `pkg-config --cflags libgit2` \
+	 `pkg-config --cflags gtk+-3.0`
 LDLIBS = -lm \
-       `pkg-config --libs cairo` \
-       `pkg-config --libs libgit2`
+	 `pkg-config --libs cairo` \
+	 `pkg-config --libs libgit2` \
+	 `pkg-config --libs gtk+-3.0`
 
 include ../common/Makefile.c-common
 

@@ -456,6 +456,31 @@ void cro_img_write(void *ctx, const char *name)
 }
 
 
+void cro_canvas_end(void *ctx)
+{
+	struct cro_ctx *cc = ctx;
+	int w, h;
+
+	end_common(cc, &w, &h);
+}
+
+
+void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr)
+{
+	set_color(cr, COLOR_WHITE);
+	cairo_paint(cr);
+
+	cairo_select_font_face(cr, "Helvetica", CAIRO_FONT_SLANT_NORMAL,
+	    CAIRO_FONT_WEIGHT_BOLD);
+
+	cairo_set_line_width(cr, 2);
+	cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
+
+	cc->cr = cr;
+	record_replay(&cc->record);
+}
+
+
 /* ----- Operations -------------------------------------------------------- */
 
 
