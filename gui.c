@@ -17,9 +17,13 @@
  * https://developer.gnome.org/gtk3/stable/gtk-migrating-2-to-3.html
  */
 
+#include <stddef.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
+#include <cairo/cairo.h>
 #include <gtk/gtk.h>
 
 #include "util.h"
@@ -55,6 +59,8 @@ struct gui_sheet {
 	struct gui_sheet *next;
 };
 
+struct overlay;
+
 struct gui_ctx {
 	GtkWidget *da;
 
@@ -68,6 +74,8 @@ struct gui_ctx {
 	int pan_x, pan_y;
 
 	const struct aoi *aoi_hovering;	/* hovering over this aoi */
+
+	struct overlay *overlays;
 
 	struct gui_sheet *curr_sheet;
 				/* current sheet */
@@ -141,6 +149,126 @@ static void aoi_click(struct gui_ctx *ctx, int x, int y)
 }
 
 
+/* ----- Overlays ---------------------------------------------------------- */
+
+
+struct overlay {
+	const char *s;
+	struct overlay *next;
+};
+
+
+#define	OVER_FONT_SIZE	16
+#define	OVER_BORDER	8
+#define	OVER_RADIUS	6
+#define	OVER_SEP	8
+#define	OVER_X0		10
+#define	OVER_Y0		10
+
+
+static void rrect(cairo_t *cr, int x, int y, int w, int h, int r)
+{
+	const double deg = M_PI / 180.0;
+
+	// https://www.cairographics.org/samples/rounded_rectangle/
+
+	cairo_new_path(cr);
+	cairo_arc(cr, x + w - r, y + r, r, -90 * deg, 0);
+	cairo_arc(cr, x + w - r, y + h - r, r, 0, 90 * deg);
+	cairo_arc(cr, x + r, y + h - r, r, 90 * deg, 180 * deg);
+	cairo_arc(cr, x + r, y + r, r, 180 * deg, 270 * deg);
+	cairo_close_path(cr);
+}
+
+
+static void overlay_draw(const struct overlay *over, cairo_t *cr,
+    int *x, int *y)
+{
+	cairo_text_extents_t ext;
+
+	cairo_set_font_size(cr, OVER_FONT_SIZE);
+	cairo_text_extents(cr, over->s, &ext);
+
+	rrect(cr, *x, *y,
+	    ext.width + 2 * OVER_BORDER, ext.height + 2 * OVER_BORDER,
+	    OVER_RADIUS);
+
+	cairo_set_source_rgba(cr, 0.8, 0.9, 1, 0.8);
+	cairo_fill_preserve(cr);
+	cairo_set_source_rgba(cr, 0.5, 0.5, 1, 0.7);
+	cairo_set_line_width(cr, 2);
+	cairo_stroke(cr);
+
+	cairo_set_source_rgb(cr, 0, 0, 0);
+	cairo_move_to(cr, *x + OVER_BORDER, *y + OVER_BORDER + ext.height);
+	cairo_show_text(cr, over->s);
+
+	*y += ext.height + OVER_SEP;
+}
+
+
+static void overlay_draw_all(const struct gui_ctx *ctx, cairo_t *cr)
+{
+	const struct overlay *over;
+	int x = OVER_X0;
+	int y = OVER_Y0;
+
+	for (over = ctx->overlays; over; over = over->next)
+		overlay_draw(over, cr, &x, &y);
+}
+
+
+static struct overlay *overlay_add(struct gui_ctx *ctx, const char *s)
+{
+	struct overlay *over;
+	struct overlay **anchor;
+	
+	over = alloc_type(struct overlay);
+	over->s = stralloc(s);
+
+	for (anchor = &ctx->overlays; *anchor; anchor = &(*anchor)->next);
+	over->next = NULL;
+	*anchor = over;
+
+	return over;
+}
+
+
+static void overlay_free(struct overlay *over)
+{
+	free((void *) over->s);
+	free(over);
+}
+
+
+static void overlay_remove(struct gui_ctx *ctx, struct overlay *over)
+{
+	struct overlay **anchor;
+
+	for (anchor = &ctx->overlays; *anchor; anchor = &(*anchor)->next)
+		if (*anchor == over) {
+			*anchor = over->next;
+			overlay_free(over);
+			redraw(ctx);
+			return;
+		}
+	abort();
+}
+
+
+static void overlay_remove_all(struct gui_ctx *ctx)
+{
+	struct overlay *next;
+
+	while (ctx->overlays) {
+		next = ctx->overlays->next;
+		overlay_free(ctx->overlays);
+		ctx->overlays = next;
+	}
+	redraw(ctx);
+}
+
+
 /* ----- Rendering --------------------------------------------------------- */
 
 
@@ -158,6 +286,8 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	x = -(sheet->xmin + ctx->x) * f + alloc.width / 2;
 	y = -(sheet->ymin + ctx->y) * f + alloc.height / 2;
 	cro_canvas_draw(sheet->gfx_ctx, cr, x, y, f);
+
+	overlay_draw_all(ctx, cr);
 
 	return FALSE;
 }
@@ -338,6 +468,16 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event,
 }
 
 
+static void set_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
+{
+	if (sheet->prev == sheet)
+		sheet->prev = NULL;
+	ctx->curr_sheet = sheet;
+	overlay_remove_all(ctx);
+	zoom_to_extents(ctx);
+}
+
+
 static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
     gpointer data)
 {
@@ -359,19 +499,13 @@ static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
 		zoom_to_extents(ctx);
 		break;
 	case GDK_KEY_Home:
-		if (sheet != ctx->sheets) {
-			sheet->prev = NULL;
-			ctx->curr_sheet = ctx->sheets;
-			zoom_to_extents(ctx);
-		}
+		if (sheet != ctx->sheets)
+			set_sheet(ctx, ctx->sheets);
 		break;
 	case GDK_KEY_BackSpace:
 	case GDK_KEY_Delete:
-		if (sheet->prev) {
-			ctx->curr_sheet = sheet->prev;
-			sheet->prev = NULL;
-			zoom_to_extents(ctx);
-		}
+		if (sheet->prev)
+			set_sheet(ctx, sheet->prev);
 		break;
 	case GDK_KEY_q:
 		gtk_main_quit();
@@ -418,12 +552,11 @@ static void select_subsheet(struct gui_ctx *ctx, void *user)
 	const struct sch_obj *obj = user;
 	struct gui_sheet *sheet;
 
-	fprintf(stderr, "%s\n", obj->u.sheet.name);
 	for (sheet = ctx->sheets; sheet; sheet = sheet->next)
 		if (sheet->sch == obj->u.sheet.sheet) {
 			sheet->prev = ctx->curr_sheet;
-			ctx->curr_sheet = sheet;
-			zoom_to_extents(ctx);
+			set_sheet(ctx, sheet);
+			overlay_add(ctx, obj->u.sheet.name);
 			return;
 		}
 	abort();
@@ -487,6 +620,7 @@ int gui(const struct sheet *sheets)
 	struct gui_ctx ctx = {
 		.zoom		= 4,	/* scale by 1 / 16 */
 		.panning	= 0,
+		.overlays	= NULL,
 	};
 
 	get_sheets(&ctx, sheets);
