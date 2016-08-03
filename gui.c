@@ -103,16 +103,32 @@ static void canvas_coord(const struct gui_ctx *ctx,
 
 static void pan_begin(struct gui_ctx *ctx, int x, int y)
 {
+	if (ctx->panning)
+		return;
+	ctx->panning = 1;
+	ctx->pan_x = x;
+	ctx->pan_y = y;
 }
 
 
 static void pan_update(struct gui_ctx *ctx, int x, int y)
 {
+	if (!ctx->panning)
+		return;
+	
+	ctx->x -= (x - ctx->pan_x) << ctx->zoom;
+	ctx->y -= (y - ctx->pan_y) << ctx->zoom;
+	ctx->pan_x = x;
+	ctx->pan_y = y;
+
+	gtk_widget_queue_draw(ctx->da);
 }
 
 
 static void pan_end(struct gui_ctx *ctx, int x, int y)
 {
+	pan_update(ctx, x, y);
+	ctx->panning = 0;
 }
 
 
@@ -153,7 +169,7 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
 
 	canvas_coord(ctx, event->x, event->y, &x, &y);
 //	fprintf(stderr, "motion\n");
-	pan_update(ctx, x, y);
+	pan_update(ctx, event->x, event->y);
 	return TRUE;
 }
 
@@ -168,11 +184,12 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event,
 	fprintf(stderr, "button press\n");
 	switch (event->button) {
 	case 1:
+		break;
 	case 2:
-		pan_begin(ctx, x, y);
+		pan_begin(ctx, event->x, event->y);
 		break;
 	case 3:
-		;
+		break;
 	}
 	return TRUE;
 }
@@ -188,11 +205,12 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event,
 	fprintf(stderr, "button release\n");
 	switch (event->button) {
 	case 1:
+		break;
 	case 2:
-		pan_end(ctx, x, y);
+		pan_end(ctx, event->x, event->y);
 		break;
 	case 3:
-		;
+		break;
 	}
 	return TRUE;
 }
