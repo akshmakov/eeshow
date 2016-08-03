@@ -176,8 +176,8 @@ static void render(struct gui_ctx *ctx, struct gui_sheet *sheet)
 static void canvas_coord(const struct gui_ctx *ctx,
     int ex, int ey, int *x, int *y)
 {
-	int sx, sy;
 	GtkAllocation alloc;
+	int sx, sy;
 
 	gtk_widget_get_allocation(ctx->da, &alloc);
 	sx = ex - alloc.width / 2;
@@ -243,6 +243,24 @@ static void zoom_out(struct gui_ctx *ctx, int x, int y)
 	ctx->zoom++;
 	ctx->x = 2 * ctx->x - x;
 	ctx->y = 2 * ctx->y - y;
+	gtk_widget_queue_draw(ctx->da);
+}
+
+
+static void zoom_to_extents(struct gui_ctx *ctx)
+{
+	const struct gui_sheet *sheet = ctx->curr_sheet;
+	GtkAllocation alloc;
+
+	ctx->x = sheet->w / 2;
+	ctx->y = sheet->h / 2;
+
+	gtk_widget_get_allocation(ctx->da, &alloc);
+	ctx->zoom = 0;
+	while (sheet->w >> ctx->zoom > alloc.width ||
+	    sheet->h >> ctx->zoom > alloc.height)
+		ctx->zoom++;
+
 	gtk_widget_queue_draw(ctx->da);
 }
 
@@ -328,12 +346,15 @@ static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
 	case '-':
 		zoom_out(ctx, x, y);
 		break;
+	case '*':
+		zoom_to_extents(ctx);
+		break;
 	case GDK_KEY_BackSpace:
 	case GDK_KEY_Delete:
 		if (sheet->prev) {
 			ctx->curr_sheet = sheet->prev;
 			sheet->prev = NULL;
-			gtk_widget_queue_draw(ctx->da);
+			zoom_to_extents(ctx);
 		}
 		break;
 	case GDK_KEY_q:
@@ -377,7 +398,7 @@ static void select_subsheet(struct gui_ctx *ctx, void *user)
 		if (sheet->sch == obj->u.sheet.sheet) {
 			sheet->prev = ctx->curr_sheet;
 			ctx->curr_sheet = sheet;
-			gtk_widget_queue_draw(ctx->da);
+			zoom_to_extents(ctx);
 			return;
 		}
 	abort();
@@ -479,6 +500,7 @@ int gui(const struct sheet *sheets)
 	gtk_window_set_title(GTK_WINDOW(window), "eeshow");
 
 	gtk_widget_show_all(window);
+	zoom_to_extents(&ctx);
 
 	gtk_main();
 
