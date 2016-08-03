@@ -35,6 +35,9 @@ struct gui_ctx {
 	int w, h;
 	int xmin, ymin;
 
+	int curr_x;		/* last on-screen mouse position */
+	int curr_y;
+
 	unsigned zoom;		/* scale by 1.0 / (1 << zoom) */
 	int x, y;		/* center, in eeschema coordinates */
 
@@ -167,6 +170,9 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
 	struct gui_ctx *ctx = data;
 	int x, y;
 
+	ctx->curr_x = event->x;
+	ctx->curr_y = event->y;
+
 	canvas_coord(ctx, event->x, event->y, &x, &y);
 //	fprintf(stderr, "motion\n");
 	pan_update(ctx, event->x, event->y);
@@ -219,8 +225,18 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event,
 static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
     gpointer data)
 {
-fprintf(stderr, "key %d\n", event->keyval);
+	struct gui_ctx *ctx = data;
+	int x, y;
+
+	canvas_coord(ctx, ctx->curr_x, ctx->curr_y, &x, &y);
 	switch (event->keyval) {
+	case '+':
+	case '=':
+		zoom_in(ctx, x, y);
+		break;
+	case '-':
+		zoom_out(ctx, x, y);
+		break;
 	case GDK_KEY_q:
 		gtk_main_quit();
 	}
