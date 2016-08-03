@@ -67,8 +67,8 @@ struct sch_obj {
 		} comp;
 		struct sch_sheet {
 			unsigned h, w;
-			const char *sheet;
-			unsigned sheet_dim;
+			const char *name;
+			unsigned name_dim;
 			const char *file;
 			unsigned file_dim;
 			bool rotated;

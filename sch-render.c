@@ -69,17 +69,17 @@ static void do_hsheet_text(const struct sch_obj *obj,
 {
 	char *s;
 
-	assert(sheet->sheet && sheet->file);
+	assert(sheet->name && sheet->file);
 
 	struct text sheet_txt = {
-		.size = sheet->sheet_dim,
+		.size = sheet->name_dim,
 		.x = obj->x,
 		.y = obj->y,
 		.rot = 0,
 		.hor = text_min,
 		.vert = text_min,
 	};
-	if (asprintf(&s, "Sheet: %s", sheet->sheet)) {}
+	if (asprintf(&s, "Sheet: %s", sheet->name)) {}
 	sheet_txt.s = s; /* work around "const" mismatch */
 
 	struct text file_txt = {

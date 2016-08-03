@@ -211,8 +211,8 @@ static bool parse_hsheet_field(struct sch_ctx *ctx, const char *line)
 	if (sscanf(line, "F%d \"%m[^\"]\" %u", &n, &s, &dim) == 3) {
 		switch (n) {
 		case 0:
-			sheet->sheet = s;
-			sheet->sheet_dim = dim;
+			sheet->name = s;
+			sheet->name_dim = dim;
 			return 1;
 		case 1:
 			sheet->file = s;
@@ -335,7 +335,7 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 		}
 		if (sscanf(line, "$Sheet%n", &n) == 0 && n) {
 			ctx->state = sch_sheet;
-			obj->u.sheet.sheet = NULL;
+			obj->u.sheet.name = NULL;
 			obj->u.sheet.file = NULL;
 			obj->u.sheet.rotated = 0;
 			obj->u.sheet.fields = NULL;
