@@ -303,21 +303,25 @@ static void *cr_pdf_init(int argc, char *const *argv)
 }
 
 
-static void end_common(struct cro_ctx *cc, int *w, int *h)
+static void end_common(struct cro_ctx *cc, int *w, int *h, int *x, int *y)
 {
-	int x, y;
+	int xmin, ymin;
 
 	cairo_surface_destroy(cc->s);
 	cairo_destroy(cc->cr);
 
-	record_bbox(&cc->record, &x, &y, w, h);
+	record_bbox(&cc->record, &xmin, &ymin, w, h);
 
-//	fprintf(stderr, "%dx%d%+d%+d\n", *w, *h, x, y);
-	cc->xo = -cd(cc, x);
-	cc->yo = -cd(cc, y);
+//	fprintf(stderr, "%dx%d%+d%+d\n", *w, *h, xmin, ymin);
+	cc->xo = -cd(cc, xmin);
+	cc->yo = -cd(cc, ymin);
+	if (x)
+		*x = xmin;
+	if (y)
+		*y = ymin;
 	*w = cd(cc, *w);
 	*h = cd(cc, *h);
-//	fprintf(stderr, "%dx%d%+d%+d\n", *w, *h, x, y);
+//	fprintf(stderr, "%dx%d%+d%+d\n", *w, *h, xmin, ymin);
 }
 
 
@@ -339,7 +343,7 @@ static void cr_png_end(void *ctx)
 	struct cro_ctx *cc = ctx;
 	int w, h;
 
-	end_common(cc, &w, &h);
+	end_common(cc, &w, &h, NULL, NULL);
 
 	cc->s = cairo_image_surface_create(CAIRO_FORMAT_RGB24, w, h);
 	cc->cr = cairo_create(cc->s);
@@ -380,7 +384,7 @@ static void cr_pdf_end(void *ctx)
 	int w, h;
 	unsigned i;
 
-	end_common(cc, &w, &h);
+	end_common(cc, &w, &h, NULL, NULL);
 
 	if (cc->output_name)
 		cc->s = cairo_pdf_surface_create(cc->output_name, w, h);
@@ -419,7 +423,7 @@ uint32_t *cro_img_end(struct cro_ctx *cc, int *w, int *h, int *stride)
 {
 	uint32_t *data;
 
-	end_common(cc, w, h);
+	end_common(cc, w, h, NULL, NULL);
 
 	*stride = cairo_format_stride_for_width(CAIRO_FORMAT_RGB24, *w);
 	data = alloc_size(*stride * *h);
@@ -453,15 +457,16 @@ void cro_img_write(struct cro_ctx *cc, const char *name)
 }
 
 
-void cro_canvas_end(struct cro_ctx *cc)
+void cro_canvas_end(struct cro_ctx *cc, int *w, int *h, int *xmin, int *ymin)
 {
-	int w, h;
-
-	end_common(cc, &w, &h);
+	end_common(cc, w, h, xmin, ymin);
+	*w /= cc->scale;
+	*h /= cc->scale;
 }
 
 
-void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr)
+void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr, int xo, int yo,
+    float scale)
 {
 	set_color(cr, COLOR_WHITE);
 	cairo_paint(cr);
@@ -473,6 +478,9 @@ void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr)
 	cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
 
 	cc->cr = cr;
+	cc->scale = scale;
+	cc->xo = xo;
+	cc->yo = yo;
 	record_replay(&cc->record);
 }
 
