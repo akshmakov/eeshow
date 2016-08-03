@@ -262,7 +262,7 @@ static bool parse_hsheet_field(struct sch_ctx *ctx, const char *line)
 /* ----- Schematics parser ------------------------------------------------- */
 
 
-static void submit_obj(struct sch_ctx *ctx, enum sch_obj_type type)
+static struct sch_obj *submit_obj(struct sch_ctx *ctx, enum sch_obj_type type)
 {
 	struct sch_obj *obj;
 
@@ -273,6 +273,8 @@ static void submit_obj(struct sch_ctx *ctx, enum sch_obj_type type)
 
 	*ctx->curr_sheet->next_obj = obj;
 	ctx->curr_sheet->next_obj = &obj->next;
+
+	return obj;
 }
 
 
@@ -305,17 +307,21 @@ static void end_sheet(struct sch_ctx *ctx)
 static bool parse_line(const struct file *file, void *user, const char *line);
 
 
-static void recurse_sheet(struct sch_ctx *ctx, const struct file *related)
+static const struct sheet *recurse_sheet(struct sch_ctx *ctx,
+    const struct file *related)
 {
 	const char *name = ctx->obj.u.sheet.file;
+	const struct sheet *sheet;
 	struct file file;
 
-	new_sheet(ctx);
+	sheet = new_sheet(ctx);
 	ctx->state = sch_descr;
 	file_open(&file, name, related);
 	file_read(&file, parse_line, ctx);
 	file_close(&file);
 	end_sheet(ctx);
+
+	return sheet;
 }
 
 
@@ -339,6 +345,7 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 			obj->u.sheet.file = NULL;
 			obj->u.sheet.rotated = 0;
 			obj->u.sheet.fields = NULL;
+			obj->u.sheet.sheet = NULL;
 			return 1;
 		}
 
@@ -470,9 +477,12 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 		break;
 	case sch_sheet:
 		if (sscanf(line, "$EndSheet%n", &n) == 0 && n) {
-			submit_obj(ctx, sch_obj_sheet);
+			struct sch_obj *sheet_obj;
+
+			sheet_obj = submit_obj(ctx, sch_obj_sheet);
 			if (ctx->recurse)
-				recurse_sheet(ctx, file);
+				sheet_obj->u.sheet.sheet =
+				    recurse_sheet(ctx, file);
 			ctx->state = sch_basic;
 			return 1;
 		}

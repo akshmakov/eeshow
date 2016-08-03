@@ -31,6 +31,8 @@ enum sch_state {
 	sch_wire,	/* wire */
 };
 
+struct sheet;
+
 struct sch_obj {
 	enum sch_obj_type {
 		sch_obj_wire,
@@ -72,6 +74,7 @@ struct sch_obj {
 			const char *file;
 			unsigned file_dim;
 			bool rotated;
+			const struct sheet *sheet; /* pointer to sub-sheet */
 
 			struct sheet_field {
 				char *s;
