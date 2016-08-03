@@ -31,10 +31,10 @@ extern const struct gfx_ops cro_pdf_ops;
 #define	cro_canvas_ops	cro_png_ops	/* just don't call cro_canvas_ops.end */
 
 
-uint32_t *cro_img_end(void *ctx, int *w, int *h, int *stride);
-void cro_img_write(void *ctx, const char *name);
+uint32_t *cro_img_end(struct cro_ctx *cc, int *w, int *h, int *stride);
+void cro_img_write(struct cro_ctx *cc, const char *name);
 
-void cro_canvas_end(void *ctx);
+void cro_canvas_end(struct cro_ctx *cc);
 void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr);
 
 #endif /* !CRO_H */

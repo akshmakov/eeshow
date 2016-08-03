@@ -415,9 +415,8 @@ static void cr_pdf_end(void *ctx)
 }
 
 
-uint32_t *cro_img_end(void *ctx, int *w, int *h, int *stride)
+uint32_t *cro_img_end(struct cro_ctx *cc, int *w, int *h, int *stride)
 {
-	struct cro_ctx *cc = ctx;
 	uint32_t *data;
 
 	end_common(cc, w, h);
@@ -444,10 +443,8 @@ uint32_t *cro_img_end(void *ctx, int *w, int *h, int *stride)
 }
 
 
-void cro_img_write(void *ctx, const char *name)
+void cro_img_write(struct cro_ctx *cc, const char *name)
 {
-	struct cro_ctx *cc = ctx;
-
 	if (name)
 		cairo_surface_write_to_png(cc->s, name);
 	else
@@ -456,9 +453,8 @@ void cro_img_write(void *ctx, const char *name)
 }
 
 
-void cro_canvas_end(void *ctx)
+void cro_canvas_end(struct cro_ctx *cc)
 {
-	struct cro_ctx *cc = ctx;
 	int w, h;
 
 	end_common(cc, &w, &h);
