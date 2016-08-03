@@ -385,6 +385,15 @@ static gboolean scroll_event(GtkWidget *widget, GdkEventScroll *event,
 }
 
 
+static void size_allocate_event(GtkWidget *widget, GdkRectangle *allocation,
+    gpointer data)
+{
+	struct gui_ctx *ctx = data;
+
+	zoom_to_extents(ctx);
+}
+
+
 /* ----- AoI callbacks ----------------------------------------------------- */
 
 
@@ -483,6 +492,9 @@ int gui(const struct sheet *sheets)
 	    G_CALLBACK(scroll_event), &ctx);
 	g_signal_connect(G_OBJECT(ctx.da), "key_press_event",
 	    G_CALLBACK(key_press_event), &ctx);
+	g_signal_connect(G_OBJECT(ctx.da), "size_allocate",
+	    G_CALLBACK(size_allocate_event), &ctx);
+
 	g_signal_connect(window, "destroy",
 	    G_CALLBACK(gtk_main_quit), NULL);
 
