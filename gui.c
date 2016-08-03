@@ -75,6 +75,15 @@ struct gui_ctx {
 };
 
 
+/* ----- Helper functions -------------------------------------------------- */
+
+
+static void redraw(const struct gui_ctx *ctx)
+{
+	gtk_widget_queue_draw(ctx->da);
+}
+
+
 /* ----- Area of intereest ------------------------------------------------- */
 
 
@@ -210,7 +219,7 @@ static void pan_update(struct gui_ctx *ctx, int x, int y)
 	ctx->pan_x = x;
 	ctx->pan_y = y;
 
-	gtk_widget_queue_draw(ctx->da);
+	redraw(ctx);
 }
 
 
@@ -232,7 +241,7 @@ static void zoom_in(struct gui_ctx *ctx, int x, int y)
 	ctx->zoom--;
 	ctx->x = (ctx->x + x) / 2;
 	ctx->y = (ctx->y + y) / 2;
-	gtk_widget_queue_draw(ctx->da);
+	redraw(ctx);
 }
 
 
@@ -243,7 +252,7 @@ static void zoom_out(struct gui_ctx *ctx, int x, int y)
 	ctx->zoom++;
 	ctx->x = 2 * ctx->x - x;
 	ctx->y = 2 * ctx->y - y;
-	gtk_widget_queue_draw(ctx->da);
+	redraw(ctx);
 }
 
 
@@ -261,7 +270,7 @@ static void zoom_to_extents(struct gui_ctx *ctx)
 	    sheet->h >> ctx->zoom > alloc.height)
 		ctx->zoom++;
 
-	gtk_widget_queue_draw(ctx->da);
+	redraw(ctx);
 }
 
 
