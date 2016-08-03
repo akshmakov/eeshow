@@ -349,6 +349,13 @@ static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
 	case '*':
 		zoom_to_extents(ctx);
 		break;
+	case GDK_KEY_Home:
+		if (sheet != ctx->sheets) {
+			sheet->prev = NULL;
+			ctx->curr_sheet = ctx->sheets;
+			zoom_to_extents(ctx);
+		}
+		break;
 	case GDK_KEY_BackSpace:
 	case GDK_KEY_Delete:
 		if (sheet->prev) {
