@@ -50,6 +50,8 @@ struct gui_sheet {
 
 	struct aoi *aois;	/* areas of interest */
 
+	struct gui_sheet *prev;	/* previous in stack */
+
 	struct gui_sheet *next;
 };
 
@@ -67,7 +69,7 @@ struct gui_ctx {
 
 	const struct aoi *aoi_hovering;	/* hovering over this aoi */
 
-	const struct gui_sheet *curr_sheet;
+	struct gui_sheet *curr_sheet;
 				/* current sheet */
 	struct gui_sheet *sheets;
 };
@@ -273,7 +275,7 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event,
 	int x, y;
 
 	canvas_coord(ctx, event->x, event->y, &x, &y);
-	fprintf(stderr, "button press\n");
+
 	switch (event->button) {
 	case 1:
 		aoi_click(ctx, x, y);
@@ -295,7 +297,7 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event,
 	int x, y;
 
 	canvas_coord(ctx, event->x, event->y, &x, &y);
-	fprintf(stderr, "button release\n");
+
 	switch (event->button) {
 	case 1:
 		break;
@@ -313,9 +315,11 @@ static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
     gpointer data)
 {
 	struct gui_ctx *ctx = data;
+	struct gui_sheet *sheet = ctx->curr_sheet;
 	int x, y;
 
 	canvas_coord(ctx, ctx->curr_x, ctx->curr_y, &x, &y);
+
 	switch (event->keyval) {
 	case '+':
 	case '=':
@@ -323,6 +327,14 @@ static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
 		break;
 	case '-':
 		zoom_out(ctx, x, y);
+		break;
+	case GDK_KEY_BackSpace:
+	case GDK_KEY_Delete:
+		if (sheet->prev) {
+			ctx->curr_sheet = sheet->prev;
+			sheet->prev = NULL;
+			gtk_widget_queue_draw(ctx->da);
+		}
 		break;
 	case GDK_KEY_q:
 		gtk_main_quit();
@@ -358,11 +370,12 @@ static gboolean scroll_event(GtkWidget *widget, GdkEventScroll *event,
 static void select_subsheet(struct gui_ctx *ctx, void *user)
 {
 	const struct sch_obj *obj = user;
-	const struct gui_sheet *sheet;
+	struct gui_sheet *sheet;
 
 	fprintf(stderr, "%s\n", obj->u.sheet.name);
 	for (sheet = ctx->sheets; sheet; sheet = sheet->next)
 		if (sheet->sch == obj->u.sheet.sheet) {
+			sheet->prev = ctx->curr_sheet;
 			ctx->curr_sheet = sheet;
 			gtk_widget_queue_draw(ctx->da);
 			return;
@@ -409,8 +422,9 @@ static void get_sheets(struct gui_ctx *ctx, const struct sheet *sheets)
 	for (sheet = sheets; sheet; sheet = sheet->next) {
 		gui_sheet = alloc_type(struct gui_sheet);
 		gui_sheet->sch = sheet;
-		render(ctx, gui_sheet);
+		gui_sheet->prev = NULL;
 
+		render(ctx, gui_sheet);
 		mark_aois(gui_sheet);
 
 		*next = gui_sheet;
