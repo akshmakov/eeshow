@@ -167,7 +167,7 @@ found:
 	file_close(&sch_file);
 
 	if (!have_dashdash)
-		return gui(&sch_ctx);
+		return gui(sch_ctx.sheets);
 
 	gfx_init(*ops, gfx_argc, gfx_argv);
 	if (recurse) {

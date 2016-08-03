@@ -16,6 +16,6 @@
 #include "sch.h"
 
 
-int gui(struct sch_ctx *sch);
+int gui(const struct sheet *sheets);
 
 #endif /* !GUI_H */

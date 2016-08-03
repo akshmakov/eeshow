@@ -21,19 +21,26 @@
 
 #include <gtk/gtk.h>
 
+#include "util.h"
 #include "cro.h"
 #include "gfx.h"
 #include "sch.h"
 #include "gui.h"
 
 
-struct gui_ctx {
-	GtkWidget *da;
-	const struct sch_ctx *sch;
-
+struct gui_sheet {
+	const const struct sheet *sch;
 	struct cro_ctx *gfx_ctx;
+
 	int w, h;
 	int xmin, ymin;
+
+	struct gui_sheet *next;
+};
+
+
+struct gui_ctx {
+	GtkWidget *da;
 
 	int curr_x;		/* last on-screen mouse position */
 	int curr_y;
@@ -43,6 +50,11 @@ struct gui_ctx {
 
 	bool panning;
 	int pan_x, pan_y;
+
+	const struct gui_sheet *curr_sheet;
+				/* current sheet */
+
+	struct gui_sheet *sheets;
 } gui_ctx;
 
 
@@ -53,33 +65,33 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
     gpointer user_data)
 {
 	const struct gui_ctx *ctx = user_data;
+	const struct gui_sheet *sheet = ctx->curr_sheet;
 	GtkAllocation alloc;
 
 	float f = 1.0 / (1 << ctx->zoom);
 	int x, y;
 
 	gtk_widget_get_allocation(ctx->da, &alloc);
-//	x = -(ctx->xo - ctx->w / 2) * f - (ctx->x - alloc.width / 2);
-//	y = -(ctx->yo - ctx->h / 2) * f - (ctx->y - alloc.height / 2);
-	x = -(ctx->xmin + ctx->x) * f + alloc.width / 2;
-	y = -(ctx->ymin + ctx->y) * f + alloc.height / 2;
-	cro_canvas_draw(ctx->gfx_ctx, cr, x, y, f);
+	x = -(sheet->xmin + ctx->x) * f + alloc.width / 2;
+	y = -(sheet->ymin + ctx->y) * f + alloc.height / 2;
+	cro_canvas_draw(sheet->gfx_ctx, cr, x, y, f);
 
 	return FALSE;
 }
 
 
-static void render(struct gui_ctx *ctx)
+static void render(struct gui_ctx *ctx, struct gui_sheet *sheet)
 {
 	char *argv[] = { "gui", NULL };
 
 	gfx_init(&cro_canvas_ops, 1, argv);
-	sch_render(ctx->sch->sheets);
-	cro_canvas_end(gfx_ctx, &ctx->w, &ctx->h, &ctx->xmin, &ctx->ymin);
-	ctx->gfx_ctx = gfx_ctx;
+	sch_render(sheet->sch);
+	cro_canvas_end(gfx_ctx,
+	    &sheet->w, &sheet->h, &sheet->xmin, &sheet->ymin);
+	sheet->gfx_ctx = gfx_ctx;
 
-	ctx->x = ctx->w >> 1;
-	ctx->y = ctx->h >> 1;
+	ctx->x = sheet->w >> 1;
+	ctx->y = sheet->h >> 1;
 	// gfx_end();
 }
 
@@ -152,7 +164,7 @@ static void zoom_in(struct gui_ctx *ctx, int x, int y)
 
 static void zoom_out(struct gui_ctx *ctx, int x, int y)
 {
-	if (ctx->w >> ctx->zoom <= 16)
+	if (ctx->curr_sheet->w >> ctx->zoom <= 16)
 		return;
 	ctx->zoom++;
 	ctx->x = 2 * ctx->x - x;
@@ -268,16 +280,33 @@ static gboolean scroll_event(GtkWidget *widget, GdkEventScroll *event,
 /* ----- Initialization ---------------------------------------------------- */
 
 
-int gui(struct sch_ctx *sch)
+static void get_sheets( struct gui_ctx *ctx, const struct sheet *sheets)
+{
+	const struct sheet *sheet;
+	struct gui_sheet **next = &ctx->sheets;
+	struct gui_sheet *gui_sheet;
+
+	for (sheet = sheets; sheet; sheet = sheet->next) {
+		gui_sheet = alloc_type(struct gui_sheet);
+		gui_sheet->sch = sheet;
+		render(ctx, gui_sheet);
+		*next = gui_sheet;
+		next = &gui_sheet->next;
+	}
+	*next = NULL;
+	ctx->curr_sheet = ctx->sheets;
+}
+
+
+int gui(const struct sheet *sheets)
 {
 	GtkWidget *window;
 	struct gui_ctx ctx = {
-		.sch		= sch,
 		.zoom		= 4,	/* scale by 1 / 16 */
 		.panning	= 0,
 	};
 
-	render(&ctx);
+	get_sheets(&ctx, sheets);
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
