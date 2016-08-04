@@ -35,4 +35,6 @@ Key functions in GUI mode
 *			zoom to extents
 Home			go to the top sheet
 Delete or Backspace	go to the previous sheet
+PgUp			go to the previous sheet in sequence
+PgDn			go to the next sheet in sequence
 Q			quit the viewer

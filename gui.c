@@ -217,10 +217,24 @@ static void zoom_to_extents(struct gui_ctx *ctx)
 /* ----- Navigate sheets --------------------------------------------------- */
 
 
+static bool go_up_sheet(struct gui_ctx *ctx);
+
+
+static void close_subsheet(void *user)
+{
+	struct gui_ctx *ctx = user;
+
+	go_up_sheet(ctx);
+}
+
+
 static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
 {
 	ctx->curr_sheet = sheet;
 	overlay_remove_all(&ctx->overlays);
+	if (sheet->sch->title)
+		overlay_add(&ctx->overlays, sheet->sch->title,
+		    &ctx->aois, NULL, close_subsheet, ctx);
 	zoom_to_extents(ctx);
 }
 
@@ -238,6 +252,28 @@ static bool go_up_sheet(struct gui_ctx *ctx)
 				return 1;
 			}
 	return 0;
+}
+
+
+static bool go_prev_sheet(struct gui_ctx *ctx)
+{
+	struct gui_sheet *sheet;
+
+	for (sheet = ctx->sheets; sheet; sheet = sheet->next)
+		if (sheet->next && sheet->next == ctx->curr_sheet) {
+			go_to_sheet(ctx, sheet);
+			return 1;
+		}
+	return 0;
+}
+
+
+static bool go_next_sheet(struct gui_ctx *ctx)
+{
+	if (!ctx->curr_sheet->next)
+		return 0;
+	go_to_sheet(ctx, ctx->curr_sheet->next);
+	return 1;
 }
 
 
@@ -338,6 +374,14 @@ static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
 	case GDK_KEY_Delete:
 		go_up_sheet(ctx);
 		break;
+	case GDK_KEY_Page_Up:
+	case GDK_KEY_KP_Page_Up:
+		go_prev_sheet(ctx);
+		break;
+	case GDK_KEY_Page_Down:
+	case GDK_KEY_KP_Page_Down:
+		go_next_sheet(ctx);
+		break;
 	case GDK_KEY_q:
 		gtk_main_quit();
 	}
@@ -384,14 +428,6 @@ struct sheet_aoi_ctx {
 };
 
 
-static void close_subsheet(void *user)
-{
-	struct gui_ctx *ctx = user;
-
-	go_up_sheet(ctx);
-}
-
-
 static void select_subsheet(void *user)
 {
 	const struct sheet_aoi_ctx *aoi_ctx = user;
@@ -401,13 +437,7 @@ static void select_subsheet(void *user)
 
 	for (sheet = ctx->sheets; sheet; sheet = sheet->next)
 		if (sheet->sch == obj->u.sheet.sheet) {
-			const char *name;
-
 			go_to_sheet(ctx, sheet);
-			name = sheet->sch->title ? sheet->sch->title :
-			    obj->u.sheet.name;
-			overlay_add(&ctx->overlays, name,
-			    &ctx->aois, NULL, close_subsheet, ctx);
 			return;
 		}
 	abort();
@@ -524,7 +554,7 @@ int gui(const struct sheet *sheets)
 	gtk_window_set_title(GTK_WINDOW(window), "eeshow");
 
 	gtk_widget_show_all(window);
-	zoom_to_extents(&ctx);
+	go_to_sheet(&ctx, ctx.sheets);
 
 	gtk_main();
 
