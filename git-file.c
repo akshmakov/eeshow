@@ -372,7 +372,7 @@ static bool related_same_repo(struct vcs_git *vcs_git)
 static bool related_other_repo(struct vcs_git *vcs_git)
 {
 	/* @@@ find revision <= date of revision in related */
-	fprintf(stderr, "related_other_repo is no yet implemented\n");
+	fprintf(stderr, "warning: related_other_repo is not yet implemented\n");
 	return 0;
 }
 
