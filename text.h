@@ -28,11 +28,11 @@ enum text_style {
 };
 
 struct text {
-        const char *s;
+	const char *s;
 	int size;
-        int x, y;
-        int rot;
-        enum text_align hor;
+	int x, y;
+	int rot;
+	enum text_align hor;
 	enum text_align vert;
 };
 

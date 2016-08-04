@@ -58,7 +58,7 @@ void gfx_arc(int x, int y, int r, int sa, int ea,
     int color, int fill_color, unsigned layer);
 void gfx_text(int x, int y, const char *s, unsigned size,
     enum text_align align, int rot, unsigned color, unsigned layer);
-void gfx_tag(const char *s, 
+void gfx_tag(const char *s,
     unsigned points, const int x[points], int const y[points]);
 unsigned gfx_text_width(const char *s, unsigned size);
 

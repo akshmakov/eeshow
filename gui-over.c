@@ -124,7 +124,7 @@ struct overlay *overlay_add(struct overlay **overlays, const char *s,
 {
 	struct overlay *over;
 	struct overlay **anchor;
-	
+
 	over = alloc_type(struct overlay);
 	over->s = stralloc(s);
 

@@ -153,7 +153,7 @@ static void pan_update(struct gui_ctx *ctx, int x, int y)
 {
 	if (!ctx->panning)
 		return;
-	
+
 	ctx->x -= (x - ctx->pan_x) << ctx->zoom;
 	ctx->y -= (y - ctx->pan_y) << ctx->zoom;
 	ctx->pan_x = x;
@@ -433,7 +433,7 @@ static void select_subsheet(void *user)
 	const struct sheet_aoi_ctx *aoi_ctx = user;
 	struct gui_ctx *ctx = aoi_ctx->gui_ctx;
 	const struct sch_obj *obj = aoi_ctx->obj;
-        struct gui_sheet *sheet;
+	struct gui_sheet *sheet;
 
 	for (sheet = ctx->sheets; sheet; sheet = sheet->next)
 		if (sheet->sch == obj->u.sheet.sheet) {

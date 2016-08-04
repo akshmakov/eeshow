@@ -235,7 +235,7 @@ static bool lib_parse_line(const struct file *file,
 			return 1;
 		}
 		if (sscanf(line, "X %ms %ms %d %d %d %c %d %d %u %u %c",
-		    &obj->u.pin.name, &obj->u.pin.number, 
+		    &obj->u.pin.name, &obj->u.pin.number,
 		    &obj->u.pin.x, &obj->u.pin.y, &obj->u.pin.length,
 		    &obj->u.pin.orient,
 		    &obj->u.pin.number_size, &obj->u.pin.name_size,

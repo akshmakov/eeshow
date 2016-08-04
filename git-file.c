@@ -312,7 +312,7 @@ static const void *get_data(git_repository *repo, git_tree_entry *entry,
 	}
 
 	if (verbose > 2) {
-		git_buf buf = { 0 } ;
+		git_buf buf = { 0 };
 
 		if (git_object_short_id(&buf, obj))  {
 			const git_error *e = giterr_last();
@@ -459,7 +459,7 @@ struct vcs_git *vcs_git_open(const char *revision, const char *name,
 
 
 void vcs_git_read(void *ctx, struct file *file,
-    bool (*parse)(const struct file *file, void *user, const char *line), 
+    bool (*parse)(const struct file *file, void *user, const char *line),
     void *user)
 {
 	const struct vcs_git *vcs_git = ctx;

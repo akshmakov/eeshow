@@ -110,7 +110,7 @@ static void fig_circ(void *ctx, int x, int y, int r,
 {
 	//	Type  Thick    Depth   StyleV    Cx    Rx    Sx    Ex
 	//	  SubTy  Color    Pen       Dir      Cy    Ry    Sy    Ey
-	//	    Style   FillCol  AreaFil  Angle      
+	//	    Style   FillCol  AreaFil  Angle
 	printf("1 3 0 %d %d %d %d -1 %d 0.0 1 0.0 %d %d %d %d %d %d %d %d\n",
 	    color == -1 ? 0 : WIDTH_COMP_DWG, color, fill_color, layer,
 	    fill_color == -1 ? -1 : 20,

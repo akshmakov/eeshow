@@ -8,6 +8,8 @@ Parsing and input processing:
 Data model:
 - implement destructors
 - check for memory leaks
+- sheets appearing multiple times are parsed anew each time. Should we try
+  to combine them ?
 
 Visualization (dwg.c and such):
 - glabel: build for "right" style, then rotate poly (like hlabel)
@@ -21,6 +23,8 @@ Visualization (dwg.c and such):
 
 Rendering:
 - better text size guessing also for FIG
+- consider switching to Hershey fonts (that's what eeschema uses, right ?)
+  (goal: prevent font geometry from changing when scaling)
 - support fonts attributes ?
 - support line thickness ?
 - ~ as overline (grep for ~ in out.fig)
@@ -34,3 +38,7 @@ GUI:
 - fonts grow beyond their bounding boxes when zooming in
 - dragging can be slow. maybe reusing old content and only redrawing new
   will help ?
+
+On-going:
+- use Pango to support markup in overlay boxes:
+  https://developer.gnome.org/pango/unstable/PangoMarkupFormat.html

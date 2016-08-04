@@ -84,7 +84,7 @@ while read line; do
 
 	$quiet || echo "$file" 1>&2
 	./eeshow $libs `dirname "$1"`/$file \
-	     -- fig $template "TITLE=$name" NUMBER=$num |
+	    -- fig $template "TITLE=$name" NUMBER=$num |
 	    fig2dev -L pdf >_tmp.pdf
 	pdfunite "$out" _tmp.pdf _tmp2.pdf
 	mv _tmp2.pdf "$out"

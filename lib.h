@@ -91,7 +91,7 @@ struct comp {
 	const char *name;
 	unsigned units;
 
-	unsigned visible;       /* visible fields, bit mask */
+	unsigned visible;	/* visible fields, bit mask */
 	bool show_pin_name;
 	bool show_pin_num;
 	unsigned name_offset;
