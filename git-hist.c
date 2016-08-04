@@ -17,6 +17,7 @@
 
 #include "util.h"
 #include "main.h"
+#include "git-file.h"
 #include "git-hist.h"
 
 
@@ -134,7 +135,8 @@ struct hist *vcs_git_hist(const char *path)
 
 	head = new_commit(0);
 
-	git_libgit2_init(); /* @@@ */
+	vcs_git_init();
+
 	if (git_repository_open_ext(&repo, path,
 	    GIT_REPOSITORY_OPEN_CROSS_FS, NULL)) {
 		e = giterr_last();

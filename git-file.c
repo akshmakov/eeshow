@@ -421,16 +421,23 @@ static bool try_related(struct vcs_git *vcs_git)
 }
 
 
-struct vcs_git *vcs_git_open(const char *revision, const char *name,
-    const struct vcs_git *related)
+void vcs_git_init(void)
 {
 	static bool initialized = 0;
-	struct vcs_git *vcs_git = alloc_type(struct vcs_git);
 
 	if (!initialized) {
 		git_libgit2_init();
 		initialized = 1;
 	}
+}
+
+
+struct vcs_git *vcs_git_open(const char *revision, const char *name,
+    const struct vcs_git *related)
+{
+	struct vcs_git *vcs_git = alloc_type(struct vcs_git);
+
+	vcs_git_init();
 
 	vcs_git->name = stralloc(name);
 	vcs_git->revision = revision ? stralloc(revision) : NULL;
