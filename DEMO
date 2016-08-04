@@ -6,7 +6,7 @@ apt-get install qiv
 
 # Get all the things we need
 
-git clone http://neo900.org/git/ee.git newdir
+git clone git://neo900.org/ee newdir
 cd newdir/hw
 git clone git://projects.qi-hardware.com/kicad-libs.git
 git clone git://projects.qi-hardware.com/eda-tools.git
