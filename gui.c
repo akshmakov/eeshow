@@ -44,7 +44,7 @@ struct gui_sheet {
 	int w, h;
 	int xmin, ymin;
 
-	struct aoi *aois;	/* areas of interest */
+	struct aoi *aois;	/* areas of interest; in schematics coord  */
 
 	struct gui_sheet *prev;	/* previous in stack */
 
@@ -64,6 +64,7 @@ struct gui_ctx {
 	int pan_x, pan_y;
 
 	struct overlay *overlays;
+	struct aoi *aois;	/* areas of interest; in canvas coord  */
 
 	struct gui_sheet *curr_sheet;
 				/* current sheet */
@@ -248,6 +249,8 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event,
 
 	switch (event->button) {
 	case 1:
+		if (aoi_click(ctx->aois, event->x, event->y))
+			break;
 		aoi_click(curr_sheet->aois,
 		    x + curr_sheet->xmin, y + curr_sheet->ymin);
 		break;
@@ -367,6 +370,16 @@ struct sheet_aoi_ctx {
 };
 
 
+static void close_subsheet(void *user)
+{
+	struct gui_ctx *ctx = user;
+	const struct gui_sheet *curr_sheet = ctx->curr_sheet;
+
+	if (curr_sheet->prev)
+		set_sheet(ctx, curr_sheet->prev);
+}
+
+
 static void select_subsheet(void *user)
 {
 	const struct sheet_aoi_ctx *aoi_ctx = user;
@@ -378,7 +391,8 @@ static void select_subsheet(void *user)
 		if (sheet->sch == obj->u.sheet.sheet) {
 			sheet->prev = ctx->curr_sheet;
 			set_sheet(ctx, sheet);
-			overlay_add(&ctx->overlays, obj->u.sheet.name);
+			overlay_add(&ctx->overlays, obj->u.sheet.name,
+			    &ctx->aois, NULL, close_subsheet, ctx);
 			return;
 		}
 	abort();
@@ -454,6 +468,7 @@ int gui(const struct sheet *sheets)
 		.zoom		= 4,	/* scale by 1 / 16 */
 		.panning	= 0,
 		.overlays	= NULL,
+		.aois		= NULL,
 	};
 
 	get_sheets(&ctx, sheets);

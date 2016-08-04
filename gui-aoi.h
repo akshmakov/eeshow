@@ -28,8 +28,9 @@ struct aoi {
 };
 
 
-void aoi_add(struct aoi **aois, const struct aoi *aoi);
+const struct aoi *aoi_add(struct aoi **aois, const struct aoi *aoi);
 bool aoi_hover(const struct aoi *aois, int x, int y);
 bool aoi_click(const struct aoi *aois, int x, int y);
+void aoi_remove(struct aoi **aois, const struct aoi *aoi);
 
 #endif /* !GUI_AOI_H */

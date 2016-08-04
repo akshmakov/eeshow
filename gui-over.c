@@ -25,6 +25,7 @@
 #include <cairo/cairo.h>
 
 #include "util.h"
+#include "gui-aoi.h"
 #include "gui-over.h"
 
 
@@ -38,6 +39,14 @@
 
 struct overlay {
 	const char *s;
+
+	struct aoi **aois;
+	bool (*hover)(void *user, bool on);
+	void (*click)(void *user);
+	void *user;
+
+	const struct aoi *aoi;
+
 	struct overlay *next;
 };
 
@@ -55,17 +64,18 @@ static void rrect(cairo_t *cr, int x, int y, int w, int h, int r)
 }
 
 
-static void overlay_draw(const struct overlay *over, cairo_t *cr,
-    int *x, int *y)
+static void overlay_draw(struct overlay *over, cairo_t *cr, int *x, int *y)
 {
 	cairo_text_extents_t ext;
+	int w, h;
 
 	cairo_set_font_size(cr, OVER_FONT_SIZE);
 	cairo_text_extents(cr, over->s, &ext);
 
-	rrect(cr, *x, *y,
-	    ext.width + 2 * OVER_BORDER, ext.height + 2 * OVER_BORDER,
-	    OVER_RADIUS);
+	w = ext.width + 2 * OVER_BORDER;
+	h = ext.height + 2 * OVER_BORDER;
+
+	rrect(cr, *x, *y, w, h, OVER_RADIUS);
 
 	cairo_set_source_rgba(cr, 0.8, 0.9, 1, 0.8);
 	cairo_fill_preserve(cr);
@@ -77,13 +87,29 @@ static void overlay_draw(const struct overlay *over, cairo_t *cr,
 	cairo_move_to(cr, *x + OVER_BORDER, *y + OVER_BORDER + ext.height);
 	cairo_show_text(cr, over->s);
 
+	if (over->hover || over->click) {
+		struct aoi aoi = {
+			.x	= *x,
+			.y	= *y,
+			.w	= w,
+			.h	= h,
+			.hover	= over->hover,
+			.click	= over->click,
+			.user	= over->user,
+		};
+
+		if (over->aoi)
+			aoi_remove(over->aois, over->aoi);
+		over->aoi = aoi_add(over->aois, &aoi);
+	}
+
 	*y += ext.height + OVER_SEP;
 }
 
 
-void overlay_draw_all(const struct overlay *overlays, cairo_t *cr)
+void overlay_draw_all(struct overlay *overlays, cairo_t *cr)
 {
-	const struct overlay *over;
+	struct overlay *over;
 	int x = OVER_X0;
 	int y = OVER_Y0;
 
@@ -92,13 +118,21 @@ void overlay_draw_all(const struct overlay *overlays, cairo_t *cr)
 }
 
 
-struct overlay *overlay_add(struct overlay **overlays, const char *s)
+struct overlay *overlay_add(struct overlay **overlays, const char *s,
+    struct aoi **aois,
+    bool (*hover)(void *user, bool on), void (*click)(void *user), void *user)
 {
 	struct overlay *over;
 	struct overlay **anchor;
 	
 	over = alloc_type(struct overlay);
 	over->s = stralloc(s);
+
+	over->aois = aois;
+	over->hover = hover;
+	over->click = click;
+	over->user = user;
+	over->aoi = NULL;
 
 	for (anchor = overlays; *anchor; anchor = &(*anchor)->next);
 	over->next = NULL;
@@ -110,6 +144,8 @@ struct overlay *overlay_add(struct overlay **overlays, const char *s)
 
 static void overlay_free(struct overlay *over)
 {
+	if (over->aoi)
+		aoi_remove(over->aois, over->aoi);
 	free((void *) over->s);
 	free(over);
 }

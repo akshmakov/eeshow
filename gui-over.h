@@ -13,14 +13,20 @@
 #ifndef GUI_OVER_H
 #define	GUI_OVER_H
 
+#include <stdbool.h>
+
 #include <cairo/cairo.h>
+
+#include "gui-aoi.h"
 
 
 struct overlay;
 
 
-void overlay_draw_all(const struct overlay *overlays, cairo_t *cr);
-struct overlay *overlay_add(struct overlay **overlays, const char *s);
+void overlay_draw_all(struct overlay *overlays, cairo_t *cr);
+struct overlay *overlay_add(struct overlay **overlays, const char *s,
+    struct aoi **aois,
+    bool (*hover)(void *user, bool on), void (*click)(void *user), void *user);
 void overlay_remove(struct overlay **overlays, struct overlay *over);
 void overlay_remove_all(struct overlay **overlays);
 

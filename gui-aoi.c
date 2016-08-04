@@ -26,7 +26,7 @@
 static const struct aoi *hovering = NULL;
 
 
-void aoi_add(struct aoi **aois, const struct aoi *aoi)
+const struct aoi *aoi_add(struct aoi **aois, const struct aoi *aoi)
 {
 	struct aoi *new;
 
@@ -34,6 +34,8 @@ void aoi_add(struct aoi **aois, const struct aoi *aoi)
 	*new = *aoi;
 	new->next = *aois;
 	*aois = new;
+
+	return new;
 }
 
 
@@ -78,4 +80,15 @@ bool aoi_click(const struct aoi *aois, int x, int y)
 		return 1;
 	}
 	return 0;
+}
+
+
+void aoi_remove(struct aoi **aois, const struct aoi *aoi)
+{
+	if (hovering == aoi)
+		aoi->hover(aoi->user, 0);
+	while (*aois != aoi)
+		aois = &(*aois)->next;
+	*aois = aoi->next;
+	free((void *) aoi);
 }
