@@ -389,9 +389,13 @@ static void select_subsheet(void *user)
 
 	for (sheet = ctx->sheets; sheet; sheet = sheet->next)
 		if (sheet->sch == obj->u.sheet.sheet) {
+			const char *name;
+
 			sheet->prev = ctx->curr_sheet;
 			set_sheet(ctx, sheet);
-			overlay_add(&ctx->overlays, obj->u.sheet.name,
+			name = sheet->sch->title ? sheet->sch->title :
+			    obj->u.sheet.name;
+			overlay_add(&ctx->overlays, name,
 			    &ctx->aois, NULL, close_subsheet, ctx);
 			return;
 		}

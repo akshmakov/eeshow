@@ -91,6 +91,7 @@ struct sch_obj {
 };
 
 struct sheet {
+	const char *title;
 	struct sch_obj *objs;
 	struct sch_obj **next_obj;
 	struct sheet *parent;
