@@ -126,6 +126,17 @@ static void recurse(struct hist *h,
 }
 
 
+bool vcs_git_try(const char *path)
+{
+	git_repository *repo;
+
+	vcs_git_init();
+
+	return !git_repository_open_ext(&repo, path,
+	    GIT_REPOSITORY_OPEN_CROSS_FS, NULL);
+}
+
+
 struct hist *vcs_git_hist(const char *path)
 {
 	struct hist *head;
@@ -175,6 +186,18 @@ const char *vcs_git_summary(struct hist *h)
 	e = giterr_last();
 	fprintf(stderr, "git_commit_summary: %s\n", e->message);
 	exit(1);
+}
+
+
+void hist_iterate(struct hist *h,
+    void (*fn)(void *user, struct hist *h), void *user)
+{
+	unsigned i;
+
+	fn(user, h);
+	for (i = 0; i != h->n_older; i++)
+		if (h->older[i]->newer[h->older[i]->n_newer - 1] == h)
+			hist_iterate(h->older[i], fn, user);
 }
 
 

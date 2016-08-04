@@ -17,6 +17,7 @@
  * https://developer.gnome.org/gtk3/stable/gtk-migrating-2-to-3.html
  */
 
+#define	_GNU_SOURCE	/* for asprintf */
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -29,6 +30,7 @@
 #include "util.h"
 #include "cro.h"
 #include "gfx.h"
+#include "git-hist.h"
 #include "sch.h"
 #include "gui-aoi.h"
 #include "gui-over.h"
@@ -49,6 +51,11 @@ struct gui_sheet {
 	struct gui_sheet *next;
 };
 
+struct gui_hist {
+	struct hist *hist;
+	struct gui_hist *next;
+};
+
 struct gui_ctx {
 	GtkWidget *da;
 
@@ -61,7 +68,11 @@ struct gui_ctx {
 	bool panning;
 	int pan_x, pan_y;
 
-	struct overlay *overlays;
+	struct gui_hist *hist;	/* revision history; NULL if none */
+	struct hist *vcs_hist;	/* underlying VCS data; NULL if none */
+
+	struct overlay *sheet_overlays;
+	struct overlay *vcs_overlays;
 	struct aoi *aois;	/* areas of interest; in canvas coord  */
 
 	struct gui_sheet *curr_sheet;
@@ -82,6 +93,17 @@ static void redraw(const struct gui_ctx *ctx)
 /* ----- Rendering --------------------------------------------------------- */
 
 
+static void draw_vcs_overlays(const struct gui_ctx *ctx, cairo_t *cr)
+{
+	struct overlay *over;
+	int x = 200;
+	int y = 5;
+
+	for (over = ctx->vcs_overlays; over;)
+		over = overlay_draw(over, cr, &x, &y);
+}
+
+
 static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
     gpointer user_data)
 {
@@ -97,7 +119,8 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	y = -(sheet->ymin + ctx->y) * f + alloc.height / 2;
 	cro_canvas_draw(sheet->gfx_ctx, cr, x, y, f);
 
-	overlay_draw_all(ctx->overlays, cr);
+	overlay_draw_all(ctx->sheet_overlays, cr);
+	draw_vcs_overlays(ctx, cr);
 
 	return FALSE;
 }
@@ -231,9 +254,9 @@ static void close_subsheet(void *user)
 static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
 {
 	ctx->curr_sheet = sheet;
-	overlay_remove_all(&ctx->overlays);
+	overlay_remove_all(&ctx->sheet_overlays);
 	if (sheet->sch->title)
-		overlay_add(&ctx->overlays, sheet->sch->title,
+		overlay_add(&ctx->sheet_overlays, sheet->sch->title,
 		    &ctx->aois, NULL, close_subsheet, ctx);
 	zoom_to_extents(ctx);
 }
@@ -274,6 +297,34 @@ static bool go_next_sheet(struct gui_ctx *ctx)
 		return 0;
 	go_to_sheet(ctx, ctx->curr_sheet->next);
 	return 1;
+}
+
+
+/* ----- Revision history -------------------------------------------------- */
+
+
+static void hide_history(void *user)
+{
+	struct gui_ctx *ctx = user;
+
+	overlay_remove_all(&ctx->vcs_overlays);
+	redraw(ctx);
+}
+
+
+static void show_history(struct gui_ctx *ctx)
+{
+	struct gui_hist *h = ctx->hist;
+	char *s;
+
+	overlay_remove_all(&ctx->vcs_overlays);
+	for (h = ctx->hist; h; h = h->next) {
+		// @@@ \n doesn't work with cairo_show_text :-(
+		if (asprintf(&s, "commit\n%s", vcs_git_summary(h->hist))) {}
+		overlay_add(&ctx->vcs_overlays, s, &ctx->aois,
+		    NULL, hide_history, ctx);
+	}
+	redraw(ctx);
 }
 
 
@@ -381,6 +432,12 @@ static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
 	case GDK_KEY_Page_Down:
 	case GDK_KEY_KP_Page_Down:
 		go_next_sheet(ctx);
+		break;
+	case GDK_KEY_Up:
+	case GDK_KEY_KP_Up:
+	case GDK_KEY_Down:
+	case GDK_KEY_KP_Down:
+		show_history(ctx);
 		break;
 	case GDK_KEY_q:
 		gtk_main_quit();
@@ -505,17 +562,43 @@ static void get_sheets(struct gui_ctx *ctx, const struct sheet *sheets)
 }
 
 
-int gui(const struct sheet *sheets)
+
+static void add_hist(void *user, struct hist *h)
+{
+	struct gui_ctx *ctx = user;
+	struct gui_hist **anchor;
+
+	for (anchor = &ctx->hist; *anchor; anchor = &(*anchor)->next);
+	*anchor = alloc_type(struct gui_hist);
+	(*anchor)->hist = h;
+	(*anchor)->next = NULL;
+}
+
+
+static void get_git(struct gui_ctx *ctx, const char *sch_name)
+{
+	if (!vcs_git_try(sch_name))
+		return;
+	ctx->vcs_hist = vcs_git_hist(sch_name);
+	hist_iterate(ctx->vcs_hist, add_hist, ctx);
+}
+
+
+int gui(const struct sheet *sheets, const char *sch_name)
 {
 	GtkWidget *window;
 	struct gui_ctx ctx = {
 		.zoom		= 4,	/* scale by 1 / 16 */
 		.panning	= 0,
-		.overlays	= NULL,
+		.hist		= NULL,
+		.vcs_hist	= NULL,
+		.sheet_overlays	= NULL,
+		.vcs_overlays	= NULL,
 		.aois		= NULL,
 	};
 
 	get_sheets(&ctx, sheets);
+	get_git(&ctx, sch_name);
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 

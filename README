@@ -37,4 +37,5 @@ Home			go to the top sheet
 Delete or Backspace	go to the previous sheet
 PgUp			go to the previous sheet in sequence
 PgDn			go to the next sheet in sequence
+Up or Down		invoke the revision history (WIP)
 Q			quit the viewer

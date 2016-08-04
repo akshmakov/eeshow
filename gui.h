@@ -16,6 +16,6 @@
 #include "sch.h"
 
 
-int gui(const struct sheet *sheets);
+int gui(const struct sheet *sheets, const char *sch_name);
 
 #endif /* !GUI_H */

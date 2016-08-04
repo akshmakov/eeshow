@@ -23,6 +23,7 @@
 struct overlay;
 
 
+struct overlay *overlay_draw(struct overlay *over, cairo_t *cr, int *x, int *y);
 void overlay_draw_all(struct overlay *overlays, cairo_t *cr);
 struct overlay *overlay_add(struct overlay **overlays, const char *s,
     struct aoi **aois,

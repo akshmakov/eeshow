@@ -64,7 +64,7 @@ static void rrect(cairo_t *cr, int x, int y, int w, int h, int r)
 }
 
 
-static void overlay_draw(struct overlay *over, cairo_t *cr, int *x, int *y)
+struct overlay *overlay_draw(struct overlay *over, cairo_t *cr, int *x, int *y)
 {
 	cairo_text_extents_t ext;
 	int w, h;
@@ -103,7 +103,9 @@ static void overlay_draw(struct overlay *over, cairo_t *cr, int *x, int *y)
 		over->aoi = aoi_add(over->aois, &aoi);
 	}
 
-	*y += ext.height + OVER_SEP;
+	*y += h + OVER_SEP;
+
+	return over->next;
 }
 
 

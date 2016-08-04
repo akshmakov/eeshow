@@ -13,6 +13,8 @@
 #ifndef GIT_HIST_H
 #define	GIT_HIST_H
 
+#include <stdbool.h>
+
 #include <git2.h>
 
 
@@ -29,8 +31,11 @@ struct hist {
 };
 
 
+bool vcs_git_try(const char *path);
 struct hist *vcs_git_hist(const char *path);
 const char *vcs_git_summary(struct hist *hist);
+void hist_iterate(struct hist *h, 
+    void (*fn)(void *user, struct hist *h), void *user);
 void dump_hist(struct hist *h);
 
 #endif /* !GIT_HIST_H */
