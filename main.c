@@ -27,6 +27,7 @@
 #include "file.h"
 #include "lib.h"
 #include "sch.h"
+#include "git-hist.h"
 #include "gui.h"
 #include "main.h"
 
@@ -48,11 +49,13 @@ void usage(const char *name)
 "usage: %s [-r] [-v ...] [[rev:]file.lib ...] [rev:]file.sch\n"
 "       %*s[-- driver_spec]\n"
 "       %s [-v ...] -C [rev:]file\n"
+"       %s [-v ...] -H path_into_repo\n"
 "\n"
 "  rev  git revision\n"
 "  -r   recurse into sub-sheets\n"
 "  -v   increase verbosity of diagnostic output\n"
 "  -C   'cat' the file to standard output\n"
+"  -H   show history of repository on standard output\n"
 "\n"
 "FIG driver spec:\n"
 "  fig [-t template.fig] [var=value ...]\n"
@@ -75,7 +78,7 @@ void usage(const char *name)
 "  diff [-o output.pdf] [-s scale] [file.lib ...] file.sch\n"
 "\n"
 "  see PNG\n"
-    , name, (int) strlen(name) + 1, "", name);
+    , name, (int) strlen(name) + 1, "", name, name);
 	exit(1);
 }
 
@@ -87,6 +90,7 @@ int main(int argc, char **argv)
 	struct file sch_file;
 	bool recurse = 0;
 	const char *cat = NULL;
+	const char *history = NULL;
 	char c;
 	int arg, dashdash;
 	bool have_dashdash = 0;
@@ -102,7 +106,7 @@ int main(int argc, char **argv)
 			break;
 		}
 
-	while ((c = getopt(dashdash, argv, "rvC:")) != EOF)
+	while ((c = getopt(dashdash, argv, "rvC:H:")) != EOF)
 		switch (c) {
 		case 'r':
 			recurse = 1;
@@ -112,6 +116,9 @@ int main(int argc, char **argv)
 			break;
 		case 'C':
 			cat = optarg;
+			break;
+		case 'H':
+			history = optarg;
 			break;
 		default:
 			usage(*argv);
@@ -125,6 +132,14 @@ int main(int argc, char **argv)
 		file_open(&file, cat, NULL);
 		file_read(&file, file_cat, NULL);
 		file_close(&file);
+		return 0;
+	}
+
+	if (history) {
+		struct hist *h;
+
+		h = vcs_git_hist(history);
+		dump_hist(h);
 		return 0;
 	}
 
