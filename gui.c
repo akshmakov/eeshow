@@ -46,8 +46,6 @@ struct gui_sheet {
 
 	struct aoi *aois;	/* areas of interest; in schematics coord  */
 
-	struct gui_sheet *prev;	/* previous in stack */
-
 	struct gui_sheet *next;
 };
 
@@ -216,6 +214,33 @@ static void zoom_to_extents(struct gui_ctx *ctx)
 }
 
 
+/* ----- Navigate sheets --------------------------------------------------- */
+
+
+static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
+{
+	ctx->curr_sheet = sheet;
+	overlay_remove_all(&ctx->overlays);
+	zoom_to_extents(ctx);
+}
+
+
+static bool go_up_sheet(struct gui_ctx *ctx)
+{
+	struct gui_sheet *sheet;
+	const struct sch_obj *obj;
+
+	for (sheet = ctx->sheets; sheet; sheet = sheet->next)
+		for (obj = sheet->sch->objs; obj; obj = obj->next)
+			if (obj->type == sch_obj_sheet &&
+			    obj->u.sheet.sheet == ctx->curr_sheet->sch) {
+				go_to_sheet(ctx, sheet);
+				return 1;
+			}
+	return 0;
+}
+
+
 /* ----- Event handlers ---------------------------------------------------- */
 
 
@@ -285,16 +310,6 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event,
 }
 
 
-static void set_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
-{
-	if (sheet->prev == sheet)
-		sheet->prev = NULL;
-	ctx->curr_sheet = sheet;
-	overlay_remove_all(&ctx->overlays);
-	zoom_to_extents(ctx);
-}
-
-
 static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
     gpointer data)
 {
@@ -317,12 +332,11 @@ static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
 		break;
 	case GDK_KEY_Home:
 		if (sheet != ctx->sheets)
-			set_sheet(ctx, ctx->sheets);
+			go_to_sheet(ctx, ctx->sheets);
 		break;
 	case GDK_KEY_BackSpace:
 	case GDK_KEY_Delete:
-		if (sheet->prev)
-			set_sheet(ctx, sheet->prev);
+		go_up_sheet(ctx);
 		break;
 	case GDK_KEY_q:
 		gtk_main_quit();
@@ -373,10 +387,8 @@ struct sheet_aoi_ctx {
 static void close_subsheet(void *user)
 {
 	struct gui_ctx *ctx = user;
-	const struct gui_sheet *curr_sheet = ctx->curr_sheet;
 
-	if (curr_sheet->prev)
-		set_sheet(ctx, curr_sheet->prev);
+	go_up_sheet(ctx);
 }
 
 
@@ -391,8 +403,7 @@ static void select_subsheet(void *user)
 		if (sheet->sch == obj->u.sheet.sheet) {
 			const char *name;
 
-			sheet->prev = ctx->curr_sheet;
-			set_sheet(ctx, sheet);
+			go_to_sheet(ctx, sheet);
 			name = sheet->sch->title ? sheet->sch->title :
 			    obj->u.sheet.name;
 			overlay_add(&ctx->overlays, name,
@@ -452,7 +463,6 @@ static void get_sheets(struct gui_ctx *ctx, const struct sheet *sheets)
 	for (sheet = sheets; sheet; sheet = sheet->next) {
 		gui_sheet = alloc_type(struct gui_sheet);
 		gui_sheet->sch = sheet;
-		gui_sheet->prev = NULL;
 
 		render(ctx, gui_sheet);
 		mark_aois(ctx, gui_sheet);
