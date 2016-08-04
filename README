@@ -1,0 +1,38 @@
+eeshow - Eeschema schematics renderer and viewer
+================================================
+
+Eeshow renders schematics made by KiCad Eeschema to FIG, PDF, or PNG,
+and generates graphical differences between different versions of
+schematics sheets. It can work in plain files but it can also
+retrieve design files directly from a git repository. Furthermore,
+eeshow has an interactive mode for viewing schematics and differences.
+
+This work is distributed under the terms of the GNU GENERAL PUBLIC
+LICENSE, Version 2:
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+For your convenience, a copy of the complete license has been included
+in the file COPYING.GPLv2.
+
+
+Prerequisites
+-------------
+
+libcairo2-dev
+libgit2-dev
+libgtk-3-dev
+
+
+Key functions in GUI mode
+-------------------------
+
++ or =			zoom in
+-			zoom out
+*			zoom to extents
+Home			go to the top sheet
+Delete or Backspace	go to the previous sheet
+Q			quit the viewer
