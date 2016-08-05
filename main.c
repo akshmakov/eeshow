@@ -146,6 +146,17 @@ int main(int argc, char **argv)
 	if (dashdash - optind < 1)
 		usage(*argv);
 
+	if (!have_dashdash) {
+		unsigned n = argc - optind;
+		char **args;
+
+		args = alloc_size(sizeof(char *) * n);
+		memcpy(args, argv + optind, sizeof(const char *) * n);
+	
+		optind = 0; /* reset getopt */
+		return gui(n, args, recurse);
+	}
+
 	sch_init(&sch_ctx, recurse);
 	file_open(&sch_file, argv[dashdash - 1], NULL);
 
@@ -180,9 +191,6 @@ found:
 
 	sch_parse(&sch_ctx, &sch_file, &lib);
 	file_close(&sch_file);
-
-	if (!have_dashdash)
-		return gui(sch_ctx.sheets, argv[dashdash - 1]);
 
 	gfx_init(*ops, gfx_argc, gfx_argv);
 	if (recurse) {

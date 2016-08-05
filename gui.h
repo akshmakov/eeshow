@@ -13,9 +13,13 @@
 #ifndef GUI_H
 #define	GUI_H
 
-#include "sch.h"
+#include <stdbool.h>
 
+/*
+ * Note: this isn't (argc, argv) ! args stars right with the first file name
+ * and there is no NULL at the end.
+ */
 
-int gui(const struct sheet *sheets, const char *sch_name);
+int gui(unsigned n_args, char **args, bool recurse);
 
 #endif /* !GUI_H */

@@ -599,7 +599,27 @@ static void get_git(struct gui_ctx *ctx, const char *sch_name)
 }
 
 
-int gui(const struct sheet *sheets, const char *sch_name)
+static struct sheet *parse_sheets(int n_args, char **args, bool recurse)
+{
+	struct lib lib;
+	struct sch_ctx sch_ctx;
+	struct file sch_file;
+	int i;
+
+	sch_init(&sch_ctx, recurse);
+	file_open(&sch_file, args[n_args - 1], NULL);
+
+	lib_init(&lib);
+	for (i = 0; i != n_args - 1; i++)
+		lib_parse(&lib, args[i], &sch_file);
+	sch_parse(&sch_ctx, &sch_file, &lib);
+	file_close(&sch_file);
+
+	return sch_ctx.sheets;
+}
+
+
+int gui(unsigned n_args, char **args, bool recurse)
 {
 	GtkWidget *window;
 	struct gui_ctx ctx = {
@@ -612,8 +632,8 @@ int gui(const struct sheet *sheets, const char *sch_name)
 		.aois		= NULL,
 	};
 
-	get_sheets(&ctx, sheets);
-	get_git(&ctx, sch_name);
+	get_sheets(&ctx, parse_sheets(n_args, args, recurse));
+	get_git(&ctx, args[n_args - 1]);
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
