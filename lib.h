@@ -121,5 +121,6 @@ void lib_render(const struct comp *comp, unsigned unit, const int m[6]);
 
 void lib_parse(struct lib *lib, const char *name, const struct file *related);
 void lib_init(struct lib *lib);
+void lib_free(struct lib *lib);
 
 #endif /* !LIB_H */

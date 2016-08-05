@@ -268,3 +268,39 @@ void lib_init(struct lib *lib)
 	lib->comps = NULL;
 	lib->next_comp = &lib->comps;
 }
+
+
+static void free_objs(struct lib_obj *objs)
+{
+	struct lib_obj *next;
+
+	while (objs) {
+		next = objs->next;
+		switch (objs->type) {
+		case lib_obj_text:
+			free((char *) objs->u.text.s);
+			break;
+		case lib_obj_pin:
+			free((char *) objs->u.pin.name);
+			free((char *) objs->u.pin.number);
+			break;
+		default:
+			break;
+		}
+		free(objs);
+		objs = next;
+	}
+}
+
+
+void lib_free(struct lib *lib)
+{
+	struct comp *comp, *next;
+
+	for (comp = lib->comps; comp; comp = next) {
+		next = comp->next;
+		free((char *) comp->name);
+		free_objs(comp->objs);
+		free(comp);
+	}
+}

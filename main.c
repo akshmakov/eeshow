@@ -212,6 +212,7 @@ found:
 	gfx_end();
 
 	sch_free(&sch_ctx);
+	lib_free(&lib);
 
 	return 0;
 }
