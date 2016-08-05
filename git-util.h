@@ -13,6 +13,12 @@
 #ifndef GIT_UTIL_H
 #define	GIT_UTIL_H
 
+#include <stdbool.h>
+
+#include <git2.h>
+
+
+bool git_repo_is_dirty(git_repository *repo);
 void git_init_once(void);
 
 #endif /* !GIT_UTIL_H */

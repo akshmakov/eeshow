@@ -142,7 +142,7 @@ bool vcs_git_try(const char *path)
 
 struct hist *vcs_git_hist(const char *path)
 {
-	struct hist *head;
+	struct hist *head, *dirty;
 	git_repository *repo;
 	git_oid oid;
 	const git_error *e;
@@ -173,7 +173,17 @@ struct hist *vcs_git_hist(const char *path)
 	}
 
 	recurse(head, 1, &head);
-	return head;
+
+	if (!git_repo_is_dirty(repo))
+		return head;
+
+	dirty = new_commit(0);
+	dirty->older = alloc_type(struct hist *);
+	dirty->older[0] = head;
+	dirty->n_older = 1;
+	uplink(head, dirty);
+
+	return dirty;
 }
 
 
@@ -182,6 +192,8 @@ const char *vcs_git_summary(struct hist *h)
 	const char *summary;
 	const git_error *e;
 
+	if (!h->commit)
+		return "Uncommitted changes";
 	summary = git_commit_summary(h->commit);
 	if (summary)
 		return summary;
@@ -210,13 +222,19 @@ void dump_hist(struct hist *h)
 	const git_error *e;
 	unsigned i;
 
-	if (git_object_short_id(&buf, (git_object *) h->commit)) {
-		e = giterr_last();
-		fprintf(stderr, "git_object_short_id: %s\n", e->message);
-		exit(1);
+	if (h->commit) {
+		if (git_object_short_id(&buf, (git_object *) h->commit)) {
+			e = giterr_last();
+			fprintf(stderr, "git_object_short_id: %s\n",
+			    e->message);
+			exit(1);
+		}
+		printf("%*s%s  %s\n",
+		    2 * h->branch, "", buf.ptr, vcs_git_summary(h));
+		git_buf_free(&buf);
+	} else {
+		printf("dirty\n");
 	}
-	printf("%*s%s  %s\n", 2 * h->branch, "", buf.ptr, vcs_git_summary(h));
-	git_buf_free(&buf);
 
 	for (i = 0; i != h->n_older; i++)
 		if (h->older[i]->newer[h->older[i]->n_newer - 1] == h)

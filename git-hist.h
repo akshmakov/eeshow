@@ -19,7 +19,7 @@
 
 
 struct hist {
-	struct git_commit *commit;
+	struct git_commit *commit; /* NULL if uncommitted changes */
 
 	unsigned branch;	/* branch index */
 
