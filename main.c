@@ -211,5 +211,7 @@ found:
 	}
 	gfx_end();
 
+	sch_free(&sch_ctx);
+
 	return 0;
 }

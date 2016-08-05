@@ -74,7 +74,8 @@ struct sch_obj {
 			const char *file;
 			unsigned file_dim;
 			bool rotated;
-			const struct sheet *sheet; /* pointer to sub-sheet */
+			const struct sheet *sheet;
+				/* pointer to sub-sheet; NULL if absent */
 
 			struct sheet_field {
 				char *s;
@@ -91,7 +92,7 @@ struct sch_obj {
 };
 
 struct sheet {
-	const char *title;
+	const char *title;		/* malloced, unless delta */
 	struct sch_obj *objs;
 	struct sch_obj **next_obj;
 	struct sheet *parent;
@@ -118,5 +119,6 @@ void decode_alignment(struct text *txt, char hor, char vert);
 void sch_render(const struct sheet *sheet);
 void sch_parse(struct sch_ctx *ctx, struct file *file, const struct lib *lib);
 void sch_init(struct sch_ctx *ctx, bool recurse);
+void sch_free(struct sch_ctx *ctx);
 
 #endif /* !SCH_H */

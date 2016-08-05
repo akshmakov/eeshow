@@ -488,6 +488,8 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 			if (ctx->recurse)
 				sheet_obj->u.sheet.sheet =
 				    recurse_sheet(ctx, file);
+			else
+				sheet_obj->u.sheet.sheet = NULL;
 			ctx->state = sch_basic;
 			return 1;
 		}
@@ -553,3 +555,73 @@ void sch_init(struct sch_ctx *ctx, bool recurse)
 	ctx->next_sheet = &ctx->sheets;
 	new_sheet(ctx);
 }
+
+
+static void free_comp_fields(struct comp_field *fields)
+{
+	struct comp_field *next;
+
+	while (fields) {
+		next = fields->next;
+		free((char *) fields->txt.s);
+		free(fields);
+		fields = next;
+	}
+}
+
+
+static void free_sheet_fields(struct sheet_field *fields)
+{
+	struct sheet_field *next;
+
+	while (fields) {
+		next = fields->next;
+		free((char *) fields->s);
+		free(fields);
+		fields = next;
+	}
+}
+
+
+static void free_sheet(struct sheet *sch)
+{
+	struct sch_obj *obj, *next;
+
+	if (!sch)
+		return;
+	free((char *) sch->title);
+	for (obj = sch->objs; obj; obj = next) {
+		next = obj->next;
+		switch (obj->type) {
+		case sch_obj_text:
+			free((char *) obj->u.text.s);
+			break;
+		case sch_obj_comp:
+			free_comp_fields(obj->u.comp.fields);
+			break;
+		case sch_obj_sheet:
+			free((char *) obj->u.sheet.name);
+			free((char *) obj->u.sheet.file);
+			free_sheet((struct sheet *) obj->u.sheet.sheet);
+			free_sheet_fields(obj->u.sheet.fields);
+			break;
+		default:
+			break;
+		}
+		free(obj);
+	}
+	free(sch);
+}
+
+
+void sch_free(struct sch_ctx *ctx)
+{
+	struct sheet *next;
+
+	while (ctx->sheets) {
+		next = ctx->sheets->next;
+		free_sheet(ctx->sheets);
+		ctx->sheets = next;
+	}
+}
+
