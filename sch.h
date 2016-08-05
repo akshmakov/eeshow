@@ -29,6 +29,7 @@ enum sch_state {
 	sch_sheet,	/* sub-sheet */
 	sch_text,	/* text or label */
 	sch_wire,	/* wire */
+	sch_eof,	/* skipping anything after $EndSCHEMATC */
 };
 
 struct sheet;

@@ -438,8 +438,10 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 
 		/* EndSCHEMATC */
 
-		if (sscanf(line, "$EndSCHEMATC%n", &n) == 0 && n)
-			return 0;
+		if (sscanf(line, "$EndSCHEMATC%n", &n) == 0 && n) {
+			ctx->state = sch_eof;
+			return 1;
+		}
 		break;
 	case sch_descr:
 		if (sscanf(line, "Title \"%m[^\"]\"", &s) == 1) {
@@ -529,6 +531,8 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 			break;
 		submit_obj(ctx, sch_obj_wire);
 		ctx->state = sch_basic;
+		return 1;
+	case sch_eof:
 		return 1;
 	default:
 		abort();
