@@ -132,8 +132,10 @@ bool vcs_git_try(const char *path)
 
 	vcs_git_init();
 
-	return !git_repository_open_ext(&repo, path,
-	    GIT_REPOSITORY_OPEN_CROSS_FS, NULL);
+	if (git_repository_open_ext(&repo, path,
+	    GIT_REPOSITORY_OPEN_CROSS_FS, NULL))
+		return 0;
+	return !git_repository_is_empty(repo);
 }
 
 
