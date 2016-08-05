@@ -23,6 +23,7 @@
 #include "util.h"
 #include "main.h"
 #include "file.h"
+#include "git-util.h"
 #include "git-file.h"
 
 
@@ -421,23 +422,12 @@ static bool try_related(struct vcs_git *vcs_git)
 }
 
 
-void vcs_git_init(void)
-{
-	static bool initialized = 0;
-
-	if (!initialized) {
-		git_libgit2_init();
-		initialized = 1;
-	}
-}
-
-
 struct vcs_git *vcs_git_open(const char *revision, const char *name,
     const struct vcs_git *related)
 {
 	struct vcs_git *vcs_git = alloc_type(struct vcs_git);
 
-	vcs_git_init();
+	git_init_once();
 
 	vcs_git->name = stralloc(name);
 	vcs_git->revision = revision ? stralloc(revision) : NULL;

@@ -17,6 +17,7 @@
 
 #include "util.h"
 #include "main.h"
+#include "git-util.h"
 #include "git-file.h"
 #include "git-hist.h"
 
@@ -130,7 +131,7 @@ bool vcs_git_try(const char *path)
 {
 	git_repository *repo;
 
-	vcs_git_init();
+	git_init_once();
 
 	if (git_repository_open_ext(&repo, path,
 	    GIT_REPOSITORY_OPEN_CROSS_FS, NULL))
@@ -148,7 +149,7 @@ struct hist *vcs_git_hist(const char *path)
 
 	head = new_commit(0);
 
-	vcs_git_init();
+	git_init_once();
 
 	if (git_repository_open_ext(&repo, path,
 	    GIT_REPOSITORY_OPEN_CROSS_FS, NULL)) {
