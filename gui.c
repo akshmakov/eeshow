@@ -237,6 +237,42 @@ static void zoom_to_extents(struct gui_ctx *ctx)
 }
 
 
+/* ----- Revision history -------------------------------------------------- */
+
+
+static void hide_history(void *user)
+{
+	struct gui_ctx *ctx = user;
+
+	overlay_remove_all(&ctx->vcs_overlays);
+	redraw(ctx);
+}
+
+
+static void show_history(struct gui_ctx *ctx)
+{
+	struct gui_hist *h = ctx->hist;
+	char *s;
+
+	overlay_remove_all(&ctx->vcs_overlays);
+	for (h = ctx->hist; h; h = h->next) {
+		// @@@ \n doesn't work with cairo_show_text :-(
+		if (asprintf(&s, "commit\n%s", vcs_git_summary(h->hist))) {}
+		overlay_add(&ctx->vcs_overlays, s, &ctx->aois,
+		    NULL, hide_history, ctx);
+	}
+	redraw(ctx);
+}
+
+
+static void show_history_cb(void *user)
+{
+	struct gui_ctx *ctx = user;
+
+	show_history(ctx);
+}
+
+
 /* ----- Navigate sheets --------------------------------------------------- */
 
 
@@ -255,6 +291,13 @@ static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
 {
 	ctx->curr_sheet = sheet;
 	overlay_remove_all(&ctx->sheet_overlays);
+	if (ctx->hist) {
+		char *s;
+
+		if (asprintf(&s, "%.40s", vcs_git_summary(ctx->hist->hist))) {}
+		overlay_add(&ctx->sheet_overlays, s, &ctx->aois,
+		    NULL, show_history_cb, ctx);
+	}
 	if (sheet->sch->title)
 		overlay_add(&ctx->sheet_overlays, sheet->sch->title,
 		    &ctx->aois, NULL, close_subsheet, ctx);
@@ -297,34 +340,6 @@ static bool go_next_sheet(struct gui_ctx *ctx)
 		return 0;
 	go_to_sheet(ctx, ctx->curr_sheet->next);
 	return 1;
-}
-
-
-/* ----- Revision history -------------------------------------------------- */
-
-
-static void hide_history(void *user)
-{
-	struct gui_ctx *ctx = user;
-
-	overlay_remove_all(&ctx->vcs_overlays);
-	redraw(ctx);
-}
-
-
-static void show_history(struct gui_ctx *ctx)
-{
-	struct gui_hist *h = ctx->hist;
-	char *s;
-
-	overlay_remove_all(&ctx->vcs_overlays);
-	for (h = ctx->hist; h; h = h->next) {
-		// @@@ \n doesn't work with cairo_show_text :-(
-		if (asprintf(&s, "commit\n%s", vcs_git_summary(h->hist))) {}
-		overlay_add(&ctx->vcs_overlays, s, &ctx->aois,
-		    NULL, hide_history, ctx);
-	}
-	redraw(ctx);
 }
 
 
