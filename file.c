@@ -178,25 +178,24 @@ void file_open(struct file *file, const char *name, const struct file *related)
 }
 
 
-void file_read(struct file *file,
+bool file_read(struct file *file,
     bool (*parse)(const struct file *file, void *user, const char *line),
     void *user)
 {
 	char buf[1000];
 	char *nl;
 
-	if (file->vcs) {
-		vcs_read(file->vcs, file, parse, user);
-		return;
-	}
+	if (file->vcs)
+		return vcs_read(file->vcs, file, parse, user);
 	while (fgets(buf, sizeof(buf), file->file)) {
 		nl = strchr(buf, '\n');
 		if (nl)
 			*nl = 0;
 		file->lineno++;
 		if (!parse(file, user, buf))
-			break;
+			return 0;
 	}
+	return 1;
 }
 
 

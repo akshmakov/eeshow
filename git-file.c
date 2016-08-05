@@ -455,7 +455,7 @@ struct vcs_git *vcs_git_open(const char *revision, const char *name,
 }
 
 
-void vcs_git_read(void *ctx, struct file *file,
+bool vcs_git_read(void *ctx, struct file *file,
     bool (*parse)(const struct file *file, void *user, const char *line),
     void *user)
 {
@@ -467,14 +467,13 @@ void vcs_git_read(void *ctx, struct file *file,
 	while (p != end) {
 		nl = memchr(p, '\n', end - p);
 		file->lineno++;
-		if (!nl) {
-			send_line(p, end - p, parse, user, file);
-			return;
-		}
+		if (!nl)
+			return send_line(p, end - p, parse, user, file);
 		if (!send_line(p, nl - p, parse, user, file))
-			return;
+			return 0;
 		p = nl + 1;
 	}
+	return 1;
 }
 
 

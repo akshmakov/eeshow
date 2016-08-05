@@ -32,7 +32,7 @@ char *file_graft_relative(const char *base, const char *name);
 
 void file_open(struct file *file, const char *name,
     const struct file *related);
-void file_read(struct file *file,
+bool file_read(struct file *file,
     bool (*parse)(const struct file *file, void *user, const char *line),
     void *user);
 void file_close(struct file *file);
