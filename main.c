@@ -129,8 +129,10 @@ int main(int argc, char **argv)
 
 		if (argc != optind)
 			usage(*argv);
-		file_open(&file, cat, NULL);
-		file_read(&file, file_cat, NULL);
+		if (!file_open(&file, cat, NULL))
+			return 1;
+		if (!file_read(&file, file_cat, NULL))
+			return 1;
 		file_close(&file);
 		return 0;
 	}
@@ -158,11 +160,13 @@ int main(int argc, char **argv)
 	}
 
 	sch_init(&sch_ctx, recurse);
-	file_open(&sch_file, argv[dashdash - 1], NULL);
+	if (!file_open(&sch_file, argv[dashdash - 1], NULL))
+		return 1;
 
 	lib_init(&lib);
 	for (arg = optind; arg != dashdash - 1; arg++)
-		lib_parse(&lib, argv[arg], &sch_file);
+		if (!lib_parse(&lib, argv[arg], &sch_file))
+			return 1;
 
 	if (dashdash == argc) {
 		gfx_argc = 1;
@@ -189,7 +193,8 @@ found:
 
 	optind = 0; /* reset getopt */
 
-	sch_parse(&sch_ctx, &sch_file, &lib);
+	if (!sch_parse(&sch_ctx, &sch_file, &lib))
+		return 1;
 	file_close(&sch_file);
 
 	gfx_init(*ops, gfx_argc, gfx_argv);

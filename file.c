@@ -137,7 +137,7 @@ static void *open_vcs(struct file *file)
 }
 
 
-void file_open(struct file *file, const char *name, const struct file *related)
+bool file_open(struct file *file, const char *name, const struct file *related)
 {
 	file->name = stralloc(name);
 	file->lineno = 0;
@@ -148,18 +148,18 @@ void file_open(struct file *file, const char *name, const struct file *related)
 	if (related && related->vcs) {
 		file->vcs = open_vcs(file);
 		if (file->vcs)
-			return;
+			return 1;
 	}
 
 	file->file = fopen(name, "r");
 	if (file->file) {
 		if (verbose)
 			fprintf(stderr, "reading %s\n", name);
-		return;
+		return 1;
 	}
 
 	if (try_related(file))
-		return;
+		return 1;
 
 	if (verbose)
 		perror(name);
@@ -167,14 +167,17 @@ void file_open(struct file *file, const char *name, const struct file *related)
 	if (!strchr(name, ':')) {
 		if (!verbose)
 			perror(name);
-		exit(1);
+		goto fail;
 	}
 
 	file->vcs = open_vcs(file);
-	if (!file->vcs) {
-		fprintf(stderr, "could not open %s\n", name);
-		exit(1);
-	}
+	if (file->vcs)
+		return 1;
+
+	fprintf(stderr, "could not open %s\n", name);
+fail:
+	free((char *) file->name);
+	return 0;
 }
 
 

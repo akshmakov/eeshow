@@ -607,15 +607,26 @@ static struct sheet *parse_sheets(int n_args, char **args, bool recurse)
 	int i;
 
 	sch_init(&sch_ctx, recurse);
-	file_open(&sch_file, args[n_args - 1], NULL);
+	if (!file_open(&sch_file, args[n_args - 1], NULL)) {
+		sch_free(&sch_ctx);
+		return NULL;
+	}
 
 	lib_init(&lib);
 	for (i = 0; i != n_args - 1; i++)
-		lib_parse(&lib, args[i], &sch_file);
-	sch_parse(&sch_ctx, &sch_file, &lib);
+		if (!lib_parse(&lib, args[i], &sch_file))
+			goto fail;
+	if (!sch_parse(&sch_ctx, &sch_file, &lib))
+		goto fail;
 	file_close(&sch_file);
 
 	return sch_ctx.sheets;
+
+fail:
+	sch_free(&sch_ctx);
+	lib_free(&lib);
+	file_close(&sch_file);
+	return NULL;
 }
 
 

@@ -252,14 +252,17 @@ static bool lib_parse_line(const struct file *file,
 }
 
 
-void lib_parse(struct lib *lib, const char *name, const struct file *related)
+bool lib_parse(struct lib *lib, const char *name, const struct file *related)
 {
 	struct file file;
+	bool res;
 
 	lib->state = lib_skip;
-	file_open(&file, name, related);
-	file_read(&file, lib_parse_line, lib);
+	if (!file_open(&file, name, related))
+		return 0;
+	res = file_read(&file, lib_parse_line, lib);
 	file_close(&file);
+	return res;
 }
 
 

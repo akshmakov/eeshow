@@ -138,10 +138,13 @@ static void *diff_init(int argc, char *const *argv)
 	if (argc - optind < 1)
 		usage(*argv);
 
-	file_open(&sch_file, argv[argc - 1], NULL);
+	if (!file_open(&sch_file, argv[argc - 1], NULL)) 
+		goto fail_open;
 	for (arg = optind; arg != argc - 1; arg++)
-		lib_parse(&new_lib, argv[arg], &sch_file);
-	sch_parse(&new_sch, &sch_file, &new_lib);
+		if (!lib_parse(&new_lib, argv[arg], &sch_file))
+			goto fail_parse;
+	if (!sch_parse(&new_sch, &sch_file, &new_lib))
+		goto fail_parse;
 	file_close(&sch_file);
 
 	optind = 0;
@@ -155,6 +158,14 @@ static void *diff_init(int argc, char *const *argv)
 	diff->cr_ctx = cro_img_ops.init(argc, argv);
 
 	return diff;
+
+fail_parse:
+	file_close(&sch_file);
+fail_open:
+	sch_free(&new_sch);
+	lib_free(&new_lib);
+	free(diff);
+	return NULL;
 }
 
 

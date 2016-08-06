@@ -314,12 +314,16 @@ static const struct sheet *recurse_sheet(struct sch_ctx *ctx,
 	const char *name = ctx->obj.u.sheet.file;
 	const struct sheet *sheet;
 	struct file file;
+	bool res;
 
+	if (!file_open(&file, name, related))
+		return NULL;
 	sheet = new_sheet(ctx);
 	ctx->state = sch_descr;
-	file_open(&file, name, related);
-	file_read(&file, parse_line, ctx);
+	res = file_read(&file, parse_line, ctx);
 	file_close(&file);
+	if (!res)
+		return NULL;	/* caller MUST clean up */
 	end_sheet(ctx);
 
 	return sheet;
@@ -487,11 +491,16 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 			struct sch_obj *sheet_obj;
 
 			sheet_obj = submit_obj(ctx, sch_obj_sheet);
-			if (ctx->recurse)
-				sheet_obj->u.sheet.sheet =
-				    recurse_sheet(ctx, file);
-			else
+			if (ctx->recurse) {
+				const struct sheet *sheet;
+
+				sheet = recurse_sheet(ctx, file);
+				if (!sheet)
+					return 0;
+				sheet_obj->u.sheet.sheet = sheet;
+			} else {
 				sheet_obj->u.sheet.sheet = NULL;
+			}
 			ctx->state = sch_basic;
 			return 1;
 		}
@@ -543,10 +552,10 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 }
 
 
-void sch_parse(struct sch_ctx *ctx, struct file *file, const struct lib *lib)
+bool sch_parse(struct sch_ctx *ctx, struct file *file, const struct lib *lib)
 {
 	ctx->lib = lib;
-	file_read(file, parse_line, ctx);
+	return file_read(file, parse_line, ctx);
 }
 
 
