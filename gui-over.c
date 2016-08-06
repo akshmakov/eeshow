@@ -23,6 +23,7 @@
 #include <math.h>
 
 #include <cairo/cairo.h>
+#include <pango/pangocairo.h>
 
 #include "util.h"
 #include "gui-aoi.h"
@@ -66,14 +67,21 @@ static void rrect(cairo_t *cr, int x, int y, int w, int h, int r)
 
 struct overlay *overlay_draw(struct overlay *over, cairo_t *cr, int *x, int *y)
 {
-	cairo_text_extents_t ext;
 	int w, h;
 
-	cairo_set_font_size(cr, OVER_FONT_SIZE);
-	cairo_text_extents(cr, over->s, &ext);
+	PangoLayout *layout;
+	PangoFontDescription *desc;
+	PangoRectangle ink_rect;
 
-	w = ext.width + 2 * OVER_BORDER;
-	h = ext.height + 2 * OVER_BORDER;
+	layout = pango_cairo_create_layout(cr);
+	pango_layout_set_text(layout, over->s, -1);
+	desc = pango_font_description_from_string("Helvetica Bold 12");
+	pango_layout_set_font_description(layout, desc);
+	pango_font_description_free(desc);
+
+	pango_layout_get_extents(layout, &ink_rect, NULL);
+	w = ink_rect.width / PANGO_SCALE + 2 * OVER_BORDER;
+	h = ink_rect.height / PANGO_SCALE + 2 * OVER_BORDER;
 
 	rrect(cr, *x, *y, w, h, OVER_RADIUS);
 
@@ -84,8 +92,11 @@ struct overlay *overlay_draw(struct overlay *over, cairo_t *cr, int *x, int *y)
 	cairo_stroke(cr);
 
 	cairo_set_source_rgb(cr, 0, 0, 0);
-	cairo_move_to(cr, *x + OVER_BORDER, *y + OVER_BORDER + ext.height);
-	cairo_show_text(cr, over->s);
+	cairo_move_to(cr, *x - ink_rect.x / PANGO_SCALE + OVER_BORDER,
+	    *y - ink_rect.y / PANGO_SCALE + OVER_BORDER + 0*ink_rect.height);
+
+	pango_cairo_update_layout(cr, layout);
+	pango_cairo_show_layout(cr, layout);
 
 	if (over->hover || over->click) {
 		struct aoi aoi = {
