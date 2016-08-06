@@ -98,13 +98,14 @@ int main(int argc, char **argv)
 	char **gfx_argv;
 	const struct gfx_ops **ops = ops_list;
 
-	gtk_init(&argc, &argv);
-
 	for (dashdash = 1; dashdash != argc; dashdash++)
 		if (!strcmp(argv[dashdash], "--")) {
 			have_dashdash = 1;
 			break;
 		}
+
+	if (!have_dashdash)
+		gtk_init(&argc, &argv);
 
 	while ((c = getopt(dashdash, argv, "rvC:H:")) != EOF)
 		switch (c) {
