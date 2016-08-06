@@ -41,14 +41,15 @@ sch:
 		eeschema test.sch
 
 test:		$(NAME)
-		./$(NAME) test.lib test.sch >out.fig
+		./$(NAME) test.lib test.sch -- fig >out.fig
 		fig2dev -L png -m 2 out.fig _out.png
 		[ ! -r ref.png ] || \
 		    compare -metric AE ref.png _out.png _diff.png || \
 		    qiv -t -R -D _diff.png ref.png _out.png
 
 testref:	$(NAME)
-		./$(NAME) test.lib test.sch | fig2dev -L png -m 2 >ref.png
+		./$(NAME) test.lib test.sch -- fig | \
+		    fig2dev -L png -m 2 >ref.png
 
 png:		$(NAME)
 		./$(NAME) test.lib test.sch -- png -o _out.png -s 2
