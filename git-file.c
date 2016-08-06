@@ -282,12 +282,14 @@ static git_tree_entry *find_file(git_repository *repo, git_tree *tree,
 		fprintf(stderr, "repo dir \"%s\"\n", repo_path);
 
 	canon_path = canonical_path_into_repo(repo_path, path);
+	free(repo_path);
 
 	if (git_tree_entry_bypath(&entry, tree, canon_path)) {
 		const git_error *e = giterr_last();
 
 		fprintf(stderr, "%s: %s\n", path, e->message);
-		exit(1);
+		free(canon_path);
+		return NULL;
 	}
 	free(canon_path);
 
@@ -345,15 +347,18 @@ static bool send_line(const char *s, unsigned len,
 }
 
 
-static void access_file_data(struct vcs_git *vcs_git, const char *name)
+static bool access_file_data(struct vcs_git *vcs_git, const char *name)
 {
 	git_tree_entry *entry;
 
 	entry = find_file(vcs_git->repo, vcs_git->tree, name);
+	if (!entry)
+		return 0;
 	if (verbose)
 		fprintf(stderr, "reading %s\n", name);
 
 	vcs_git->data = get_data(vcs_git->repo, entry, &vcs_git->size);
+	return 1;
 }
 
 
@@ -364,9 +369,7 @@ static bool related_same_repo(struct vcs_git *vcs_git)
 	vcs_git->repo = related->repo;
 	vcs_git->tree = related->tree;
 
-	access_file_data(vcs_git, vcs_git->name);
-
-	return 1;
+	return access_file_data(vcs_git, vcs_git->name);
 }
 
 
@@ -393,7 +396,10 @@ static bool related_only_repo(struct vcs_git *vcs_git)
 	vcs_git->repo = related->repo;
 	vcs_git->tree = related->tree;
 
-	access_file_data(vcs_git, tmp);
+	if (!access_file_data(vcs_git, tmp)) {
+		free(tmp);
+		return 0;
+	}
 
 	free((char *) vcs_git->name);
 	vcs_git->name = tmp;
@@ -439,7 +445,7 @@ struct vcs_git *vcs_git_open(const char *revision, const char *name,
 	vcs_git->repo = select_repo(name);
 	if (!vcs_git->repo) {
 		fprintf(stderr, "%s: not found\n", name);
-		exit(1);
+		goto fail;
 	}
 	if (verbose > 1)
 		fprintf(stderr, "using repository %s\n",
@@ -449,9 +455,14 @@ struct vcs_git *vcs_git_open(const char *revision, const char *name,
 		revision = "HEAD";
 	vcs_git->tree = pick_revision(vcs_git->repo, revision);
 
-	access_file_data(vcs_git, name);
+	if (!access_file_data(vcs_git, name))
+		goto fail;
 
 	return vcs_git;
+
+fail:
+	vcs_git_close(vcs_git);
+	return 0;
 }
 
 

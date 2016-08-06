@@ -132,18 +132,25 @@ static void *open_vcs(struct file *file)
 			return file->vcs;
 		if (verbose > 1)
 			fprintf(stderr, "could not open %s\n", file->name);
-		return 0;
+		return NULL;
 	}
 }
 
 
-bool file_open(struct file *file, const char *name, const struct file *related)
+static void file_init(struct file *file, const char *name,
+    const struct file *related)
 {
 	file->name = stralloc(name);
 	file->lineno = 0;
 	file->related = related;
 	file->file = NULL;
 	file->vcs = NULL;
+}
+
+
+bool file_open(struct file *file, const char *name, const struct file *related)
+{
+	file_init(file, name, related);
 
 	if (related && related->vcs) {
 		file->vcs = open_vcs(file);
@@ -177,6 +184,22 @@ bool file_open(struct file *file, const char *name, const struct file *related)
 	fprintf(stderr, "could not open %s\n", name);
 fail:
 	free((char *) file->name);
+	return 0;
+}
+
+
+bool file_open_revision(struct file *file, const char *rev, const char *name,
+    const struct file *related)
+{
+	if (!rev)
+		return file_open(file, name, related);
+
+	file_init(file, name, related);
+	file->vcs = vcs_git_open(rev, name, related ? related->vcs : NULL);
+	if (file->vcs)
+		return 1;
+	if (verbose > 1)
+		fprintf(stderr, "could not open %s at %s\n", name, rev);
 	return 0;
 }
 
