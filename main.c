@@ -46,7 +46,8 @@ static struct gfx_ops const *ops_list[] = {
 void usage(const char *name)
 {
 	fprintf(stderr,
-"usage: %s [-r] [-v ...] [[rev:]file.lib ...] [rev:]file.sch\n"
+"usage: %s [gtk_flags] [-r] [[rev:]file.lib ...] [rev:]file.sch\n"
+"       %s [-r] [-v ...] [[rev:]file.lib ...] [rev:]file.sch\n"
 "       %*s[-- driver_spec]\n"
 "       %s [-v ...] -C [rev:]file\n"
 "       %s [-v ...] -H path_into_repo\n"
@@ -56,6 +57,8 @@ void usage(const char *name)
 "  -v   increase verbosity of diagnostic output\n"
 "  -C   'cat' the file to standard output\n"
 "  -H   show history of repository on standard output\n"
+"\n"
+"No driver spec: enter GUI\n"
 "\n"
 "FIG driver spec:\n"
 "  fig [-t template.fig] [var=value ...]\n"
@@ -78,7 +81,7 @@ void usage(const char *name)
 "  diff [-o output.pdf] [-s scale] [file.lib ...] file.sch\n"
 "\n"
 "  see PNG\n"
-    , name, (int) strlen(name) + 1, "", name, name);
+    , name, name, (int) strlen(name) + 1, "", name, name);
 	exit(1);
 }
 
