@@ -246,6 +246,22 @@ static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet);
 static bool go_up_sheet(struct gui_ctx *ctx);
 
 
+/* ----- Overlay styles ---------------------------------------------------- */
+
+
+static struct overlay_style style_dense;
+static struct overlay_style style_dense_selected;
+
+
+static void setup_styles(void)
+{
+	style_dense = overlay_style_dense;
+	style_dense_selected = overlay_style_dense_selected;
+	style_dense.wmin = style_dense.wmax =
+	    style_dense_selected.wmin = style_dense_selected.wmax = 400;
+}
+
+
 /* ----- Revision history -------------------------------------------------- */
 
 
@@ -310,8 +326,17 @@ static void show_history(struct gui_ctx *ctx)
 		// @@@ \n doesn't work with cairo_show_text :-(
 		over = overlay_add(&ctx->vcs_overlays, &ctx->aois,
 		    NULL, click_history, h);
-		overlay_text(over, "<small>%.60s</small>",
+		overlay_text(over, "<small>%s</small>",
 		    vcs_git_summary(h->hist));
+		overlay_style(over,
+/*
+ * @@@ for some mysterious reason, we get ink_rect.height / PANGO_SCALE = 5
+ * instead of 2 if using overlay_style_dense_selected. Strangely, changing
+ * overlay_style_dense_selected such that it becomes more like
+ * overlay_style_dense has no effect.
+ */
+		    h == ctx->curr_hist ? &overlay_style_dense_selected :
+		    &style_dense);
 	}
 	redraw(ctx);
 }
@@ -756,6 +781,8 @@ int gui(unsigned n_args, char **args, bool recurse)
 		fprintf(stderr, "no valid sheets\n");
 		return 1;
 	}
+
+	setup_styles();
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 

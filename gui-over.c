@@ -43,6 +43,7 @@
 
 struct overlay {
 	const char *s;
+	const struct overlay_style *style;
 
 	struct aoi **aois;
 	bool (*hover)(void *user, bool on);
@@ -52,6 +53,42 @@ struct overlay {
 	const struct aoi *aoi;
 
 	struct overlay *next;
+};
+
+
+#define	BG_DEFAULT	{ 0.8, 0.9, 1.0, 0.8 }
+#define	FRAME_DEFAULT	{ 0.5, 0.5, 1.0, 0.7 }
+#define	FRAME_SELECTED	{ 0.0, 0.0, 1.0, 0.8 }
+#define	FG_DEFAULT	{ 0.0, 0.0, 0.0, 1.0 }
+
+
+struct overlay_style overlay_style_default = {
+	.font	= "Helvetica 10",
+	.radius	= 6,
+	.pad	= 8,
+	.skip	= 8,
+	.bg	= BG_DEFAULT,
+	.frame	= FRAME_DEFAULT,
+	.fg	= FG_DEFAULT,
+	.width	= 2,
+}, overlay_style_dense = {
+	.font	= "Helvetiva 10",
+	.radius	= 3,
+	.pad	= 4,
+	.skip	= 5,
+	.bg	= BG_DEFAULT,
+	.frame	= FRAME_DEFAULT,
+	.fg	= FG_DEFAULT,
+	.width	= 1,
+}, overlay_style_dense_selected = {
+	.font	= "Helvetica Bold 10",
+	.radius	= 3,
+	.pad	= 4,
+	.skip	= 5,
+	.bg	= BG_DEFAULT,
+	.frame	= FRAME_SELECTED,
+	.fg	= FG_DEFAULT,
+	.width	= 1,
 };
 
 
@@ -70,36 +107,64 @@ static void rrect(cairo_t *cr, int x, int y, int w, int h, int r)
 
 struct overlay *overlay_draw(struct overlay *over, cairo_t *cr, int *x, int *y)
 {
-	int w, h;
+	const struct overlay_style *style = over->style;
+	const double *fg = style->fg;
+	const double *bg = style->bg;
+	const double *frame = style->frame;
+	unsigned ink_w, ink_h, w, h;
+	int tx, ty;
 
 	PangoLayout *layout;
 	PangoFontDescription *desc;
 	PangoRectangle ink_rect;
 
+	desc = pango_font_description_from_string(style->font);
 	layout = pango_cairo_create_layout(cr);
-	pango_layout_set_markup(layout, over->s, -1);
-	desc = pango_font_description_from_string("Helvetica 10");
 	pango_layout_set_font_description(layout, desc);
+	pango_layout_set_markup(layout, over->s, -1);
 	pango_font_description_free(desc);
 
 	pango_layout_get_extents(layout, &ink_rect, NULL);
-	w = ink_rect.width / PANGO_SCALE + 2 * OVER_BORDER;
-	h = ink_rect.height / PANGO_SCALE + 2 * OVER_BORDER;
+#if 0
+fprintf(stderr, "%d + %d  %d + %d\n",
+    ink_rect.x / PANGO_SCALE, ink_rect.width / PANGO_SCALE,
+    ink_rect.y / PANGO_SCALE, ink_rect.height / PANGO_SCALE);
+#endif
+	ink_w = ink_rect.width / PANGO_SCALE;
+	ink_h = ink_rect.height / PANGO_SCALE;
 
-	rrect(cr, *x, *y, w, h, OVER_RADIUS);
+	ink_w = ink_w > style->wmin ? ink_w : style->wmin;
+	ink_w = !style->wmax || ink_w < style->wmax ? ink_w : style->wmax;
+	w = ink_w + 2 * style->pad;
+	h = ink_h + 2 * style->pad;
 
-	cairo_set_source_rgba(cr, 0.8, 0.9, 1, 0.8);
+	tx = *x - ink_rect.x / PANGO_SCALE + style->pad;
+	ty = *y - ink_rect.y / PANGO_SCALE + style->pad;
+
+	rrect(cr, *x, *y, w, h, style->radius);
+
+	cairo_set_source_rgba(cr, bg[0], bg[1], bg[2], bg[3]);
 	cairo_fill_preserve(cr);
-	cairo_set_source_rgba(cr, 0.5, 0.5, 1, 0.7);
-	cairo_set_line_width(cr, 2);
+	cairo_set_source_rgba(cr, frame[0], frame[1], frame[2], frame[3]);
+	cairo_set_line_width(cr, style->width);
 	cairo_stroke(cr);
 
-	cairo_set_source_rgb(cr, 0, 0, 0);
-	cairo_move_to(cr, *x - ink_rect.x / PANGO_SCALE + OVER_BORDER,
-	    *y - ink_rect.y / PANGO_SCALE + OVER_BORDER + 0*ink_rect.height);
+	if (style->wmax) {
+		cairo_new_path(cr);
+#if 0
+fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->s);
+#endif
+		cairo_rectangle(cr, tx, ty, ink_w, ink_h);
+		cairo_clip(cr);
+	}
+
+	cairo_set_source_rgba(cr, fg[0], fg[1], fg[2], fg[3]);
+	cairo_move_to(cr, tx, ty);
 
 	pango_cairo_update_layout(cr, layout);
 	pango_cairo_show_layout(cr, layout);
+	cairo_reset_clip(cr);
+	g_object_unref(layout);
 
 	if (over->hover || over->click) {
 		struct aoi aoi = {
@@ -117,7 +182,7 @@ struct overlay *overlay_draw(struct overlay *over, cairo_t *cr, int *x, int *y)
 		over->aoi = aoi_add(over->aois, &aoi);
 	}
 
-	*y += h + OVER_SEP;
+	*y += h + style->skip;
 
 	return over->next;
 }
@@ -142,6 +207,7 @@ struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
 
 	over = alloc_type(struct overlay);
 	over->s = NULL;
+	over->style = &overlay_style_default;
 
 	over->aois = aois;
 	over->hover = hover;
@@ -154,6 +220,12 @@ struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
 	*anchor = over;
 
 	return over;
+}
+
+
+void overlay_style(struct overlay *over, const struct overlay_style *style)
+{
+	over->style = style;
 }
 
 
