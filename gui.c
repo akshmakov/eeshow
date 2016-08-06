@@ -633,6 +633,7 @@ fail:
 int gui(unsigned n_args, char **args, bool recurse)
 {
 	GtkWidget *window;
+	struct sheet *sheets;
 	struct gui_ctx ctx = {
 		.zoom		= 4,	/* scale by 1 / 16 */
 		.panning	= 0,
@@ -643,7 +644,12 @@ int gui(unsigned n_args, char **args, bool recurse)
 		.aois		= NULL,
 	};
 
-	get_sheets(&ctx, parse_sheets(n_args, args, recurse));
+	sheets = parse_sheets(n_args, args, recurse);
+	if (!sheets) {
+		fprintf(stderr, "no sheets\n");
+		exit(1);
+	}
+	get_sheets(&ctx, sheets);
 	get_git(&ctx, args[n_args - 1]);
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
