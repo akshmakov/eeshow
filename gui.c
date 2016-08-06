@@ -46,6 +46,8 @@ struct gui_sheet {
 	int w, h;
 	int xmin, ymin;
 
+	bool rendered;		/* 0 if still have to render it */
+
 	struct aoi *aois;	/* areas of interest; in schematics coord  */
 
 	struct gui_sheet *next;
@@ -128,7 +130,7 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 }
 
 
-static void render(struct gui_ctx *ctx, struct gui_sheet *sheet)
+static void render_sheet(struct gui_sheet *sheet)
 {
 	char *argv[] = { "gui", NULL };
 
@@ -137,9 +139,7 @@ static void render(struct gui_ctx *ctx, struct gui_sheet *sheet)
 	cro_canvas_end(gfx_ctx,
 	    &sheet->w, &sheet->h, &sheet->xmin, &sheet->ymin);
 	sheet->gfx_ctx = gfx_ctx;
-
-	ctx->x = sheet->w >> 1;
-	ctx->y = sheet->h >> 1;
+	sheet->rendered = 1;
 	// gfx_end();
 }
 
@@ -327,6 +327,10 @@ static void show_history_cb(void *user)
 /* ----- Navigate sheets --------------------------------------------------- */
 
 
+/* @@@ find a better place for this forward declaration */
+static void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet);
+
+
 static void close_subsheet(void *user)
 {
 	struct gui_ctx *ctx = user;
@@ -337,6 +341,10 @@ static void close_subsheet(void *user)
 
 static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
 {
+	if (!sheet->rendered) {
+		render_sheet(sheet);
+		mark_aois(ctx, sheet);
+	}
 	ctx->curr_sheet = sheet;
 	overlay_remove_all(&ctx->sheet_overlays);
 	if (ctx->hist) {
@@ -616,9 +624,7 @@ static struct gui_sheet *get_sheets(struct gui_ctx *ctx,
 	for (sheet = sheets; sheet; sheet = sheet->next) {
 		new = alloc_type(struct gui_sheet);
 		new->sch = sheet;
-
-		render(ctx, new);
-		mark_aois(ctx, new);
+		new->rendered = 0;
 
 		*next = new;
 		next = &new->next;
