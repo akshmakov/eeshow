@@ -53,6 +53,7 @@ struct gui_sheet {
 
 struct gui_hist {
 	struct hist *hist;
+	struct gui_sheet *sheets;	/* NULL if failed */
 	struct gui_hist *next;
 };
 
@@ -77,7 +78,7 @@ struct gui_ctx {
 
 	struct gui_sheet *curr_sheet;
 				/* current sheet */
-	struct gui_sheet *sheets;
+	struct gui_hist *curr_hist;
 };
 
 
@@ -310,7 +311,7 @@ static bool go_up_sheet(struct gui_ctx *ctx)
 	struct gui_sheet *sheet;
 	const struct sch_obj *obj;
 
-	for (sheet = ctx->sheets; sheet; sheet = sheet->next)
+	for (sheet = ctx->curr_hist->sheets; sheet; sheet = sheet->next)
 		for (obj = sheet->sch->objs; obj; obj = obj->next)
 			if (obj->type == sch_obj_sheet &&
 			    obj->u.sheet.sheet == ctx->curr_sheet->sch) {
@@ -325,7 +326,7 @@ static bool go_prev_sheet(struct gui_ctx *ctx)
 {
 	struct gui_sheet *sheet;
 
-	for (sheet = ctx->sheets; sheet; sheet = sheet->next)
+	for (sheet = ctx->curr_hist->sheets; sheet; sheet = sheet->next)
 		if (sheet->next && sheet->next == ctx->curr_sheet) {
 			go_to_sheet(ctx, sheet);
 			return 1;
@@ -433,8 +434,8 @@ static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
 		zoom_to_extents(ctx);
 		break;
 	case GDK_KEY_Home:
-		if (sheet != ctx->sheets)
-			go_to_sheet(ctx, ctx->sheets);
+		if (sheet != ctx->curr_hist->sheets)
+			go_to_sheet(ctx, ctx->curr_hist->sheets);
 		break;
 	case GDK_KEY_BackSpace:
 	case GDK_KEY_Delete:
@@ -507,7 +508,7 @@ static void select_subsheet(void *user)
 	const struct sch_obj *obj = aoi_ctx->obj;
 	struct gui_sheet *sheet;
 
-	for (sheet = ctx->sheets; sheet; sheet = sheet->next)
+	for (sheet = ctx->curr_hist->sheets; sheet; sheet = sheet->next)
 		if (sheet->sch == obj->u.sheet.sheet) {
 			go_to_sheet(ctx, sheet);
 			return;
@@ -556,58 +557,48 @@ static void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet)
 }
 
 
-static void get_sheets(struct gui_ctx *ctx, const struct sheet *sheets)
+static struct gui_sheet *get_sheets(struct gui_ctx *ctx,
+    const struct sheet *sheets)
 {
 	const struct sheet *sheet;
-	struct gui_sheet **next = &ctx->sheets;
-	struct gui_sheet *gui_sheet;
+	struct gui_sheet *gui_sheets = NULL;
+	struct gui_sheet **next = &gui_sheets;
+	struct gui_sheet *new;
 
 	for (sheet = sheets; sheet; sheet = sheet->next) {
-		gui_sheet = alloc_type(struct gui_sheet);
-		gui_sheet->sch = sheet;
+		new = alloc_type(struct gui_sheet);
+		new->sch = sheet;
 
-		render(ctx, gui_sheet);
-		mark_aois(ctx, gui_sheet);
+		render(ctx, new);
+		mark_aois(ctx, new);
 
-		*next = gui_sheet;
-		next = &gui_sheet->next;
+		*next = new;
+		next = &new->next;
 	}
 	*next = NULL;
-	ctx->curr_sheet = ctx->sheets;
+	return gui_sheets;
 }
 
 
-
-static void add_hist(void *user, struct hist *h)
+static const struct sheet *parse_sheets(struct hist *h,
+    int n_args, char **args, bool recurse)
 {
-	struct gui_ctx *ctx = user;
-	struct gui_hist **anchor;
-
-	for (anchor = &ctx->hist; *anchor; anchor = &(*anchor)->next);
-	*anchor = alloc_type(struct gui_hist);
-	(*anchor)->hist = h;
-	(*anchor)->next = NULL;
-}
-
-
-static void get_git(struct gui_ctx *ctx, const char *sch_name)
-{
-	if (!vcs_git_try(sch_name))
-		return;
-	ctx->vcs_hist = vcs_git_hist(sch_name);
-	hist_iterate(ctx->vcs_hist, add_hist, ctx);
-}
-
-
-static struct sheet *parse_sheets(int n_args, char **args, bool recurse)
-{
-	struct lib lib;
+	char *rev = NULL;
 	struct sch_ctx sch_ctx;
+	struct lib lib;
 	struct file sch_file;
 	int i;
+	bool ok;
+
+	if (h)
+		rev = vcs_git_get_rev(h);
 
 	sch_init(&sch_ctx, recurse);
-	if (!file_open(&sch_file, args[n_args - 1], NULL)) {
+	ok = file_open_revision(&sch_file, rev, args[n_args - 1], NULL);
+
+	if (rev)
+		free(rev);
+	if (!ok) {
 		sch_free(&sch_ctx);
 		return NULL;
 	}
@@ -620,6 +611,13 @@ static struct sheet *parse_sheets(int n_args, char **args, bool recurse)
 		goto fail;
 	file_close(&sch_file);
 
+	/*
+	 * @@@ we have a major memory leak for the component library.
+	 * We should record parsed schematics and libraries separately, so
+	 * that we can clean them up, without having to rely on the history,
+	 * with - in the future, when sharing of unchanged item is
+	 * implemented - possibly many duplicate pointers.
+	 */
 	return sch_ctx.sheets;
 
 fail:
@@ -630,10 +628,59 @@ fail:
 }
 
 
+struct add_hist_ctx {
+	struct gui_ctx *ctx;
+	int n_args;
+	char **args;
+	bool recurse;
+unsigned limit;
+};
+
+
+static void add_hist(void *user, struct hist *h)
+{
+	struct add_hist_ctx *ahc = user;
+	struct gui_ctx *ctx = ahc->ctx;
+	struct gui_hist **anchor;
+	const struct sheet *sch;
+
+if (!ahc->limit)
+	return;
+ahc->limit--;
+	for (anchor = &ctx->hist; *anchor; anchor = &(*anchor)->next);
+	*anchor = alloc_type(struct gui_hist);
+	(*anchor)->hist = h;
+	sch = parse_sheets(h, ahc->n_args, ahc->args, ahc->recurse);
+	(*anchor)->sheets = sch ? get_sheets(ctx, sch) : NULL;
+	(*anchor)->next = NULL;
+}
+
+
+static void get_revisions(struct gui_ctx *ctx,
+    int n_args, char **args, bool recurse)
+{
+	const char *sch_name = args[n_args - 1];
+	struct add_hist_ctx add_hist_ctx = {
+		.ctx		= ctx,
+		.n_args		= n_args,
+		.args		= args,
+		.recurse	= recurse,
+.limit = 10,
+	};
+
+	if (!vcs_git_try(sch_name)) {
+		ctx->vcs_hist = NULL;
+		add_hist(&add_hist_ctx, NULL);
+	} else {
+		ctx->vcs_hist = vcs_git_hist(sch_name);
+		hist_iterate(ctx->vcs_hist, add_hist, &add_hist_ctx);
+	}
+}
+
+
 int gui(unsigned n_args, char **args, bool recurse)
 {
 	GtkWidget *window;
-	struct sheet *sheets;
 	struct gui_ctx ctx = {
 		.zoom		= 4,	/* scale by 1 / 16 */
 		.panning	= 0,
@@ -644,13 +691,13 @@ int gui(unsigned n_args, char **args, bool recurse)
 		.aois		= NULL,
 	};
 
-	sheets = parse_sheets(n_args, args, recurse);
-	if (!sheets) {
-		fprintf(stderr, "no sheets\n");
-		exit(1);
+	get_revisions(&ctx, n_args, args, recurse);
+	for (ctx.curr_hist = ctx.hist; ctx.curr_hist && !ctx.curr_hist->sheets;
+	    ctx.curr_hist = ctx.curr_hist->next);
+	if (!ctx.curr_hist) {
+		fprintf(stderr, "no valid sheets\n");
+		return 1;
 	}
-	get_sheets(&ctx, sheets);
-	get_git(&ctx, args[n_args - 1]);
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
@@ -688,8 +735,8 @@ int gui(unsigned n_args, char **args, bool recurse)
 //	gtk_window_set_default_size(GTK_WINDOW(window), 400, 90);
 	gtk_window_set_title(GTK_WINDOW(window), "eeshow");
 
+	go_to_sheet(&ctx, ctx.curr_hist->sheets);
 	gtk_widget_show_all(window);
-	go_to_sheet(&ctx, ctx.sheets);
 
 	gtk_main();
 
