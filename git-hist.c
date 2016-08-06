@@ -187,6 +187,15 @@ struct hist *vcs_git_hist(const char *path)
 }
 
 
+char *vcs_git_get_rev(struct hist *h)
+{
+	const git_oid *oid = git_commit_id(h->commit);
+	char *s = alloc_size(GIT_OID_HEXSZ + 1);
+
+	return git_oid_tostr(s, GIT_OID_HEXSZ + 1, oid);
+}
+
+
 const char *vcs_git_summary(struct hist *h)
 {
 	const char *summary;
