@@ -27,6 +27,7 @@
 #include "file.h"
 #include "lib.h"
 #include "sch.h"
+#include "fmt-pango.h"
 #include "git-hist.h"
 #include "gui.h"
 #include "main.h"
@@ -94,6 +95,7 @@ int main(int argc, char **argv)
 	bool recurse = 0;
 	const char *cat = NULL;
 	const char *history = NULL;
+	const char *fmt = NULL;
 	char c;
 	int arg, dashdash;
 	bool have_dashdash = 0;
@@ -110,7 +112,7 @@ int main(int argc, char **argv)
 	if (!have_dashdash)
 		gtk_init(&argc, &argv);
 
-	while ((c = getopt(dashdash, argv, "rvC:H:")) != EOF)
+	while ((c = getopt(dashdash, argv, "rvC:F:H:")) != EOF)
 		switch (c) {
 		case 'r':
 			recurse = 1;
@@ -120,6 +122,9 @@ int main(int argc, char **argv)
 			break;
 		case 'C':
 			cat = optarg;
+			break;
+		case 'F':
+			fmt = optarg;
 			break;
 		case 'H':
 			history = optarg;
@@ -146,6 +151,14 @@ int main(int argc, char **argv)
 
 		h = vcs_git_hist(history);
 		dump_hist(h);
+		return 0;
+	}
+
+	if (fmt) {
+		char *buf;
+
+		buf = fmt_pango(fmt, argv[optind]);
+		printf("\"%s\"\n", buf);
 		return 0;
 	}
 

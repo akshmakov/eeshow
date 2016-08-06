@@ -303,14 +303,15 @@ static void click_history(void *user)
 static void show_history(struct gui_ctx *ctx)
 {
 	struct gui_hist *h = ctx->hist;
-	char *s;
+	struct overlay *over;
 
 	overlay_remove_all(&ctx->vcs_overlays);
 	for (h = ctx->hist; h; h = h->next) {
 		// @@@ \n doesn't work with cairo_show_text :-(
-		if (asprintf(&s, "commit\n%s", vcs_git_summary(h->hist))) {}
-		overlay_add(&ctx->vcs_overlays, s, &ctx->aois,
+		over = overlay_add(&ctx->vcs_overlays, &ctx->aois,
 		    NULL, click_history, h);
+		overlay_text(over, "<small>%.60s</small>",
+		    vcs_git_summary(h->hist));
 	}
 	redraw(ctx);
 }
@@ -341,6 +342,8 @@ static void close_subsheet(void *user)
 
 static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
 {
+	struct overlay *over;
+
 	if (!sheet->rendered) {
 		render_sheet(sheet);
 		mark_aois(ctx, sheet);
@@ -348,16 +351,16 @@ static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
 	ctx->curr_sheet = sheet;
 	overlay_remove_all(&ctx->sheet_overlays);
 	if (ctx->hist) {
-		char *s;
-
-		if (asprintf(&s, "%.40s",
-		    vcs_git_summary(ctx->curr_hist->hist))) {}
-		overlay_add(&ctx->sheet_overlays, s, &ctx->aois,
+		over = overlay_add(&ctx->sheet_overlays, &ctx->aois,
 		    NULL, show_history_cb, ctx);
+		overlay_text(over, "%.40s",
+		    vcs_git_summary(ctx->curr_hist->hist));
 	}
-	if (sheet->sch->title)
-		overlay_add(&ctx->sheet_overlays, sheet->sch->title,
-		    &ctx->aois, NULL, close_subsheet, ctx);
+	if (sheet->sch->title) {
+		over = overlay_add(&ctx->sheet_overlays, &ctx->aois,
+		    NULL, close_subsheet, ctx);
+		overlay_text(over, "<b>%s</b>", sheet->sch->title);
+	}
 	zoom_to_extents(ctx);
 }
 

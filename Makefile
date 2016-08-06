@@ -12,7 +12,7 @@
 
 NAME = eeshow
 OBJS = main.o sch-parse.o sch-render.o lib-parse.o lib-render.o \
-       gui.o gui-over.o gui-aoi.o \
+       gui.o gui-over.o gui-aoi.o fmt-pango.o \
        file.o git-util.o git-file.o git-hist.o \
        style.o fig.o record.o cro.o diff.o gfx.o dwg.o text.o misc.o
 

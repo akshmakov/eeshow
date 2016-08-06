@@ -19,13 +19,16 @@
  */
 
 #include <stddef.h>
+#include <stdarg.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 
 #include <cairo/cairo.h>
 #include <pango/pangocairo.h>
 
 #include "util.h"
+#include "fmt-pango.h"
 #include "gui-aoi.h"
 #include "gui-over.h"
 
@@ -74,8 +77,8 @@ struct overlay *overlay_draw(struct overlay *over, cairo_t *cr, int *x, int *y)
 	PangoRectangle ink_rect;
 
 	layout = pango_cairo_create_layout(cr);
-	pango_layout_set_text(layout, over->s, -1);
-	desc = pango_font_description_from_string("Helvetica Bold 12");
+	pango_layout_set_markup(layout, over->s, -1);
+	desc = pango_font_description_from_string("Helvetica 10");
 	pango_layout_set_font_description(layout, desc);
 	pango_font_description_free(desc);
 
@@ -131,15 +134,14 @@ void overlay_draw_all(struct overlay *overlays, cairo_t *cr)
 }
 
 
-struct overlay *overlay_add(struct overlay **overlays, const char *s,
-    struct aoi **aois,
+struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
     bool (*hover)(void *user, bool on), void (*click)(void *user), void *user)
 {
 	struct overlay *over;
 	struct overlay **anchor;
 
 	over = alloc_type(struct overlay);
-	over->s = stralloc(s);
+	over->s = NULL;
 
 	over->aois = aois;
 	over->hover = hover;
@@ -152,6 +154,17 @@ struct overlay *overlay_add(struct overlay **overlays, const char *s,
 	*anchor = over;
 
 	return over;
+}
+
+
+void overlay_text(struct overlay *over, const char *fmt, ...)
+{
+	va_list ap;
+
+	free((char *) over->s);
+	va_start(ap, fmt);
+	over->s = vfmt_pango(fmt, ap);
+	va_end(ap);
 }
 
 
