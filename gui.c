@@ -52,6 +52,7 @@ struct gui_sheet {
 };
 
 struct gui_hist {
+	struct gui_ctx *ctx;		/* back link */
 	struct hist *hist;
 	struct gui_sheet *sheets;	/* NULL if failed */
 	struct gui_hist *next;
@@ -238,15 +239,64 @@ static void zoom_to_extents(struct gui_ctx *ctx)
 }
 
 
+/* ----- Need this for jumping around -------------------------------------- */
+
+
+static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet);
+static bool go_up_sheet(struct gui_ctx *ctx);
+
+
 /* ----- Revision history -------------------------------------------------- */
 
 
-static void hide_history(void *user)
+static void hide_history(struct gui_ctx *ctx)
 {
-	struct gui_ctx *ctx = user;
-
 	overlay_remove_all(&ctx->vcs_overlays);
 	redraw(ctx);
+}
+
+
+static struct gui_sheet *find_corresponding_sheet(struct gui_ctx *ctx,
+    struct gui_sheet *sheets)
+{
+	struct gui_sheet *sheet, *plan_b;
+	const char *title = ctx->curr_sheet->sch->title;
+
+	/* plan A: try to find sheet with same name */
+
+	if (title)
+		for (sheet = sheets; sheet; sheet = sheet->next)
+			if (sheet->sch->title &&
+			    !strcmp(title, sheet->sch->title))
+				return sheet;
+
+	/* plan B: use sheet in same position in sheet sequence */
+
+	plan_b = ctx->curr_hist->sheets;
+	for (sheet = sheets; sheet; sheet = sheet->next) {
+		if (plan_b == ctx->curr_sheet)
+			return sheet;
+		plan_b = plan_b->next;
+	}
+
+	/* plan C: just go to the top */
+	return sheets;
+}
+
+
+static void click_history(void *user)
+{
+	struct gui_hist *h = user;
+	struct gui_ctx *ctx = h->ctx;
+
+	if (h->sheets && h != ctx->curr_hist) {
+		struct gui_sheet *sheet;
+
+		sheet = find_corresponding_sheet(ctx, h->sheets);
+		ctx->curr_hist = h;
+		go_to_sheet(ctx, sheet);
+	}
+	hide_history(ctx);
 }
 
 
@@ -260,7 +310,7 @@ static void show_history(struct gui_ctx *ctx)
 		// @@@ \n doesn't work with cairo_show_text :-(
 		if (asprintf(&s, "commit\n%s", vcs_git_summary(h->hist))) {}
 		overlay_add(&ctx->vcs_overlays, s, &ctx->aois,
-		    NULL, hide_history, ctx);
+		    NULL, click_history, h);
 	}
 	redraw(ctx);
 }
@@ -275,9 +325,6 @@ static void show_history_cb(void *user)
 
 
 /* ----- Navigate sheets --------------------------------------------------- */
-
-
-static bool go_up_sheet(struct gui_ctx *ctx);
 
 
 static void close_subsheet(void *user)
@@ -295,7 +342,8 @@ static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
 	if (ctx->hist) {
 		char *s;
 
-		if (asprintf(&s, "%.40s", vcs_git_summary(ctx->hist->hist))) {}
+		if (asprintf(&s, "%.40s",
+		    vcs_git_summary(ctx->curr_hist->hist))) {}
 		overlay_add(&ctx->sheet_overlays, s, &ctx->aois,
 		    NULL, show_history_cb, ctx);
 	}
@@ -649,6 +697,7 @@ if (!ahc->limit)
 ahc->limit--;
 	for (anchor = &ctx->hist; *anchor; anchor = &(*anchor)->next);
 	*anchor = alloc_type(struct gui_hist);
+	(*anchor)->ctx = ctx;
 	(*anchor)->hist = h;
 	sch = parse_sheets(h, ahc->n_args, ahc->args, ahc->recurse);
 	(*anchor)->sheets = sch ? get_sheets(ctx, sch) : NULL;
@@ -665,7 +714,7 @@ static void get_revisions(struct gui_ctx *ctx,
 		.n_args		= n_args,
 		.args		= args,
 		.recurse	= recurse,
-.limit = 10,
+.limit = 30,
 	};
 
 	if (!vcs_git_try(sch_name)) {
