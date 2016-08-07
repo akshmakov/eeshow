@@ -257,8 +257,7 @@ static void setup_styles(void)
 {
 	style_dense = overlay_style_dense;
 	style_dense_selected = overlay_style_dense_selected;
-	style_dense.wmin = style_dense.wmax =
-	    style_dense_selected.wmin = style_dense_selected.wmax = 400;
+	style_dense.wmax = style_dense_selected.wmax = 400;
 }
 
 
