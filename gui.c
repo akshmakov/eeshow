@@ -28,10 +28,12 @@
 #include <gtk/gtk.h>
 
 #include "util.h"
+#include "style.h"
 #include "cro.h"
 #include "gfx.h"
 #include "git-hist.h"
 #include "sch.h"
+#include "delta.h"
 #include "gui-aoi.h"
 #include "gui-over.h"
 #include "gui.h"
@@ -40,7 +42,7 @@
 struct gui_ctx;
 
 struct gui_sheet {
-	const const struct sheet *sch;
+	const struct sheet *sch;
 	struct cro_ctx *gfx_ctx;
 
 	int w, h;
@@ -81,6 +83,10 @@ struct gui_ctx {
 	struct overlay *hist_overlays;
 	struct aoi *aois;	/* areas of interest; in canvas coord  */
 
+	struct gui_sheet delta_a;
+	struct gui_sheet delta_b;
+	struct gui_sheet delta_ab;
+
 	struct gui_sheet *curr_sheet;
 				/* current sheet */
 	struct gui_hist *curr_hist;
@@ -94,6 +100,34 @@ struct gui_ctx {
 static void redraw(const struct gui_ctx *ctx)
 {
 	gtk_widget_queue_draw(ctx->da);
+}
+
+
+static struct gui_sheet *find_corresponding_sheet(struct gui_sheet *pick_from,
+     struct gui_sheet *ref_in, const struct gui_sheet *ref)
+{
+	struct gui_sheet *sheet, *plan_b;
+	const char *title = ref->sch->title;
+
+	/* plan A: try to find sheet with same name */
+
+	if (title)
+		for (sheet = pick_from; sheet; sheet = sheet->next)
+			if (sheet->sch->title &&
+			    !strcmp(title, sheet->sch->title))
+				return sheet;
+
+	/* plan B: use sheet in same position in sheet sequence */
+
+	plan_b = ref_in;
+	for (sheet = pick_from; sheet; sheet = sheet->next) {
+		if (plan_b == ref)
+			return sheet;
+		plan_b = plan_b->next;
+	}
+
+	/* plan C: just go to the top */
+	return pick_from;
 }
 
 
@@ -113,14 +147,22 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	const struct gui_ctx *ctx = user_data;
 	const struct gui_sheet *sheet = ctx->curr_sheet;
 	GtkAllocation alloc;
-
 	float f = 1.0 / (1 << ctx->zoom);
 	int x, y;
 
 	gtk_widget_get_allocation(ctx->da, &alloc);
 	x = -(sheet->xmin + ctx->x) * f + alloc.width / 2;
 	y = -(sheet->ymin + ctx->y) * f + alloc.height / 2;
-	cro_canvas_draw(sheet->gfx_ctx, cr, x, y, f);
+
+	cro_canvas_prepare(cr);
+	if (!ctx->last_hist) {
+		cro_canvas_draw(sheet->gfx_ctx, cr, x, y, f);
+	} else {
+		/* @@@ fix geometry later */
+		cro_canvas_draw(ctx->delta_ab.gfx_ctx, cr, x, y, f);
+		cro_canvas_draw(ctx->delta_a.gfx_ctx, cr, x, y, f);
+		cro_canvas_draw(ctx->delta_b.gfx_ctx, cr, x, y, f);
+	}
 
 	overlay_draw_all(ctx->sheet_overlays, cr,
 	    SHEET_OVERLAYS_X, SHEET_OVERLAYS_Y);
@@ -142,6 +184,34 @@ static void render_sheet(struct gui_sheet *sheet)
 	sheet->gfx_ctx = gfx_ctx;
 	sheet->rendered = 1;
 	// gfx_end();
+}
+
+
+static void render_delta(struct gui_ctx *ctx)
+{
+	struct sheet *sch_a, *sch_b, *sch_ab;
+	const struct gui_sheet *a = ctx->curr_sheet;
+	const struct gui_sheet *b = find_corresponding_sheet(
+	    ctx->last_hist->sheets, ctx->curr_hist->sheets, ctx->curr_sheet);
+
+	sch_a = alloc_type(struct sheet);
+	sch_b = alloc_type(struct sheet);
+	sch_ab = alloc_type(struct sheet);
+
+	delta(a->sch, b->sch, sch_a, sch_b, sch_ab);
+	ctx->delta_a.sch = sch_a,
+	ctx->delta_b.sch = sch_b,
+	ctx->delta_ab.sch = sch_ab,
+
+	render_sheet(&ctx->delta_a);
+	render_sheet(&ctx->delta_b);
+	render_sheet(&ctx->delta_ab);
+
+	cro_color_override(ctx->delta_ab.gfx_ctx, COLOR_LIGHT_GREY);
+	cro_color_override(ctx->delta_a.gfx_ctx, COLOR_RED);
+	cro_color_override(ctx->delta_b.gfx_ctx, COLOR_GREEN2);
+
+	// @@@ clean up when leaving sheet
 }
 
 
@@ -277,34 +347,6 @@ static void hide_history(struct gui_ctx *ctx)
 }
 
 
-static struct gui_sheet *find_corresponding_sheet(struct gui_ctx *ctx,
-    struct gui_sheet *sheets)
-{
-	struct gui_sheet *sheet, *plan_b;
-	const char *title = ctx->curr_sheet->sch->title;
-
-	/* plan A: try to find sheet with same name */
-
-	if (title)
-		for (sheet = sheets; sheet; sheet = sheet->next)
-			if (sheet->sch->title &&
-			    !strcmp(title, sheet->sch->title))
-				return sheet;
-
-	/* plan B: use sheet in same position in sheet sequence */
-
-	plan_b = ctx->curr_hist->sheets;
-	for (sheet = sheets; sheet; sheet = sheet->next) {
-		if (plan_b == ctx->curr_sheet)
-			return sheet;
-		plan_b = plan_b->next;
-	}
-
-	/* plan C: just go to the top */
-	return sheets;
-}
-
-
 static bool hover_history(void *user, bool on)
 {
 	struct gui_hist *h = user;
@@ -330,22 +372,15 @@ static void do_sheet_overlays(struct gui_ctx *ctx);
 static void go_to_history(struct gui_hist *h)
 {
 	struct gui_ctx *ctx = h->ctx;
-	struct gui_sheet *sheet;
 
 	if (h == ctx->curr_hist) {
 		ctx->last_hist = NULL;
 		do_sheet_overlays(ctx);
 	} else {
-		/*
-		 * Look up sheet BEFORE changing history (we need various
-		 * items from ctx for this).
-		 *
-		 * Set sheet AFTER changing history.
-		 */
-		sheet = find_corresponding_sheet(ctx, h->sheets);
 		ctx->last_hist = ctx->curr_hist;
 		ctx->curr_hist = h;
-		go_to_sheet(ctx, sheet);
+		go_to_sheet(ctx, find_corresponding_sheet(h->sheets,
+		    ctx->last_hist->sheets, ctx->curr_sheet));
 	}
 }
 
@@ -437,7 +472,7 @@ static void do_sheet_overlays(struct gui_ctx *ctx)
 	}
 	if (ctx->last_hist) {
 		ctx->last_hist->sheet_over = overlay_add(&ctx->sheet_overlays,
-		    &ctx->aois, show_history_details, show_history_cb,
+		    &ctx->aois, show_history_details, click_history,
 		    ctx->last_hist);
 		overlay_style(ctx->curr_hist->sheet_over,
 		    &overlay_style_diff_new);
@@ -460,6 +495,8 @@ static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
 		mark_aois(ctx, sheet);
 	}
 	ctx->curr_sheet = sheet;
+	if (ctx->last_hist)
+		render_delta(ctx);
 	do_sheet_overlays(ctx);
 	zoom_to_extents(ctx);
 }

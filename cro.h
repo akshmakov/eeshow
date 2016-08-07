@@ -37,7 +37,8 @@ uint32_t *cro_img_end(struct cro_ctx *cc, int *w, int *h, int *stride);
 void cro_img_write(struct cro_ctx *cc, const char *name);
 
 void cro_canvas_end(struct cro_ctx *cc, int *w, int *h, int *xmin, int *ymin);
-void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr, int x, int y,
-    float scale);
+void cro_canvas_prepare(cairo_t *cr);
+void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr,
+    int x, int y, float scale);
 
 #endif /* !CRO_H */

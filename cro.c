@@ -97,7 +97,7 @@ static void set_color(struct cro_ctx *cc, int color)
 	if (color < 0)
 		return;
 	c = color_rgb[color];
-	cairo_set_source_rgb(cc-> cr,
+	cairo_set_source_rgb(cc->cr,
 	    (c >> 16) / 255.0, ((c >> 8) & 255) / 255.0, (c & 255) / 255.0);
 }
 
@@ -480,10 +480,9 @@ void cro_canvas_end(struct cro_ctx *cc, int *w, int *h, int *xmin, int *ymin)
 }
 
 
-void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr, int xo, int yo,
-    float scale)
+void cro_canvas_prepare(cairo_t *cr)
 {
-	set_color(cc, COLOR_WHITE);
+	cairo_set_source_rgb(cr, 1, 1, 1);
 	cairo_paint(cr);
 
 	cairo_select_font_face(cr, "Helvetica", CAIRO_FONT_SLANT_NORMAL,
@@ -491,8 +490,14 @@ void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr, int xo, int yo,
 
 	cairo_set_line_width(cr, 2);
 	cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
+}
 
+
+void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr, int xo, int yo,
+    float scale)
+{
 	cc->cr = cr;
+
 	cc->scale = scale;
 	cc->xo = xo;
 	cc->yo = yo;
