@@ -78,7 +78,7 @@ struct gui_ctx {
 	struct hist *vcs_hist;	/* underlying VCS data; NULL if none */
 
 	struct overlay *sheet_overlays;
-	struct overlay *vcs_overlays;
+	struct overlay *hist_overlays;
 	struct aoi *aois;	/* areas of interest; in canvas coord  */
 
 	struct gui_sheet *curr_sheet;
@@ -123,7 +123,7 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 
 	overlay_draw_all(ctx->sheet_overlays, cr,
 	    SHEET_OVERLAYS_X, SHEET_OVERLAYS_Y);
-	overlay_draw_all(ctx->vcs_overlays, cr,
+	overlay_draw_all(ctx->hist_overlays, cr,
 	    VCS_OVERLAYS_X, VCS_OVERLAYS_Y);
 
 	return FALSE;
@@ -266,7 +266,7 @@ static void setup_styles(void)
 
 static void hide_history(struct gui_ctx *ctx)
 {
-	overlay_remove_all(&ctx->vcs_overlays);
+	overlay_remove_all(&ctx->hist_overlays);
 	redraw(ctx);
 }
 
@@ -338,9 +338,9 @@ static void show_history(struct gui_ctx *ctx)
 {
 	struct gui_hist *h = ctx->hist;
 
-	overlay_remove_all(&ctx->vcs_overlays);
+	overlay_remove_all(&ctx->hist_overlays);
 	for (h = ctx->hist; h; h = h->next) {
-		h->history_over = overlay_add(&ctx->vcs_overlays, &ctx->aois,
+		h->history_over = overlay_add(&ctx->hist_overlays, &ctx->aois,
 		    hover_history, click_history, h);
 		hover_history(h, 0);
 		overlay_style(h->history_over,
@@ -800,7 +800,7 @@ int gui(unsigned n_args, char **args, bool recurse)
 		.hist		= NULL,
 		.vcs_hist	= NULL,
 		.sheet_overlays	= NULL,
-		.vcs_overlays	= NULL,
+		.hist_overlays	= NULL,
 		.aois		= NULL,
 	};
 
