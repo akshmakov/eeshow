@@ -18,14 +18,21 @@
 uint32_t color_rgb[] = {
 	[COLOR_BLACK]		= 0x000000,
 	[COLOR_BLUE]		= 0x0000ff,
+	[COLOR_GREEN]		= 0x00ff00,
+	[COLOR_RED]		= 0xff0000,
 	[COLOR_YELLOW]		= 0xffff00,
 	[COLOR_WHITE]		= 0xffffff,
 	[COLOR_GREEN4]		= 0x009000,
+	[COLOR_GREEN3]		= 0x00b000,
+	[COLOR_GREEN2]		= 0x00d000,
 	[COLOR_CYAN4]		= 0x009090,
 	[COLOR_CYAN3]		= 0x00b0b0,
 	[COLOR_RED4]		= 0x900000,
 	[COLOR_RED3]		= 0xb00000,
 	[COLOR_MAGENTA4]	= 0x900090,
 	[COLOR_BROWN2]		= 0xc06000,
+
+	/* user-defined colors */
 	[COLOR_DARK_YELLOW]	= 0x848400,
+	[COLOR_LIGHT_GREY]	= 0xd0d0d0,
 };

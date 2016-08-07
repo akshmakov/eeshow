@@ -21,9 +21,13 @@
 #define	COLOR_NONE		-1
 #define	COLOR_BLACK		0
 #define	COLOR_BLUE		1
+#define	COLOR_GREEN		2
+#define	COLOR_RED		4
 #define	COLOR_YELLOW		6
 #define	COLOR_WHITE		7
 #define	COLOR_GREEN4		12
+#define	COLOR_GREEN3		13
+#define	COLOR_GREEN2		14
 #define	COLOR_CYAN4		15
 #define	COLOR_CYAN3		16
 #define	COLOR_RED4		18
@@ -32,6 +36,7 @@
 #define	COLOR_BROWN2		26
 
 #define	COLOR_DARK_YELLOW	32	/* user-defined */
+#define	COLOR_LIGHT_GREY	33	/* user-defined, not used for FIG */
 
 #define	COLOR_COMP_DWG		COLOR_RED4
 #define	COLOR_COMP_DWG_BG	COLOR_YELLOW
