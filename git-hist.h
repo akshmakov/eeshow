@@ -35,6 +35,7 @@ bool vcs_git_try(const char *path);
 struct hist *vcs_git_hist(const char *path);
 char *vcs_git_get_rev(struct hist *h);
 const char *vcs_git_summary(struct hist *hist);
+char *vcs_git_long_for_pango(struct hist *hist);
 void hist_iterate(struct hist *h, 
     void (*fn)(void *user, struct hist *h), void *user);
 void dump_hist(struct hist *h);

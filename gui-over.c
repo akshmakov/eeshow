@@ -50,7 +50,7 @@ struct overlay {
 	void (*click)(void *user);
 	void *user;
 
-	const struct aoi *aoi;
+	struct aoi *aoi;
 
 	struct overlay *next;
 };
@@ -179,7 +179,7 @@ fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->
 	g_object_unref(layout);
 
 	if (over->hover || over->click) {
-		struct aoi aoi = {
+		struct aoi aoi_cfg = {
 			.x	= *x,
 			.y	= *y,
 			.w	= w,
@@ -190,8 +190,9 @@ fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->
 		};
 
 		if (over->aoi)
-			aoi_remove(over->aois, over->aoi);
-		over->aoi = aoi_add(over->aois, &aoi);
+			aoi_update(over->aoi, &aoi_cfg);
+		else
+			over->aoi = aoi_add(over->aois, &aoi_cfg);
 	}
 
 	*y += h + style->skip;
@@ -241,13 +242,19 @@ void overlay_style(struct overlay *over, const struct overlay_style *style)
 }
 
 
+void overlay_text_raw(struct overlay *over, const char *s)
+{
+	free((char *) over->s);
+	over->s = stralloc(s);
+}
+
+
 void overlay_text(struct overlay *over, const char *fmt, ...)
 {
 	va_list ap;
 
-	free((char *) over->s);
 	va_start(ap, fmt);
-	over->s = vfmt_pango(fmt, ap);
+	overlay_text_raw(over, vfmt_pango(fmt, ap));
 	va_end(ap);
 }
 

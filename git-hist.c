@@ -13,10 +13,12 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>	/* for vcs_long_for_pango */
 #include <alloca.h>
 
 #include "util.h"
 #include "main.h"
+#include "fmt-pango.h"	/* for vcs_long_for_pango */
 #include "git-util.h"
 #include "git-file.h"
 #include "git-hist.h"
@@ -209,6 +211,37 @@ const char *vcs_git_summary(struct hist *h)
 
 	e = giterr_last();
 	fprintf(stderr, "git_commit_summary: %s\n", e->message);
+	exit(1);
+}
+
+
+/*
+ * @@@ This one is a bit inconvenient. It depends both on the information the
+ * VCS provides, some of which is fairly generic, but some may not be, and
+ * the very specific constraints imposed by the markup format of Pango. 
+ */
+
+char *vcs_git_long_for_pango(struct hist *h)
+{
+	const git_error *e;
+	git_buf buf = { 0 };
+	time_t commit_time;
+	const git_signature *sig;
+	char *s;
+
+	if (git_object_short_id(&buf, (git_object *) h->commit))
+		goto fail;
+	commit_time = git_commit_time(h->commit);
+	sig = git_commit_committer(h->commit);
+	s = fmt_pango("<b>%s</b> %s%s &lt;%s&gt;<small>\n%s</small>",
+	    buf.ptr, ctime(&commit_time), sig->name, sig->email,
+	    git_commit_summary(h->commit));
+	git_buf_free(&buf);
+	return s;
+
+fail:
+	e = giterr_last();
+	fprintf(stderr, "vcs_git_long_for_pango: %s\n", e->message);
 	exit(1);
 }
 

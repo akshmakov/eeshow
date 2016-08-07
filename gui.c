@@ -56,6 +56,7 @@ struct gui_sheet {
 struct gui_hist {
 	struct gui_ctx *ctx;		/* back link */
 	struct hist *hist;
+	struct overlay *over;		/* current overlay */
 	struct gui_sheet *sheets;	/* NULL if failed */
 	struct gui_hist *next;
 };
@@ -337,7 +338,8 @@ static void show_history(struct gui_ctx *ctx)
 
 static void show_history_cb(void *user)
 {
-	struct gui_ctx *ctx = user;
+	struct gui_hist *h = user;
+	struct gui_ctx *ctx = h->ctx;
 
 	show_history(ctx);
 }
@@ -358,6 +360,25 @@ static void close_subsheet(void *user)
 }
 
 
+static bool show_history_details(void *user, bool on)
+{
+	struct gui_hist *h = user;
+	struct gui_ctx *ctx = h->ctx;
+
+	char *s;
+
+	if (on) {
+		s = vcs_git_long_for_pango(h->hist);
+		overlay_text_raw(h->over, s);
+		free(s);
+	} else {
+		overlay_text(h->over, "%.40s", vcs_git_summary(h->hist));
+	}
+	redraw(ctx);
+	return 1;
+}
+
+
 static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
 {
 	struct overlay *over;
@@ -368,11 +389,11 @@ static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
 	}
 	ctx->curr_sheet = sheet;
 	overlay_remove_all(&ctx->sheet_overlays);
-	if (ctx->hist) {
-		over = overlay_add(&ctx->sheet_overlays, &ctx->aois,
-		    NULL, show_history_cb, ctx);
-		overlay_text(over, "%.40s",
-		    vcs_git_summary(ctx->curr_hist->hist));
+	if (ctx->curr_hist) {
+		ctx->curr_hist->over = overlay_add(&ctx->sheet_overlays,
+		    &ctx->aois, show_history_details, show_history_cb,
+		    ctx->curr_hist);
+		show_history_details(ctx->curr_hist, 0);
 	}
 	if (sheet->sch->title) {
 		over = overlay_add(&ctx->sheet_overlays, &ctx->aois,
@@ -436,7 +457,9 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
 
 	canvas_coord(ctx, event->x, event->y, &x, &y);
 
-	aoi_hover(curr_sheet->aois, x + curr_sheet->xmin, y + curr_sheet->ymin);
+	aoi_hover(ctx->aois, event->x, event->y) ||
+	    aoi_hover(curr_sheet->aois,
+	    x + curr_sheet->xmin, y + curr_sheet->ymin);
 	pan_update(ctx, event->x, event->y);
 
 	return TRUE;

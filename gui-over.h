@@ -44,6 +44,7 @@ struct overlay *overlay_draw(struct overlay *over, cairo_t *cr, int *x, int *y);
 void overlay_draw_all(struct overlay *overlays, cairo_t *cr);
 struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
     bool (*hover)(void *user, bool on), void (*click)(void *user), void *user);
+void overlay_text_raw(struct overlay *over, const char *s);
 void overlay_text(struct overlay *over, const char *fmt, ...);
 void overlay_style(struct overlay *over, const struct overlay_style *style);
 void overlay_remove(struct overlay **overlays, struct overlay *over);
