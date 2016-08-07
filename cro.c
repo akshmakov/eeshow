@@ -53,6 +53,8 @@ struct cro_ctx {
 	unsigned n_sheets;
 
 	const char *output_name;
+
+	int color_override;	/* FIG color, COLOR_NONE if no override */
 };
 
 
@@ -86,30 +88,32 @@ static inline float pt(struct cro_ctx *cc, int x)
 }
 
 
-static void set_color(cairo_t *cr, int color)
+static void set_color(struct cro_ctx *cc, int color)
 {
 	uint32_t c;
 
+	if (cc->color_override != COLOR_NONE)
+		color = cc->color_override;
 	if (color < 0)
 		return;
 	c = color_rgb[color];
-	cairo_set_source_rgb(cr, (c >> 16) / 255.0, ((c >> 8) & 255) / 255.0,
-	    (c & 255) / 255.0);
+	cairo_set_source_rgb(cc-> cr,
+	    (c >> 16) / 255.0, ((c >> 8) & 255) / 255.0, (c & 255) / 255.0);
 }
 
 
-static void paint(cairo_t *cr, int color, int fill_color)
+static void paint(struct cro_ctx *cc, int color, int fill_color)
 {
 	if (fill_color != COLOR_NONE) {
-		set_color(cr, fill_color);
+		set_color(cc, fill_color);
 		if (color == COLOR_NONE)
-			cairo_fill(cr);
+			cairo_fill(cc->cr);
 		else
-			cairo_fill_preserve(cr);
+			cairo_fill_preserve(cc->cr);
 	}
 	if (color != COLOR_NONE) {
-		set_color(cr, color);
-		cairo_stroke(cr);
+		set_color(cc, color);
+		cairo_stroke(cc->cr);
 	}
 }
 
@@ -127,7 +131,7 @@ static void cr_line(void *ctx, int sx, int sy, int ex, int ey,
 	cairo_move_to(cc->cr, cx(cc, sx), cy(cc, sy));
 	cairo_line_to(cc->cr, cx(cc, ex), cy(cc, ey));
 	cairo_set_dash(cc->cr, dashes, ARRAY_ELEMENTS(dashes), 0);
-	paint(cc->cr, color, COLOR_NONE);
+	paint(cc, color, COLOR_NONE);
 	cairo_set_dash(cc->cr, NULL, 0, 0);
 }
 
@@ -152,7 +156,7 @@ static void cr_poly(void *ctx,
 	if (closed)
 		cairo_close_path(cc->cr);
 
-	paint(cc->cr, color, fill_color);
+	paint(cc, color, fill_color);
 }
 
 
@@ -163,7 +167,7 @@ static void cr_circ(void *ctx, int x, int y, int r,
 
 	cairo_new_path(cc->cr);
 	cairo_arc(cc->cr, cx(cc, x), cy(cc, y), cd(cc, r), 0, 2 * M_PI);
-	paint(cc->cr, color, fill_color);
+	paint(cc, color, fill_color);
 }
 
 
@@ -175,7 +179,7 @@ static void cr_arc(void *ctx, int x, int y, int r, int sa, int ea,
 	cairo_new_path(cc->cr);
 	cairo_arc(cc->cr, cx(cc, x), cy(cc, y), cd(cc, r),
 	    -ea / 180.0 * M_PI, -sa / 180.0 * M_PI);
-	paint(cc->cr, color, fill_color);
+	paint(cc, color, fill_color);
 }
 
 
@@ -192,7 +196,7 @@ static void cr_text(void *ctx, int x, int y, const char *s, unsigned size,
 	cairo_set_font_size(cc->cr, cd(cc, size) * TEXT_STRETCH);
 	cairo_text_extents(cc->cr, s, &ext);
 
-	set_color(cc->cr, color);
+	set_color(cc, color);
 
 	cairo_move_to(cc->cr, cx(cc, x), cy(cc, y));
 
@@ -228,7 +232,16 @@ static unsigned cr_text_width(void *ctx, const char *s, unsigned size)
 }
 
 
-/* ----- Initializatio and termination ------------------------------------- */
+/* ----- Color override ---------------------------------------------------- */
+
+
+void cro_color_override(struct cro_ctx *cc, int color)
+{
+	cc->color_override = color;
+}
+
+
+/* ----- Initialization and termination ------------------------------------ */
 
 
 static const struct gfx_ops real_cro_ops = {
@@ -253,6 +266,8 @@ static struct cro_ctx *init_common(int argc, char *const *argv)
 
 	cc->sheets = NULL;
 	cc->n_sheets = 0;
+
+	cc->color_override = COLOR_NONE;
 
 	cc->output_name = NULL;
 	while ((c = getopt(argc, argv, "o:s:")) != EOF)
@@ -348,7 +363,7 @@ static void cr_png_end(void *ctx)
 	cc->s = cairo_image_surface_create(CAIRO_FORMAT_RGB24, w, h);
 	cc->cr = cairo_create(cc->s);
 
-	set_color(cc->cr, COLOR_WHITE);
+	set_color(cc, COLOR_WHITE);
 	cairo_paint(cc->cr);
 
 	cairo_select_font_face(cc->cr, "Helvetica", CAIRO_FONT_SLANT_NORMAL,
@@ -400,7 +415,7 @@ static void cr_pdf_end(void *ctx)
 	cairo_set_line_cap(cc->cr, CAIRO_LINE_CAP_SQUARE);
 
 	for (i = 0; i != cc->n_sheets; i++) {
-		set_color(cc->cr, COLOR_WHITE);
+		set_color(cc, COLOR_WHITE);
 		cairo_paint(cc->cr);
 
 		record_replay(cc->sheets + i);
@@ -432,7 +447,7 @@ uint32_t *cro_img_end(struct cro_ctx *cc, int *w, int *h, int *stride)
 	    CAIRO_FORMAT_RGB24, *w, *h, *stride);
 	cc->cr = cairo_create(cc->s);
 
-	set_color(cc->cr, COLOR_WHITE);
+	set_color(cc, COLOR_WHITE);
 	cairo_paint(cc->cr);
 
 	cairo_select_font_face(cc->cr, "Helvetica", CAIRO_FONT_SLANT_NORMAL,
@@ -468,7 +483,7 @@ void cro_canvas_end(struct cro_ctx *cc, int *w, int *h, int *xmin, int *ymin)
 void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr, int xo, int yo,
     float scale)
 {
-	set_color(cr, COLOR_WHITE);
+	set_color(cc, COLOR_WHITE);
 	cairo_paint(cr);
 
 	cairo_select_font_face(cr, "Helvetica", CAIRO_FONT_SLANT_NORMAL,
