@@ -18,6 +18,7 @@
 
 #include "util.h"
 #include "text.h"
+#include "lib.h"
 #include "sch.h"
 #include "delta.h"
 
@@ -30,6 +31,94 @@
  *
  * @@@@ line(A, B) == line(B, A), etc.
  */
+
+
+/* ----- Components -------------------------------------------------------- */
+
+
+static bool comp_lib_objs(const struct lib_obj *a, const struct lib_obj *b)
+{
+	/*
+	 * @@@ over-simplify a little. We don't search to find objects that
+	 * have merely been reordered.
+	 */
+	while (a && b) {
+		if (a->type != b->type)
+			return 0;
+		if (a->unit != b->unit || a->convert != b->convert)
+			return 0;
+		switch (a->type) {
+		case lib_obj_poly:
+		case lib_obj_rect:
+			return a->u.rect.sx == b->u.rect.sx &&
+			    a->u.rect.ex == a->u.rect.ey &&
+			    a->u.rect.thick == b->u.rect.thick &&
+			    a->u.rect.fill == b->u.rect.fill;
+		case lib_obj_circ:
+			return a->u.circ.x == b->u.circ.x &&
+			    a->u.circ.y == b->u.circ.y &&
+			    a->u.circ.r == b->u.circ.r &&
+			    a->u.circ.thick == b->u.circ.thick &&
+			    a->u.circ.fill == b->u.circ.fill;
+		case lib_obj_arc:
+			return a->u.arc.x == b->u.arc.x &&
+			    a->u.arc.y == b->u.arc.y &&
+			    a->u.arc.r == b->u.arc.r &&
+			    a->u.arc.start_a == b->u.arc.start_a &&
+			    a->u.arc.end_a == b->u.arc.end_a &&
+			    a->u.arc.thick == b->u.arc.thick &&
+			    a->u.arc.fill == b->u.arc.fill;
+		case lib_obj_text:
+			return a->u.text.x == b->u.text.x &&
+			    a->u.text.y == b->u.text.y &&
+			    a->u.text.dim == b->u.text.dim &&
+			    a->u.text.orient == b->u.text.orient &&
+			    a->u.text.style == b->u.text.style &&
+			    a->u.text.hor_align == b->u.text.hor_align &&
+			    a->u.text.vert_align == b->u.text.vert_align &&
+			    !strcmp(a->u.text.s, b->u.text.s);
+		case lib_obj_pin:
+			return a->u.pin.x == b->u.pin.x &&
+			    a->u.pin.y == b->u.pin.y &&
+			    a->u.pin.length == b->u.pin.length &&
+			    a->u.pin.orient == b->u.pin.orient &&
+			    a->u.pin.number_size == b->u.pin.number_size &&
+			    a->u.pin.name_size == b->u.pin.name_size &&
+			    a->u.pin.etype == b->u.pin.etype &&
+			    !strcmp(a->u.pin.name, b->u.pin.name) &&
+			    !strcmp(a->u.pin.number, b->u.pin.number);
+		default:
+			abort();
+		}
+		a = a->next;
+		b = b->next;
+	}
+	return a == b;
+}
+
+
+static bool comp_eq(const struct comp *a, const struct comp *b)
+{
+	if (a == b)
+		return 1;
+	if (strcmp(a->name, b->name))
+		return 0;
+	if (a->units != b->units)
+		return 0;
+	if (a->visible != b->visible)
+		return 0;
+	if (a->show_pin_name != b->show_pin_name)
+		return 0;
+	if (a->show_pin_num != b->show_pin_num)
+		return 0;
+	if (a->name_offset != b->name_offset)
+		return 0;
+	return comp_lib_objs(a->objs, b->objs);
+}
+
+
+/* ----- Sheets ------------------------------------------------------------ */
+
 
 static struct sch_obj *objs_clone(const struct sch_obj *objs)
 {
@@ -148,7 +237,7 @@ static bool obj_eq(const struct sch_obj *a, const struct sch_obj *b)
 			return 0;
 		return 1;
 	case sch_obj_comp:
-		if (a->u.comp.comp != b->u.comp.comp)
+		if (!comp_eq(a->u.comp.comp, b->u.comp.comp))
 			return 0;
 		if (a->u.comp.unit != b->u.comp.unit)
 			return 0;
