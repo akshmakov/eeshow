@@ -84,6 +84,7 @@ struct gui_ctx {
 	struct gui_sheet *curr_sheet;
 				/* current sheet */
 	struct gui_hist *curr_hist;
+	struct gui_hist *last_hist;
 };
 
 
@@ -251,13 +252,18 @@ static bool go_up_sheet(struct gui_ctx *ctx);
 
 static struct overlay_style style_dense;
 static struct overlay_style style_dense_selected;
+static struct overlay_style style_dense_diff_new;
+static struct overlay_style style_dense_diff_old;
 
 
 static void setup_styles(void)
 {
 	style_dense = overlay_style_dense;
 	style_dense_selected = overlay_style_dense_selected;
-	style_dense.wmax = style_dense_selected.wmax = 400;
+	style_dense_diff_new = overlay_style_diff_new;
+	style_dense_diff_old = overlay_style_diff_old;
+	style_dense.wmax = style_dense_selected.wmax =
+	    style_dense_diff_new.wmax = style_dense_diff_old.wmax = 400;
 }
 
 
@@ -318,18 +324,39 @@ static bool hover_history(void *user, bool on)
 }
 
 
+static void do_sheet_overlays(struct gui_ctx *ctx);
+
+
+static void go_to_history(struct gui_hist *h)
+{
+	struct gui_ctx *ctx = h->ctx;
+	struct gui_sheet *sheet;
+
+	if (h == ctx->curr_hist) {
+		ctx->last_hist = NULL;
+		do_sheet_overlays(ctx);
+	} else {
+		/*
+		 * Look up sheet BEFORE changing history (we need various
+		 * items from ctx for this).
+		 *
+		 * Set sheet AFTER changing history.
+		 */
+		sheet = find_corresponding_sheet(ctx, h->sheets);
+		ctx->last_hist = ctx->curr_hist;
+		ctx->curr_hist = h;
+		go_to_sheet(ctx, sheet);
+	}
+}
+
+
 static void click_history(void *user)
 {
 	struct gui_hist *h = user;
 	struct gui_ctx *ctx = h->ctx;
 
-	if (h->sheets && h != ctx->curr_hist) {
-		struct gui_sheet *sheet;
-
-		sheet = find_corresponding_sheet(ctx, h->sheets);
-		ctx->curr_hist = h;
-		go_to_sheet(ctx, sheet);
-	}
+	if (h->sheets)
+		go_to_history(h);
 	hide_history(ctx);
 }
 
@@ -344,8 +371,10 @@ static void show_history(struct gui_ctx *ctx)
 		    hover_history, click_history, h);
 		hover_history(h, 0);
 		overlay_style(h->history_over,
-		    h == ctx->curr_hist ? &style_dense_selected :
-		    &style_dense);
+		    h == ctx->curr_hist ?
+		      ctx->last_hist ?
+		        &style_dense_diff_new : &style_dense_selected :
+		    h == ctx->last_hist ? &style_dense_diff_old : &style_dense);
 	}
 	redraw(ctx);
 }
@@ -393,27 +422,45 @@ static bool show_history_details(void *user, bool on)
 }
 
 
-static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
+static void do_sheet_overlays(struct gui_ctx *ctx)
 {
 	struct overlay *over;
 
-	if (!sheet->rendered) {
-		render_sheet(sheet);
-		mark_aois(ctx, sheet);
-	}
-	ctx->curr_sheet = sheet;
 	overlay_remove_all(&ctx->sheet_overlays);
 	if (ctx->curr_hist) {
 		ctx->curr_hist->sheet_over = overlay_add(&ctx->sheet_overlays,
 		    &ctx->aois, show_history_details, show_history_cb,
 		    ctx->curr_hist);
+		overlay_style(ctx->curr_hist->sheet_over,
+		    &overlay_style_default);
 		show_history_details(ctx->curr_hist, 0);
 	}
-	if (sheet->sch->title) {
+	if (ctx->last_hist) {
+		ctx->last_hist->sheet_over = overlay_add(&ctx->sheet_overlays,
+		    &ctx->aois, show_history_details, show_history_cb,
+		    ctx->last_hist);
+		overlay_style(ctx->curr_hist->sheet_over,
+		    &overlay_style_diff_new);
+		overlay_style(ctx->last_hist->sheet_over,
+		    &overlay_style_diff_old);
+		show_history_details(ctx->last_hist, 0);
+	}
+	if (ctx->curr_sheet->sch->title) {
 		over = overlay_add(&ctx->sheet_overlays, &ctx->aois,
 		    NULL, close_subsheet, ctx);
-		overlay_text(over, "<b>%s</b>", sheet->sch->title);
+		overlay_text(over, "<b>%s</b>", ctx->curr_sheet->sch->title);
 	}
+}
+
+
+static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
+{
+	if (!sheet->rendered) {
+		render_sheet(sheet);
+		mark_aois(ctx, sheet);
+	}
+	ctx->curr_sheet = sheet;
+	do_sheet_overlays(ctx);
 	zoom_to_extents(ctx);
 }
 
@@ -802,6 +849,7 @@ int gui(unsigned n_args, char **args, bool recurse)
 		.sheet_overlays	= NULL,
 		.hist_overlays	= NULL,
 		.aois		= NULL,
+		.last_hist	= NULL,
 	};
 
 	get_revisions(&ctx, n_args, args, recurse);
