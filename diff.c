@@ -28,6 +28,12 @@
 
 #define	DEFAULT_FRAME_RADIUS	30
 
+#define	FADE_SHIFT	3
+#define	FADE_MASK	((0xff >> FADE_SHIFT) * (0x010101))
+#define	FADE_OFFSET	(~FADE_MASK & 0xffffff)
+
+#define	MASK 0xffffff
+
 
 struct area {
 	int xa, ya, xb, yb;
@@ -208,25 +214,20 @@ static void mark_area(struct diff *diff, int x, int y)
 }
 
 
-#define	MASK 0xffffff
-
-
 static void differences(struct diff *diff, uint32_t *a, const uint32_t *b)
 {
-	int x, y;
 	unsigned skip = diff->w * 4 - diff->stride;
+	int x, y;
 
 	for (y = 0; y != diff->h; y++) {
 		for (x = 0; x != diff->w; x++) {
 			if (!((*a ^ *b) & MASK)) {
-				*a = ((*a >> 3) & 0x1f1f1f) | 0xe0e0e0;
-//				*a = ((*a >> 2) & 0x3f3f3f) | 0xc0c0c0;
+				*a = ((*a >> FADE_SHIFT) & FADE_MASK) |
+				    FADE_OFFSET;
 			} else {
 				mark_area(diff, x, y);
-//fprintf(stderr, "0x%06x 0x%06x", *a, *b);
 				*a = (*a & MASK) == MASK ? ONLY_NEW :
 				    (*b & MASK) == MASK ? ONLY_OLD : BOTH;
-//fprintf(stderr, "-> 0x%06x\n", *a);
 			}
 			a++;
 			b++;
