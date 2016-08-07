@@ -69,8 +69,14 @@ static bool parse_def(struct lib *lib, const char *line)
 		return 0;
 
 	lib->curr_comp = alloc_type(struct comp);
-	if (*s == '~')
-		s++;
+	if (*s == '~') {
+		char *tmp = alloc_size(strlen(s) + 1);
+
+		/* we can't just s++, since that would break freeing */
+		strcpy(tmp, s + 1);
+		free(s);
+		s = tmp;
+	}
 	lib->curr_comp->name = s;
 	lib->curr_comp->units = units;
 
