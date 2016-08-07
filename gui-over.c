@@ -56,39 +56,58 @@ struct overlay {
 };
 
 
-#define	BG_DEFAULT	{ 0.8, 0.9, 1.0, 0.8 }
-#define	FRAME_DEFAULT	{ 0.5, 0.5, 1.0, 0.7 }
+#define	NORMAL_FONT	"Helvetica 10"
+#define	BOLD_FONT	"Helvetica Bold 10"
+
+#define	NORMAL_PAD	8
+#define	NORMAL_RADIUS	6
+#define	NORMAL_SKIP	8
+#define	NORMAL_WIDTH	2
+
+#define	DENSE_PAD	4
+#define	DENSE_RADIUS	3
+#define	DENSE_SKIP	5
+#define	DENSE_WIDTH	1
+
+#define	BG_STANDARD	{ 0.8, 0.9, 1.0, 0.8 }
+#define	FG_STANDARD	{ 0.0, 0.0, 0.0, 1.0 }
+#define	FRAME_STANDARD	{ 0.5, 0.5, 1.0, 0.7 }
+
+#define	BG_SELECTED	BG_STANDARD
+#define	FG_SELECTED	FG_STANDARD
 #define	FRAME_SELECTED	{ 0.0, 0.0, 1.0, 0.8 }
-#define	FG_DEFAULT	{ 0.0, 0.0, 0.0, 1.0 }
+
+
+#define	BOX_ATTRS(style)		\
+	.pad	= style##_PAD,		\
+	.radius	= style##_RADIUS,	\
+	.skip	= style##_SKIP,		\
+	.width	= style##_WIDTH
+
+#define	NORMAL	BOX_ATTRS(NORMAL)
+#define	DENSE	BOX_ATTRS(DENSE)
+
+#define	COLOR_ATTRS(style)		\
+	.bg	= BG_##style,		\
+	.fg	= FG_##style,		\
+	.frame	= FRAME_##style
+
+#define	STANDARD COLOR_ATTRS(STANDARD)
+#define	SELECTED COLOR_ATTRS(SELECTED)
 
 
 struct overlay_style overlay_style_default = {
 	.font	= "Helvetica 10",
-	.radius	= 6,
-	.pad	= 8,
-	.skip	= 8,
-	.bg	= BG_DEFAULT,
-	.frame	= FRAME_DEFAULT,
-	.fg	= FG_DEFAULT,
-	.width	= 2,
+	NORMAL,
+	STANDARD,
 }, overlay_style_dense = {
 	.font	= "Helvetiva 10",
-	.radius	= 3,
-	.pad	= 4,
-	.skip	= 5,
-	.bg	= BG_DEFAULT,
-	.frame	= FRAME_DEFAULT,
-	.fg	= FG_DEFAULT,
-	.width	= 1,
+	DENSE,
+	STANDARD,
 }, overlay_style_dense_selected = {
 	.font	= "Helvetica Bold 10",
-	.radius	= 3,
-	.pad	= 4,
-	.skip	= 5,
-	.bg	= BG_DEFAULT,
-	.frame	= FRAME_SELECTED,
-	.fg	= FG_DEFAULT,
-	.width	= 1,
+	DENSE,
+	SELECTED,
 };
 
 
