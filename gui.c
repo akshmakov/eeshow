@@ -323,19 +323,12 @@ static void show_history(struct gui_ctx *ctx)
 
 	overlay_remove_all(&ctx->vcs_overlays);
 	for (h = ctx->hist; h; h = h->next) {
-		// @@@ \n doesn't work with cairo_show_text :-(
 		over = overlay_add(&ctx->vcs_overlays, &ctx->aois,
 		    NULL, click_history, h);
 		overlay_text(over, "<small>%s</small>",
 		    vcs_git_summary(h->hist));
 		overlay_style(over,
-/*
- * @@@ for some mysterious reason, we get ink_rect.height / PANGO_SCALE = 5
- * instead of 2 if using overlay_style_dense_selected. Strangely, changing
- * overlay_style_dense_selected such that it becomes more like
- * overlay_style_dense has no effect.
- */
-		    h == ctx->curr_hist ? &overlay_style_dense_selected :
+		    h == ctx->curr_hist ? &style_dense_selected :
 		    &style_dense);
 	}
 	redraw(ctx);

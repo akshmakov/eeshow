@@ -154,7 +154,19 @@ fprintf(stderr, "%d + %d  %d + %d\n",
 #if 0
 fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->s);
 #endif
-		cairo_rectangle(cr, tx, ty, ink_w, ink_h);
+/*
+ * @@@ for some mysterious reason, we get
+ * ink_h = ink_rect.height / PANGO_SCALE = 5
+ * instead of 2 if using overlay_style_dense_selected. Strangely, changing
+ * overlay_style_dense_selected such that it becomes more like
+ * overlay_style_dense has no effect.
+ *
+ * This causes the text to be cut vertically, roughly in the middle. We hack
+ * around this problem by growind the clipping area vertically. This works,
+ * since we're currently only concerned about horizontal clipping anyway.
+ */
+
+		cairo_rectangle(cr, tx, ty, ink_w, ink_h + 20);
 		cairo_clip(cr);
 	}
 
