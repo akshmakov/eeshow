@@ -237,15 +237,16 @@ static char *canonical_path_into_repo(const char *repo_dir, const char *path)
 		    path_st.st_ino == repo_st.st_ino)
 			break;
 
+		slash = strrchr(tmp, '/');
+
 		/* "this cannot happen" */
-		if (tail == tmp) {
+		if (tail == tmp || !slash) {
 			fprintf(stderr,
 			    "divergent paths:\nrepo \"%s\"\nobject \"%s\"\n",
-			    repo_dir, tmp);
+			    repo_dir, tail);
 			exit(1);
 		}
 
-		slash = strrchr(tmp, '/');
 		if (tail != end)
 			tail[-1] = '/';
 		tail = slash + 1;
