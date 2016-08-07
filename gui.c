@@ -99,15 +99,11 @@ static void redraw(const struct gui_ctx *ctx)
 /* ----- Rendering --------------------------------------------------------- */
 
 
-static void draw_vcs_overlays(const struct gui_ctx *ctx, cairo_t *cr)
-{
-	struct overlay *over;
-	int x = 200;
-	int y = 5;
+#define	VCS_OVERLAYS_X		5
+#define	VCS_OVERLAYS_Y		5
 
-	for (over = ctx->vcs_overlays; over;)
-		over = overlay_draw(over, cr, &x, &y);
-}
+#define	SHEET_OVERLAYS_X	-10
+#define	SHEET_OVERLAYS_Y	10
 
 
 static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
@@ -125,8 +121,10 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	y = -(sheet->ymin + ctx->y) * f + alloc.height / 2;
 	cro_canvas_draw(sheet->gfx_ctx, cr, x, y, f);
 
-	overlay_draw_all(ctx->sheet_overlays, cr);
-	draw_vcs_overlays(ctx, cr);
+	overlay_draw_all(ctx->sheet_overlays, cr,
+	    SHEET_OVERLAYS_X, SHEET_OVERLAYS_Y);
+	overlay_draw_all(ctx->vcs_overlays, cr,
+	    VCS_OVERLAYS_X, VCS_OVERLAYS_Y);
 
 	return FALSE;
 }

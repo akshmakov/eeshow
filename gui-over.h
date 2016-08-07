@@ -41,7 +41,7 @@ extern struct overlay_style overlay_style_dense;
 extern struct overlay_style overlay_style_dense_selected;
 
 struct overlay *overlay_draw(struct overlay *over, cairo_t *cr, int *x, int *y);
-void overlay_draw_all(struct overlay *overlays, cairo_t *cr);
+void overlay_draw_all(struct overlay *overlays, cairo_t *cr, int x, int y);
 struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
     bool (*hover)(void *user, bool on), void (*click)(void *user), void *user);
 void overlay_text_raw(struct overlay *over, const char *s);

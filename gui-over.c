@@ -16,6 +16,9 @@
  * http://zetcode.com/gfx/cairo/cairobackends/
  * https://developer.gnome.org/gtk3/stable/gtk-migrating-2-to-3.html
  * https://www.cairographics.org/samples/rounded_rectangle/
+ *
+ * Section "Description" in
+ * https://developer.gnome.org/pango/stable/pango-Cairo-Rendering.html
  */
 
 #include <stddef.h>
@@ -33,12 +36,9 @@
 #include "gui-over.h"
 
 
-#define	OVER_FONT_SIZE	16
 #define	OVER_BORDER	8
 #define	OVER_RADIUS	6
 #define	OVER_SEP	8
-#define	OVER_X0		10
-#define	OVER_Y0		10
 
 
 struct overlay {
@@ -111,8 +111,10 @@ struct overlay *overlay_draw(struct overlay *over, cairo_t *cr, int *x, int *y)
 	const double *fg = style->fg;
 	const double *bg = style->bg;
 	const double *frame = style->frame;
-	unsigned ink_w, ink_h, w, h;
-	int tx, ty;
+	unsigned ink_w, ink_h;	/* effectively used text area size */
+	unsigned w, h;		/* box size */
+	int tx, ty;		/* text start position */
+	int sx, sy;		/* box start position */
 
 	PangoLayout *layout;
 	PangoFontDescription *desc;
@@ -138,10 +140,25 @@ fprintf(stderr, "%d + %d  %d + %d\n",
 	w = ink_w + 2 * style->pad;
 	h = ink_h + 2 * style->pad;
 
-	tx = *x - ink_rect.x / PANGO_SCALE + style->pad;
-	ty = *y - ink_rect.y / PANGO_SCALE + style->pad;
+	sx = *x;
+	sy = *y;
+	if (sx < 0 || sy < 0) {
+		double x1, y1, x2, y2;
+		int sw, sh;
 
-	rrect(cr, *x, *y, w, h, style->radius);
+		cairo_clip_extents(cr, &x1, &y1, &x2, &y2);
+		sw = x2 - x1;
+		sh = y2 - y1;
+		if (sx < 0)
+			sx = sw + sx - w;
+		if (sy < 0)
+			sy = sh + sy - h;
+	}
+
+	tx = sx - ink_rect.x / PANGO_SCALE + style->pad;
+	ty = sy - ink_rect.y / PANGO_SCALE + style->pad;
+
+	rrect(cr, sx, sy, w, h, style->radius);
 
 	cairo_set_source_rgba(cr, bg[0], bg[1], bg[2], bg[3]);
 	cairo_fill_preserve(cr);
@@ -180,8 +197,8 @@ fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->
 
 	if (over->hover || over->click) {
 		struct aoi aoi_cfg = {
-			.x	= *x,
-			.y	= *y,
+			.x	= sx,
+			.y	= sy,
 			.w	= w,
 			.h	= h,
 			.hover	= over->hover,
@@ -195,17 +212,18 @@ fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->
 			over->aoi = aoi_add(over->aois, &aoi_cfg);
 	}
 
-	*y += h + style->skip;
+	if (*y >= 0)
+		*y += h + style->skip;
+	else
+		*y -= h + style->skip;
 
 	return over->next;
 }
 
 
-void overlay_draw_all(struct overlay *overlays, cairo_t *cr)
+void overlay_draw_all(struct overlay *overlays, cairo_t *cr, int x, int y)
 {
 	struct overlay *over;
-	int x = OVER_X0;
-	int y = OVER_Y0;
 
 	for (over = overlays; over; over = over->next)
 		overlay_draw(over, cr, &x, &y);
