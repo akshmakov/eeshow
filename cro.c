@@ -356,24 +356,9 @@ static cairo_status_t stream_to_stdout(void *closure,
 static void cr_png_end(void *ctx)
 {
 	struct cro_ctx *cc = ctx;
-	int w, h;
+	int w, h, stride;
 
-	end_common(cc, &w, &h, NULL, NULL);
-
-	cc->s = cairo_image_surface_create(CAIRO_FORMAT_RGB24, w, h);
-	cc->cr = cairo_create(cc->s);
-
-	set_color(cc, COLOR_WHITE);
-	cairo_paint(cc->cr);
-
-	cairo_select_font_face(cc->cr, "Helvetica", CAIRO_FONT_SLANT_NORMAL,
-	    CAIRO_FONT_WEIGHT_BOLD);
-	cairo_set_line_width(cc->cr, 2);
-	cairo_set_line_cap(cc->cr, CAIRO_LINE_CAP_ROUND);
-
-	record_replay(&cc->record);
-	record_destroy(&cc->record);
-
+	cro_img_end(cc, &w, &h, &stride);
 	cro_img_write(cc, cc->output_name);
 }
 
