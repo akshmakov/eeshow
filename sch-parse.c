@@ -615,7 +615,10 @@ static void free_sheet(struct sheet *sch)
 		case sch_obj_sheet:
 			free((char *) obj->u.sheet.name);
 			free((char *) obj->u.sheet.file);
-			free_sheet((struct sheet *) obj->u.sheet.sheet);
+			/*
+			 * Caller frees all sheets, including this sub-sheet
+			 * (obj->u.sheet.sheet), so we don't do this here.
+			 */
 			free_sheet_fields(obj->u.sheet.fields);
 			break;
 		default:
