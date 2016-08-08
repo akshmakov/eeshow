@@ -301,36 +301,6 @@ static struct cro_ctx *init_common(int argc, char *const *argv)
 }
 
 
-static void *cr_png_init(int argc, char *const *argv)
-{
-	struct cro_ctx *cc;
-
-	cc = init_common(argc, argv);
-
-	/* cr_text_width needs *something* to work with */
-
-	cc->s = cairo_image_surface_create(CAIRO_FORMAT_RGB24, 16, 16);
-	cc->cr = cairo_create(cc->s);
-
-	return cc;
-}
-
-
-static void *cr_pdf_init(int argc, char *const *argv)
-{
-	struct cro_ctx *cc;
-
-	cc = init_common(argc, argv);
-
-	/* cr_text_width needs *something* to work with */
-
-	cc->s = cairo_pdf_surface_create(NULL, 16, 16);
-	cc->cr = cairo_create(cc->s);
-
-	return cc;
-}
-
-
 static void end_common(struct cro_ctx *cc, int *w, int *h, int *x, int *y)
 {
 	int xmin, ymin;
@@ -366,13 +336,21 @@ static cairo_status_t stream_to_stdout(void *closure,
 }
 
 
-static void cr_png_end(void *ctx)
-{
-	struct cro_ctx *cc = ctx;
-	int w, h, stride;
+/* ----- PDF (auto-sizing, using redraw) ----------------------------------- */
 
-	cro_img_end(cc, &w, &h, &stride);
-	cro_img_write(cc, cc->output_name);
+
+static void *cr_pdf_init(int argc, char *const *argv)
+{
+	struct cro_ctx *cc;
+
+	cc = init_common(argc, argv);
+
+	/* cr_text_width needs *something* to work with */
+
+	cc->s = cairo_pdf_surface_create(NULL, 16, 16);
+	cc->cr = cairo_create(cc->s);
+
+	return cc;
 }
 
 
@@ -432,6 +410,37 @@ static void cr_pdf_end(void *ctx)
 }
 
 
+/* ----- PNG (auto-sizing, using redraw) ----------------------------------- */
+
+
+static void *cr_png_init(int argc, char *const *argv)
+{
+	struct cro_ctx *cc;
+
+	cc = init_common(argc, argv);
+
+	/* cr_text_width needs *something* to work with */
+
+	cc->s = cairo_image_surface_create(CAIRO_FORMAT_RGB24, 16, 16);
+	cc->cr = cairo_create(cc->s);
+
+	return cc;
+}
+
+
+static void cr_png_end(void *ctx)
+{
+	struct cro_ctx *cc = ctx;
+	int w, h, stride;
+
+	cro_img_end(cc, &w, &h, &stride);
+	cro_img_write(cc, cc->output_name);
+}
+
+
+/* ----- Images (auto-sizing, using redraw) -------------------------------- */
+
+
 uint32_t *cro_img_end(struct cro_ctx *cc, int *w, int *h, int *stride)
 {
 	uint32_t *data;
@@ -468,6 +477,9 @@ void cro_img_write(struct cro_ctx *cc, const char *name)
 		cairo_surface_write_to_png_stream(cc->s, stream_to_stdout,
 		    NULL);
 }
+
+
+/* ----- Canvas (using redraw) --------------------------------------------- */
 
 
 void cro_canvas_end(struct cro_ctx *cc, int *w, int *h, int *xmin, int *ymin)
