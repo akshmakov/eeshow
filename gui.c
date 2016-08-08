@@ -375,13 +375,14 @@ static void go_to_history(struct gui_hist *h)
 
 	if (h == ctx->curr_hist) {
 		ctx->last_hist = NULL;
+		do_revision_overlays(ctx);
+		redraw(ctx);
 	} else {
 		ctx->last_hist = ctx->curr_hist;
 		ctx->curr_hist = h;
 		go_to_sheet(ctx, find_corresponding_sheet(h->sheets,
 		    ctx->last_hist->sheets, ctx->curr_sheet));
 	}
-	do_revision_overlays(ctx);
 }
 
 
@@ -936,7 +937,7 @@ int gui(unsigned n_args, char **args, bool recurse)
 	    GDK_POINTER_MOTION_MASK);
 
 //	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-//	gtk_window_set_default_size(GTK_WINDOW(window), 400, 90);
+	gtk_window_set_default_size(GTK_WINDOW(window), 640, 480);
 	gtk_window_set_title(GTK_WINDOW(window), "eeshow");
 
 	go_to_sheet(&ctx, ctx.curr_hist->sheets);
