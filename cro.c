@@ -255,10 +255,9 @@ static const struct gfx_ops real_cro_ops = {
 };
 
 
-static struct cro_ctx *init_common(int argc, char *const *argv)
+static struct cro_ctx *new_cc(void)
 {
 	struct cro_ctx *cc;
-	char c;
 
 	cc = alloc_type(struct cro_ctx);
 	cc->xo = cc->yo = 0;
@@ -270,6 +269,22 @@ static struct cro_ctx *init_common(int argc, char *const *argv)
 	cc->color_override = COLOR_NONE;
 
 	cc->output_name = NULL;
+
+	/*
+	 * record_init does not perform allocations or such, so it's safe to
+	 * call it here even if we don't use this facility.
+	 */
+	record_init(&cc->record, &real_cro_ops, cc);
+
+	return cc;
+}
+
+
+static struct cro_ctx *init_common(int argc, char *const *argv)
+{
+	struct cro_ctx *cc = new_cc();
+	char c;
+
 	while ((c = getopt(argc, argv, "o:s:")) != EOF)
 		switch (c) {
 		case 'o':
@@ -281,8 +296,6 @@ static struct cro_ctx *init_common(int argc, char *const *argv)
 		default:
 			usage(*argv);
 		}
-
-	record_init(&cc->record, &real_cro_ops, cc);
 
 	return cc;
 }
