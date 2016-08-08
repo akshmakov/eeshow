@@ -58,8 +58,7 @@ struct gui_sheet {
 struct gui_hist {
 	struct gui_ctx *ctx;		/* back link */
 	struct hist *hist;
-	struct overlay *sheet_over;	/* current overlay, on sheet */
-	struct overlay *history_over;	/* current overlay, in history */
+	struct overlay *over;		/* current overlay */
 	struct gui_sheet *sheets;	/* NULL if failed */
 	struct gui_hist *next;
 };
@@ -355,10 +354,10 @@ static bool hover_history(void *user, bool on)
 
 	if (on) {
 		s = vcs_git_long_for_pango(h->hist);
-		overlay_text_raw(h->history_over, s);
+		overlay_text_raw(h->over, s);
 		free(s);
 	} else {
-		overlay_text(h->history_over, "<small>%s</small>",
+		overlay_text(h->over, "<small>%s</small>",
 		    vcs_git_summary(h->hist));
 	}
 	redraw(ctx);
@@ -366,7 +365,8 @@ static bool hover_history(void *user, bool on)
 }
 
 
-static void do_sheet_overlays(struct gui_ctx *ctx);
+//static void do_sheet_overlays(struct gui_ctx *ctx);
+static void do_revision_overlays(struct gui_ctx *ctx);
 
 
 static void go_to_history(struct gui_hist *h)
@@ -375,13 +375,13 @@ static void go_to_history(struct gui_hist *h)
 
 	if (h == ctx->curr_hist) {
 		ctx->last_hist = NULL;
-		do_sheet_overlays(ctx);
 	} else {
 		ctx->last_hist = ctx->curr_hist;
 		ctx->curr_hist = h;
 		go_to_sheet(ctx, find_corresponding_sheet(h->sheets,
 		    ctx->last_hist->sheets, ctx->curr_sheet));
 	}
+	do_revision_overlays(ctx);
 }
 
 
@@ -390,9 +390,9 @@ static void click_history(void *user)
 	struct gui_hist *h = user;
 	struct gui_ctx *ctx = h->ctx;
 
+	hide_history(ctx);
 	if (h->sheets)
 		go_to_history(h);
-	hide_history(ctx);
 }
 
 
@@ -402,10 +402,10 @@ static void show_history(struct gui_ctx *ctx)
 
 	overlay_remove_all(&ctx->hist_overlays);
 	for (h = ctx->hist; h; h = h->next) {
-		h->history_over = overlay_add(&ctx->hist_overlays, &ctx->aois,
+		h->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
 		    hover_history, click_history, h);
 		hover_history(h, 0);
-		overlay_style(h->history_over,
+		overlay_style(h->over,
 		    h == ctx->curr_hist ?
 		      ctx->last_hist ?
 		        &style_dense_diff_new : &style_dense_selected :
@@ -447,13 +447,34 @@ static bool show_history_details(void *user, bool on)
 
 	if (on) {
 		s = vcs_git_long_for_pango(h->hist);
-		overlay_text_raw(h->sheet_over, s);
+		overlay_text_raw(h->over, s);
 		free(s);
 	} else {
-		overlay_text(h->sheet_over, "%.40s", vcs_git_summary(h->hist));
+		overlay_text(h->over, "%.40s", vcs_git_summary(h->hist));
 	}
 	redraw(ctx);
 	return 1;
+}
+
+
+static void do_revision_overlays(struct gui_ctx *ctx)
+{
+	overlay_remove_all(&ctx->hist_overlays);
+	if (ctx->curr_hist) {
+		ctx->curr_hist->over = overlay_add(&ctx->hist_overlays,
+		    &ctx->aois, show_history_details, show_history_cb,
+		    ctx->curr_hist);
+		overlay_style(ctx->curr_hist->over, &overlay_style_default);
+		show_history_details(ctx->curr_hist, 0);
+	}
+	if (ctx->last_hist) {
+		ctx->last_hist->over = overlay_add(&ctx->hist_overlays,
+		    &ctx->aois, show_history_details, click_history,
+		    ctx->last_hist);
+		overlay_style(ctx->curr_hist->over, &overlay_style_diff_new);
+		overlay_style(ctx->last_hist->over, &overlay_style_diff_old);
+		show_history_details(ctx->last_hist, 0);
+	}
 }
 
 
@@ -462,24 +483,6 @@ static void do_sheet_overlays(struct gui_ctx *ctx)
 	struct overlay *over;
 
 	overlay_remove_all(&ctx->sheet_overlays);
-	if (ctx->curr_hist) {
-		ctx->curr_hist->sheet_over = overlay_add(&ctx->sheet_overlays,
-		    &ctx->aois, show_history_details, show_history_cb,
-		    ctx->curr_hist);
-		overlay_style(ctx->curr_hist->sheet_over,
-		    &overlay_style_default);
-		show_history_details(ctx->curr_hist, 0);
-	}
-	if (ctx->last_hist) {
-		ctx->last_hist->sheet_over = overlay_add(&ctx->sheet_overlays,
-		    &ctx->aois, show_history_details, click_history,
-		    ctx->last_hist);
-		overlay_style(ctx->curr_hist->sheet_over,
-		    &overlay_style_diff_new);
-		overlay_style(ctx->last_hist->sheet_over,
-		    &overlay_style_diff_old);
-		show_history_details(ctx->last_hist, 0);
-	}
 	if (ctx->curr_sheet->sch->title) {
 		over = overlay_add(&ctx->sheet_overlays, &ctx->aois,
 		    NULL, close_subsheet, ctx);
@@ -497,6 +500,7 @@ static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
 	ctx->curr_sheet = sheet;
 	if (ctx->last_hist)
 		render_delta(ctx);
+	do_revision_overlays(ctx);
 	do_sheet_overlays(ctx);
 	zoom_to_extents(ctx);
 }
