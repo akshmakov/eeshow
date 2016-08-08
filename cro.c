@@ -58,31 +58,31 @@ struct cro_ctx {
 };
 
 
-static inline int cd(struct cro_ctx *cc, int x)
+static inline int cd(const struct cro_ctx *cc, int x)
 {
 	return x * cc->scale;
 }
 
 
-static inline int cx(struct cro_ctx *cc, int x)
+static inline int cx(const struct cro_ctx *cc, int x)
 {
 	return cc->xo + x * cc->scale;
 }
 
 
-static inline int xc(struct cro_ctx *cc, int x)
+static inline int xc(const struct cro_ctx *cc, int x)
 {
 	return (x - cc->xo) / cc->scale;
 }
 
 
-static inline int cy(struct cro_ctx *cc, int y)
+static inline int cy(const struct cro_ctx *cc, int y)
 {
 	return cc->yo + y * cc->scale;
 }
 
 
-static inline float pt(struct cro_ctx *cc, int x)
+static inline float pt(const struct cro_ctx *cc, int x)
 {
 	return cd(cc, x) * 72 * 1.5 / 1200.0;
 }
@@ -301,6 +301,21 @@ static struct cro_ctx *init_common(int argc, char *const *argv)
 }
 
 
+void cro_get_size(const struct cro_ctx *cc, int *w, int *h, int *x, int *y)
+{
+	int xmin, ymin;
+
+	record_bbox(&cc->record, &xmin, &ymin, w, h);
+
+//	fprintf(stderr, "%dx%d%+d%+d\n", *w, *h, xmin, ymin);
+	*x = xmin;
+	*y = ymin;
+	*w = cd(cc, *w);
+	*h = cd(cc, *h);
+//	fprintf(stderr, "%dx%d%+d%+d\n", *w, *h, xmin, ymin);
+}
+
+
 static void end_common(struct cro_ctx *cc, int *w, int *h, int *x, int *y)
 {
 	int xmin, ymin;
@@ -308,18 +323,14 @@ static void end_common(struct cro_ctx *cc, int *w, int *h, int *x, int *y)
 	cairo_surface_destroy(cc->s);
 	cairo_destroy(cc->cr);
 
-	record_bbox(&cc->record, &xmin, &ymin, w, h);
-
-//	fprintf(stderr, "%dx%d%+d%+d\n", *w, *h, xmin, ymin);
+	cro_get_size(cc, w, h, &xmin, &ymin);
 	cc->xo = -cd(cc, xmin);
 	cc->yo = -cd(cc, ymin);
+
 	if (x)
 		*x = xmin;
 	if (y)
 		*y = ymin;
-	*w = cd(cc, *w);
-	*h = cd(cc, *h);
-//	fprintf(stderr, "%dx%d%+d%+d\n", *w, *h, xmin, ymin);
 }
 
 
