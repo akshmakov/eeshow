@@ -17,12 +17,15 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include <cairo/cairo.h>
+
 #include "util.h"
 #include "main.h"
 #include "cro.h"
 #include "file.h"
 #include "sch.h"
 #include "lib.h"
+#include "record.h"
 #include "diff.h"
 
 
@@ -275,6 +278,81 @@ static void diff_end(void *ctx)
 	show_areas(diff, old_img);
 
 	cro_img_write(diff->cr_ctx, diff->output_name);
+}
+
+
+/* ----- Diff to canvas ---------------------------------------------------- */
+
+
+static void merge_coord(int pos_a, int pos_b, int dim_a, int dim_b,
+    int *pos_res, int *res_dim)
+{
+	if (pos_a < pos_b) {
+		*pos_res = pos_a;
+		dim_b += pos_b - pos_a;
+	} else {
+		*pos_res = pos_a;
+		dim_a += pos_a - pos_b;
+	}
+	*res_dim = dim_a > dim_b ? dim_a : dim_b;
+}
+
+
+void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
+    struct cro_ctx *old, struct cro_ctx *new)
+{
+	int old_xmin, old_ymin, old_w, old_h;
+	int new_xmin, new_ymin, new_w, new_h;
+	int xmin, ymin, w, h, stride;
+	uint32_t *img_old, *img_new;
+	double x1, y1, x2, y2;
+	int sw, sh;
+	cairo_t *old_cr;
+	cairo_surface_t *s;
+
+	cairo_clip_extents(cr, &x1, &y1, &x2, &y2);
+	sw = x2 - x1;
+	sh = y2 - y1;
+
+	/* @@@ baeh ! */
+	record_bbox((const struct record *) old,
+	    &old_xmin, &old_ymin, &old_w, &old_h);
+	record_bbox((const struct record *) new,
+	    &new_xmin, &new_ymin, &new_w, &new_h);
+
+	merge_coord(old_xmin, new_xmin, old_w, new_w, &xmin, &w);
+	merge_coord(old_ymin, new_ymin, old_h, new_h, &ymin, &h);
+
+	img_old = cro_img(old,
+	    -scale * cx + sw / 2.0 - (xmin - old_xmin) * scale,
+	    -scale * cy + sh / 2.0 - (ymin - old_ymin) * scale,
+	    sw, sh, scale, &old_cr, &stride);
+	img_new = cro_img(new,
+	    -scale * cx + sw / 2.0 - (xmin - new_xmin) * scale,
+	    -scale * cy + sh / 2.0 - (ymin - new_ymin) * scale,
+	    sw, sh, scale, NULL, NULL);
+
+	struct diff diff = {
+		.w		= sw,
+		.h		= sh,
+		.stride		= stride,
+		.frame_radius	= DEFAULT_FRAME_RADIUS,
+		.areas		= NULL,
+	};
+
+	s = cairo_get_target(old_cr);
+	cairo_surface_flush(s);
+	differences(&diff, img_old, img_new);
+	show_areas(&diff, img_old);
+	cairo_surface_mark_dirty(s);
+
+	cairo_set_source_surface(cr, s, 0, 0);
+	cairo_paint(cr);
+
+	cairo_surface_destroy(s);
+	cairo_destroy(old_cr);
+	free(img_old);
+	free(img_new);
 }
 
 

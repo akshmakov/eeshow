@@ -14,9 +14,16 @@
 #ifndef DIFF_H
 #define	DIFF_H
 
+#include <cairo/cairo.h>
+
 #include "gfx.h"
+#include "cro.h"
 
 
 extern const struct gfx_ops diff_ops;
+
+
+void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale, 
+    struct cro_ctx *old, struct cro_ctx *new);
 
 #endif /* !DIFF_H */
