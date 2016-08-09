@@ -21,15 +21,20 @@
 #include "gui-aoi.h"
 
 
+struct color {
+	double r, g, b, alpha;
+};
+
+
 struct overlay_style {
 	const char *font;
 	unsigned wmin, wmax;
 	unsigned radius;
 	unsigned pad;	/* in x and y direction; adjust for radius ! */
 	unsigned skip;	/* should be list-specific */
-	double fg[4];
-	double bg[4];
-	double frame[4];
+	struct color fg;
+	struct color bg;
+	struct color frame;
 	double width;
 };
 

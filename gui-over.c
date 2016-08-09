@@ -68,9 +68,9 @@ static void rrect(cairo_t *cr, int x, int y, int w, int h, int r)
 struct overlay *overlay_draw(struct overlay *over, cairo_t *cr, int *x, int *y)
 {
 	const struct overlay_style *style = &over->style;
-	const double *fg = style->fg;
-	const double *bg = style->bg;
-	const double *frame = style->frame;
+	const struct color *fg = &style->fg;
+	const struct color *bg = &style->bg;
+	const struct color *frame = &style->frame;
 	unsigned ink_w, ink_h;	/* effectively used text area size */
 	unsigned w, h;		/* box size */
 	int tx, ty;		/* text start position */
@@ -120,9 +120,9 @@ fprintf(stderr, "%d + %d  %d + %d\n",
 
 	rrect(cr, sx, sy, w, h, style->radius);
 
-	cairo_set_source_rgba(cr, bg[0], bg[1], bg[2], bg[3]);
+	cairo_set_source_rgba(cr, bg->r, bg->g, bg->b, bg->alpha);
 	cairo_fill_preserve(cr);
-	cairo_set_source_rgba(cr, frame[0], frame[1], frame[2], frame[3]);
+	cairo_set_source_rgba(cr, frame->r, frame->g, frame->b, frame->alpha);
 	cairo_set_line_width(cr, style->width);
 	cairo_stroke(cr);
 
@@ -147,7 +147,7 @@ fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->
 		cairo_clip(cr);
 	}
 
-	cairo_set_source_rgba(cr, fg[0], fg[1], fg[2], fg[3]);
+	cairo_set_source_rgba(cr, fg->r, fg->g, fg->b, fg->alpha);
 	cairo_move_to(cr, tx, ty);
 
 	pango_cairo_update_layout(cr, layout);
