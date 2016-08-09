@@ -323,6 +323,12 @@ void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
 	merge_coord(old_xmin, new_xmin, old_w, new_w, &xmin, &w);
 	merge_coord(old_ymin, new_ymin, old_h, new_h, &ymin, &h);
 
+	/*
+	 * @@@ we should handle offset differences (xmin - old_xmin, et al.)
+	 * before scaling. Else we risk rounding differences to lead to
+	 * single-pixel differences, which the differences algorithm will
+	 * be eager to mark with big yellow boxes.
+	 */
 	img_old = cro_img(old,
 	    -scale * cx + sw / 2.0 - (xmin - old_xmin) * scale,
 	    -scale * cy + sh / 2.0 - (ymin - old_ymin) * scale,
