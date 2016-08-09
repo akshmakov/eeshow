@@ -476,6 +476,8 @@ uint32_t *cro_img_end(struct cro_ctx *cc, int *w, int *h, int *stride)
 	record_replay(&cc->record);
 	record_destroy(&cc->record);
 
+	cairo_surface_flush(cc->s);
+
 	return data;
 }
 
