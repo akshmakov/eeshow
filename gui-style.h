@@ -18,10 +18,7 @@
 
 extern struct overlay_style overlay_style_default;
 extern struct overlay_style overlay_style_dense;
-extern struct overlay_style overlay_style_dense_selected;
 extern struct overlay_style overlay_style_diff_new;
 extern struct overlay_style overlay_style_diff_old;
-extern struct overlay_style overlay_style_dense_diff_new;
-extern struct overlay_style overlay_style_dense_diff_old;
 
 #endif /* !GUI_STYLE_H */
