@@ -36,6 +36,7 @@
 #include "delta.h"
 #include "diff.h"
 #include "gui-aoi.h"
+#include "gui-style.h"
 #include "gui-over.h"
 #include "gui.h"
 

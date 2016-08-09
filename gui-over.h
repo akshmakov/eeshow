@@ -36,14 +36,6 @@ struct overlay_style {
 struct overlay;
 
 
-extern struct overlay_style overlay_style_default;
-extern struct overlay_style overlay_style_dense;
-extern struct overlay_style overlay_style_dense_selected;
-extern struct overlay_style overlay_style_diff_new;
-extern struct overlay_style overlay_style_diff_old;
-extern struct overlay_style overlay_style_dense_diff_new;
-extern struct overlay_style overlay_style_dense_diff_old;
-
 struct overlay *overlay_draw(struct overlay *over, cairo_t *cr, int *x, int *y);
 void overlay_draw_all(struct overlay *overlays, cairo_t *cr, int x, int y);
 struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
