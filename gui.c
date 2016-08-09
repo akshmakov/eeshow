@@ -97,9 +97,9 @@ struct gui_ctx {
 	struct gui_sheet delta_ab;
 
 	struct gui_sheet *curr_sheet;
-				/* current sheet */
-	struct gui_hist *curr_hist;
-	struct gui_hist *last_hist;
+				/* current sheet, always on new_hist */
+	struct gui_hist *new_hist;
+	struct gui_hist *old_hist;	/* NULL if not comparing */
 };
 
 
@@ -154,10 +154,8 @@ static void hack(const struct gui_ctx *ctx, cairo_t *cr)
 {
 	const struct gui_sheet *new = ctx->curr_sheet;
 	const struct gui_sheet *old = find_corresponding_sheet(
-	    ctx->last_hist->sheets, ctx->curr_hist->sheets, ctx->curr_sheet);
+	    ctx->old_hist->sheets, ctx->new_hist->sheets, ctx->curr_sheet);
 
-	if (ctx->curr_hist->age > ctx->last_hist->age)
-		swap(new, old);
 	diff_to_canvas(cr, ctx->x, ctx->y, 1.0 / (1 << ctx->zoom),
 	    old->gfx_ctx, new->gfx_ctx);
 }
@@ -177,7 +175,7 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	y = -(sheet->ymin + ctx->y) * f + alloc.height / 2;
 
 	cro_canvas_prepare(cr);
-	if (!ctx->last_hist) {
+	if (!ctx->old_hist) {
 		cro_canvas_draw(sheet->gfx_ctx, cr, x, y, f);
 	} else {
 #if 0
@@ -219,6 +217,7 @@ static void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet);
 static void render_delta(struct gui_ctx *ctx)
 {
 #if 0
+	/* @@@ needs updating for curr/last vs. new/old */
 	struct sheet *sch_a, *sch_b, *sch_ab;
 	const struct gui_sheet *a = ctx->curr_sheet;
 	const struct gui_sheet *b = find_corresponding_sheet(
@@ -244,7 +243,7 @@ static void render_delta(struct gui_ctx *ctx)
 	// @@@ clean up when leaving sheet
 #endif
 	struct gui_sheet *b = find_corresponding_sheet(
-	    ctx->last_hist->sheets, ctx->curr_hist->sheets, ctx->curr_sheet);
+	    ctx->old_hist->sheets, ctx->new_hist->sheets, ctx->curr_sheet);
 
 	if (!b->rendered) {
 		render_sheet(b);
@@ -335,13 +334,13 @@ static void curr_sheet_size(struct gui_ctx *ctx, int *w, int *h)
 	const struct gui_sheet *sheet = ctx->curr_sheet;
 	int ax1, ay1, bx1, by1;
 
-	if (!ctx->last_hist) {
+	if (!ctx->old_hist) {
 		*w = sheet->w;
 		*h = sheet->h;
 	} else {
-		const struct gui_sheet *last =
-		    find_corresponding_sheet(ctx->last_hist->sheets,
-		    ctx->curr_hist->sheets, sheet);
+		const struct gui_sheet *old =
+		    find_corresponding_sheet(ctx->old_hist->sheets,
+		    ctx->new_hist->sheets, sheet);
 
 		/*
 		 * We're only interested in differences here, so no need for
@@ -349,12 +348,12 @@ static void curr_sheet_size(struct gui_ctx *ctx, int *w, int *h)
 		 */
 		ax1 = sheet->xmin + sheet->w;
 		ay1 = sheet->ymin + sheet->h;
-		bx1 = last->xmin + last->w;
-		by1 = last->ymin + last->h;
+		bx1 = old->xmin + old->w;
+		by1 = old->ymin + old->h;
 		*w = (ax1 > bx1 ? ax1 : bx1) -
-		    (sheet->xmin < last->xmin ? sheet->xmin : last->xmin);
+		    (sheet->xmin < old->xmin ? sheet->xmin : old->xmin);
 		*h = (ay1 > by1 ? ay1 : by1) -
-		    (sheet->ymin < last->ymin ? sheet->ymin : last->ymin);
+		    (sheet->ymin < old->ymin ? sheet->ymin : old->ymin);
 	}
 }
 
@@ -432,8 +431,8 @@ static void set_history_style(struct gui_hist *h, bool current)
 {
 	struct gui_ctx *ctx = h->ctx;
 	struct overlay_style style = overlay_style_dense;
-	const struct gui_hist *new = ctx->curr_hist;
-	const struct gui_hist *old = ctx->last_hist;
+	const struct gui_hist *new = ctx->new_hist;
+	const struct gui_hist *old = ctx->old_hist;
 
 	/* this is in addition to showing detailed content */
 	if (current)
@@ -453,13 +452,11 @@ static void set_history_style(struct gui_hist *h, bool current)
 		abort();
 	}
 
-	if (ctx->curr_hist == h || ctx->last_hist == h) {
+	if (ctx->new_hist == h || ctx->old_hist == h) {
 		style.width++;
 		style.font = BOLD_FONT;
 	}
-	if (ctx->last_hist) {
-		if (new->age > old->age)
-			swap(new, old);
+	if (ctx->old_hist) {
 		if (h == new)
 			style.bg = RGBA(0.6, 1.0, 0.6, 0.8);
 		if (h == old)
@@ -489,76 +486,53 @@ static bool hover_history(void *user, bool on)
 }
 
 
-static void go_to_history(struct gui_hist *h)
-{
-	struct gui_ctx *ctx = h->ctx;
-
-	if (h == ctx->curr_hist) {
-		ctx->last_hist = NULL;
-		do_revision_overlays(ctx);
-		redraw(ctx);
-	} else {
-		ctx->last_hist = ctx->curr_hist;
-		ctx->curr_hist = h;
-		go_to_sheet(ctx, find_corresponding_sheet(h->sheets,
-		    ctx->last_hist->sheets, ctx->curr_sheet));
-	}
-}
-
-
 static void click_history(void *user)
 {
 	struct gui_hist *h = user;
 	struct gui_ctx *ctx = h->ctx;
-	struct gui_hist **new = &ctx->curr_hist;
-	struct gui_hist **old = &ctx->last_hist;
 	struct gui_sheet *sheet;
-	bool set_curr = ctx->selecting == sel_new;
 
 	hide_history(ctx);
 
 	if (!h->sheets)
 		return;
 
-	if (!ctx->last_hist) {
-		go_to_history(h);
-		return;
-	}
-
-	if ((*new)->age > (*old)->age) {
-		swap(new, old);
-		set_curr = !set_curr;
-	}
-
 	sheet = find_corresponding_sheet(h->sheets,
-	    ctx->curr_hist->sheets, ctx->curr_sheet);
+	    ctx->new_hist->sheets, ctx->curr_sheet);
 
 	switch (ctx->selecting) {
+	case sel_only:
+		ctx->old_hist = ctx->new_hist;
+		ctx->new_hist = h;
+		break;
 	case sel_new:
-		*new = h;
+		ctx->new_hist = h;
 		break;
 	case sel_old:
-		*old = h;
+		ctx->old_hist = h;
 		break;
-	case sel_only:
 	default:
 		abort();
 	}
 
-
-	if (ctx->curr_hist == ctx->last_hist) {
-		go_to_sheet(ctx, sheet);
-		go_to_history(ctx->curr_hist);
-		return;
-	}
-
-	if (set_curr) {
-		go_to_sheet(ctx, sheet);
+	if (ctx->new_hist->age > ctx->old_hist->age) {
+		swap(ctx->new_hist, ctx->old_hist);
+		if (ctx->selecting == sel_old)
+			go_to_sheet(ctx, sheet);
+		else
+			render_delta(ctx);
 	} else {
-		render_delta(ctx);
-		do_revision_overlays(ctx);
-		redraw(ctx);
+		if (ctx->selecting != sel_old)
+			go_to_sheet(ctx, sheet);
+		else
+			render_delta(ctx);
 	}
+
+	if (ctx->old_hist == ctx->new_hist)
+		ctx->old_hist = NULL;
+
+	do_revision_overlays(ctx);
+	redraw(ctx);
 }
 
 
@@ -584,14 +558,9 @@ static void show_history_cb(void *user)
 	struct gui_hist *h = user;
 	struct gui_ctx *ctx = h->ctx;
 	enum selecting sel = sel_only;
-	const struct gui_hist *new = ctx->curr_hist;
-	const struct gui_hist *old = ctx->last_hist;
 
-	if (ctx->last_hist) {
-		if (new->age > old->age)
-			swap(new, old);
-		sel = h == new ? sel_new : sel_old;
-	}
+	if (ctx->old_hist)
+		sel = h == ctx->new_hist ? sel_new : sel_old;
 	show_history(ctx, sel);
 }
 
@@ -631,11 +600,8 @@ static bool show_history_details(void *user, bool on)
 
 static void revision_overlays_diff(struct gui_ctx *ctx)
 {
-	struct gui_hist *new = ctx->curr_hist;
-	struct gui_hist *old = ctx->last_hist;
-
-	if (new->age > old->age)
-		swap(old, new);
+	struct gui_hist *new = ctx->new_hist;
+	struct gui_hist *old = ctx->old_hist;
 
 	new->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
 	    show_history_details, show_history_cb, new);
@@ -653,14 +619,14 @@ static void do_revision_overlays(struct gui_ctx *ctx)
 {
 	overlay_remove_all(&ctx->hist_overlays);
 
-	if (ctx->last_hist) {
+	if (ctx->old_hist) {
 		revision_overlays_diff(ctx);
 	} else {
-		ctx->curr_hist->over = overlay_add(&ctx->hist_overlays,
+		ctx->new_hist->over = overlay_add(&ctx->hist_overlays,
 		    &ctx->aois, show_history_details, show_history_cb,
-		    ctx->curr_hist);
-		overlay_style(ctx->curr_hist->over, &overlay_style_default);
-		show_history_details(ctx->curr_hist, 0);
+		    ctx->new_hist);
+		overlay_style(ctx->new_hist->over, &overlay_style_default);
+		show_history_details(ctx->new_hist, 0);
 	}
 }
 
@@ -687,7 +653,7 @@ static void sheet_selector_recurse(struct gui_ctx *ctx,
 	const char *title;
 	struct overlay *over;
 
-	parent = find_parent_sheet(ctx->curr_hist->sheets, sheet);
+	parent = find_parent_sheet(ctx->new_hist->sheets, sheet);
 	if (parent)
 		sheet_selector_recurse(ctx, parent);
 	title = sheet->sch->title;
@@ -719,7 +685,7 @@ static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
 		mark_aois(ctx, sheet);
 	}
 	ctx->curr_sheet = sheet;
-	if (ctx->last_hist)
+	if (ctx->old_hist)
 		render_delta(ctx);
 	if (ctx->vcs_hist)
 		do_revision_overlays(ctx);
@@ -732,7 +698,7 @@ static bool go_up_sheet(struct gui_ctx *ctx)
 {
 	struct gui_sheet *parent;
 
-	parent = find_parent_sheet(ctx->curr_hist->sheets, ctx->curr_sheet);
+	parent = find_parent_sheet(ctx->new_hist->sheets, ctx->curr_sheet);
 	if (!parent)
 		return 0;
 	go_to_sheet(ctx, parent);
@@ -744,7 +710,7 @@ static bool go_prev_sheet(struct gui_ctx *ctx)
 {
 	struct gui_sheet *sheet;
 
-	for (sheet = ctx->curr_hist->sheets; sheet; sheet = sheet->next)
+	for (sheet = ctx->new_hist->sheets; sheet; sheet = sheet->next)
 		if (sheet->next && sheet->next == ctx->curr_sheet) {
 			go_to_sheet(ctx, sheet);
 			return 1;
@@ -857,8 +823,8 @@ static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
 		zoom_to_extents(ctx);
 		break;
 	case GDK_KEY_Home:
-		if (sheet != ctx->curr_hist->sheets)
-			go_to_sheet(ctx, ctx->curr_hist->sheets);
+		if (sheet != ctx->new_hist->sheets)
+			go_to_sheet(ctx, ctx->new_hist->sheets);
 		break;
 	case GDK_KEY_BackSpace:
 	case GDK_KEY_Delete:
@@ -933,7 +899,7 @@ static void select_subsheet(void *user)
 	const struct sch_obj *obj = aoi_ctx->obj;
 	struct gui_sheet *sheet;
 
-	for (sheet = ctx->curr_hist->sheets; sheet; sheet = sheet->next)
+	for (sheet = ctx->new_hist->sheets; sheet; sheet = sheet->next)
 		if (sheet->sch == obj->u.sheet.sheet) {
 			go_to_sheet(ctx, sheet);
 			return;
@@ -1117,13 +1083,13 @@ int gui(unsigned n_args, char **args, bool recurse)
 		.sheet_overlays	= NULL,
 		.hist_overlays	= NULL,
 		.aois		= NULL,
-		.last_hist	= NULL,
+		.old_hist	= NULL,
 	};
 
 	get_revisions(&ctx, n_args, args, recurse);
-	for (ctx.curr_hist = ctx.hist; ctx.curr_hist && !ctx.curr_hist->sheets;
-	    ctx.curr_hist = ctx.curr_hist->next);
-	if (!ctx.curr_hist) {
+	for (ctx.new_hist = ctx.hist; ctx.new_hist && !ctx.new_hist->sheets;
+	    ctx.new_hist = ctx.new_hist->next);
+	if (!ctx.new_hist) {
 		fprintf(stderr, "no valid sheets\n");
 		return 1;
 	}
@@ -1166,7 +1132,7 @@ int gui(unsigned n_args, char **args, bool recurse)
 	gtk_window_set_default_size(GTK_WINDOW(window), 640, 480);
 	gtk_window_set_title(GTK_WINDOW(window), "eeshow");
 
-	go_to_sheet(&ctx, ctx.curr_hist->sheets);
+	go_to_sheet(&ctx, ctx.new_hist->sheets);
 	gtk_widget_show_all(window);
 
 	gtk_main();
