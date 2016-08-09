@@ -536,16 +536,50 @@ static void do_revision_overlays(struct gui_ctx *ctx)
 }
 
 
-static void do_sheet_overlays(struct gui_ctx *ctx)
+static struct gui_sheet *find_parent_sheet(struct gui_sheet *sheets,
+    const struct gui_sheet *ref)
 {
+	struct gui_sheet *parent;
+	const struct sch_obj *obj;
+
+	for (parent = sheets; parent; parent = parent->next)
+		for (obj = parent->sch->objs; obj; obj = obj->next)
+			if (obj->type == sch_obj_sheet &&
+			    obj->u.sheet.sheet == ref->sch)
+				return parent;
+	return NULL;
+}
+
+
+static void sheet_selector_recurse(struct gui_ctx *ctx,
+    const struct gui_sheet *sheet)
+{
+	const struct gui_sheet *parent;
+	const char *title;
 	struct overlay *over;
 
+	parent = find_parent_sheet(ctx->curr_hist->sheets, sheet);
+	if (parent)
+		sheet_selector_recurse(ctx, parent);
+	title = sheet->sch->title;
+	if (!title)
+		title = "(unnamed)";
+	/*
+	 * @@@ dirty hack: instead of jumping to the selected sheet (which
+	 * would require a little more work), we merely go "up". In a flat
+	 * hierarchy with just one level of sub-sheets, that does pretty
+	 * much what one would expect from proper jumping.
+	 */
+	over = overlay_add(&ctx->sheet_overlays, &ctx->aois,
+	    NULL, close_subsheet, ctx);
+	overlay_text(over, "<b>%s</b>", title);
+}
+
+
+static void do_sheet_overlays(struct gui_ctx *ctx)
+{
 	overlay_remove_all(&ctx->sheet_overlays);
-	if (ctx->curr_sheet->sch->title) {
-		over = overlay_add(&ctx->sheet_overlays, &ctx->aois,
-		    NULL, close_subsheet, ctx);
-		overlay_text(over, "<b>%s</b>", ctx->curr_sheet->sch->title);
-	}
+	sheet_selector_recurse(ctx, ctx->curr_sheet);
 }
 
 
@@ -567,17 +601,13 @@ static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
 
 static bool go_up_sheet(struct gui_ctx *ctx)
 {
-	struct gui_sheet *sheet;
-	const struct sch_obj *obj;
+	struct gui_sheet *parent;
 
-	for (sheet = ctx->curr_hist->sheets; sheet; sheet = sheet->next)
-		for (obj = sheet->sch->objs; obj; obj = obj->next)
-			if (obj->type == sch_obj_sheet &&
-			    obj->u.sheet.sheet == ctx->curr_sheet->sch) {
-				go_to_sheet(ctx, sheet);
-				return 1;
-			}
-	return 0;
+	parent = find_parent_sheet(ctx->curr_hist->sheets, ctx->curr_sheet);
+	if (!parent)
+		return 0;
+	go_to_sheet(ctx, parent);
+	return 1;
 }
 
 
