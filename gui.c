@@ -558,7 +558,8 @@ static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
 	ctx->curr_sheet = sheet;
 	if (ctx->last_hist)
 		render_delta(ctx);
-	do_revision_overlays(ctx);
+	if (ctx->vcs_hist)
+		do_revision_overlays(ctx);
 	do_sheet_overlays(ctx);
 	zoom_to_extents(ctx);
 }
