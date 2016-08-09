@@ -46,7 +46,7 @@ struct gui_sheet {
 	const struct sheet *sch;
 	struct cro_ctx *gfx_ctx;
 
-	int w, h;
+	int w, h;		/* in eeschema coordinates */
 	int xmin, ymin;
 
 	bool rendered;		/* 0 if still have to render it */
@@ -322,9 +322,29 @@ static void zoom_out(struct gui_ctx *ctx, int x, int y)
 static void curr_sheet_size(struct gui_ctx *ctx, int *w, int *h)
 {
 	const struct gui_sheet *sheet = ctx->curr_sheet;
+	int ax1, ay1, bx1, by1;
 
-	*w = sheet->w;
-	*h = sheet->h;
+	if (!ctx->last_hist) {
+		*w = sheet->w;
+		*h = sheet->h;
+	} else {
+		const struct gui_sheet *last =
+		    find_corresponding_sheet(ctx->last_hist->sheets,
+		    ctx->curr_hist->sheets, sheet);
+
+		/*
+		 * We're only interested in differences here, so no need for
+		 * the usual "-1" in x1 = x0 + w - 1
+		 */
+		ax1 = sheet->xmin + sheet->w;
+		ay1 = sheet->ymin + sheet->h;
+		bx1 = last->xmin + last->w;
+		by1 = last->ymin + last->h;
+		*w = (ax1 > bx1 ? ax1 : bx1) -
+		    (sheet->xmin < last->xmin ? sheet->xmin : last->xmin);
+		*h = (ay1 > by1 ? ay1 : by1) -
+		    (sheet->ymin < last->ymin ? sheet->ymin : last->ymin);
+	}
 }
 
 
