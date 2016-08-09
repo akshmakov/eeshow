@@ -61,6 +61,7 @@ struct gui_hist {
 	struct hist *hist;
 	struct overlay *over;		/* current overlay */
 	struct gui_sheet *sheets;	/* NULL if failed */
+	unsigned age;			/* 0-based; uncommitted or HEAD = 0 */
 	struct gui_hist *next;
 };
 
@@ -145,12 +146,14 @@ static struct gui_sheet *find_corresponding_sheet(struct gui_sheet *pick_from,
 
 static void hack(const struct gui_ctx *ctx, cairo_t *cr)
 {
-	const struct gui_sheet *a = ctx->curr_sheet;
-	const struct gui_sheet *b = find_corresponding_sheet(
+	const struct gui_sheet *new = ctx->curr_sheet;
+	const struct gui_sheet *old = find_corresponding_sheet(
 	    ctx->last_hist->sheets, ctx->curr_hist->sheets, ctx->curr_sheet);
 
+	if (ctx->curr_hist->age > ctx->last_hist->age)
+		swap(new, old);
 	diff_to_canvas(cr, ctx->x, ctx->y, 1.0 / (1 << ctx->zoom),
-	    a->gfx_ctx, b->gfx_ctx);
+	    old->gfx_ctx, new->gfx_ctx);
 }
 
 
@@ -518,23 +521,38 @@ static bool show_history_details(void *user, bool on)
 }
 
 
+static void revision_overlays_diff(struct gui_ctx *ctx)
+{
+	struct gui_hist *new = ctx->curr_hist;
+	struct gui_hist *old = ctx->last_hist;
+
+	if (new->age > old->age)
+		swap(old, new);
+
+	new->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
+	    show_history_details, show_history_cb, new);
+	overlay_style(new->over, &overlay_style_diff_new);
+	show_history_details(new, 0);
+
+	old->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
+	    show_history_details, click_history, old);
+	overlay_style(old->over, &overlay_style_diff_old);
+	show_history_details(old, 0);
+}
+
+
 static void do_revision_overlays(struct gui_ctx *ctx)
 {
 	overlay_remove_all(&ctx->hist_overlays);
-	if (ctx->curr_hist) {
+
+	if (ctx->last_hist) {
+		revision_overlays_diff(ctx);
+	} else {
 		ctx->curr_hist->over = overlay_add(&ctx->hist_overlays,
 		    &ctx->aois, show_history_details, show_history_cb,
 		    ctx->curr_hist);
 		overlay_style(ctx->curr_hist->over, &overlay_style_default);
 		show_history_details(ctx->curr_hist, 0);
-	}
-	if (ctx->last_hist) {
-		ctx->last_hist->over = overlay_add(&ctx->hist_overlays,
-		    &ctx->aois, show_history_details, click_history,
-		    ctx->last_hist);
-		overlay_style(ctx->curr_hist->over, &overlay_style_diff_new);
-		overlay_style(ctx->last_hist->over, &overlay_style_diff_old);
-		show_history_details(ctx->last_hist, 0);
 	}
 }
 
@@ -938,16 +956,19 @@ static void add_hist(void *user, struct hist *h)
 	struct gui_ctx *ctx = ahc->ctx;
 	struct gui_hist **anchor;
 	const struct sheet *sch;
+	unsigned age = 0;
 
 if (!ahc->limit)
 	return;
 ahc->limit--;
-	for (anchor = &ctx->hist; *anchor; anchor = &(*anchor)->next);
+	for (anchor = &ctx->hist; *anchor; anchor = &(*anchor)->next)
+		age++;
 	*anchor = alloc_type(struct gui_hist);
 	(*anchor)->ctx = ctx;
 	(*anchor)->hist = h;
 	sch = parse_sheets(h, ahc->n_args, ahc->args, ahc->recurse);
 	(*anchor)->sheets = sch ? get_sheets(ctx, sch) : NULL;
+	(*anchor)->age = age;
 	(*anchor)->next = NULL;
 }
 
