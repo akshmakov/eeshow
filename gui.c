@@ -319,18 +319,27 @@ static void zoom_out(struct gui_ctx *ctx, int x, int y)
 }
 
 
-static void zoom_to_extents(struct gui_ctx *ctx)
+static void curr_sheet_size(struct gui_ctx *ctx, int *w, int *h)
 {
 	const struct gui_sheet *sheet = ctx->curr_sheet;
-	GtkAllocation alloc;
 
-	ctx->x = sheet->w / 2;
-	ctx->y = sheet->h / 2;
+	*w = sheet->w;
+	*h = sheet->h;
+}
+
+
+static void zoom_to_extents(struct gui_ctx *ctx)
+{
+	GtkAllocation alloc;
+	int w, h;
+
+	curr_sheet_size(ctx, &w, &h);
+	ctx->x = w / 2;
+	ctx->y = h / 2;
 
 	gtk_widget_get_allocation(ctx->da, &alloc);
 	ctx->zoom = 0;
-	while (sheet->w >> ctx->zoom > alloc.width ||
-	    sheet->h >> ctx->zoom > alloc.height)
+	while (w >> ctx->zoom > alloc.width || h >> ctx->zoom > alloc.height)
 		ctx->zoom++;
 
 	redraw(ctx);
