@@ -343,12 +343,12 @@ void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
 	 * be eager to mark with big yellow boxes.
 	 */
 	img_old = cro_img(old,
-	    -scale * cx + sw / 2.0 - (xmin - old_xmin) * scale,
-	    -scale * cy + sh / 2.0 - (ymin - old_ymin) * scale,
+	    -scale * cx + sw / 2.0 - (2 * xmin - old_xmin) * scale,
+	    -scale * cy + sh / 2.0 - (2 * ymin - old_ymin) * scale,
 	    sw, sh, scale, &old_cr, &stride);
 	img_new = cro_img(new,
-	    -scale * cx + sw / 2.0 - (xmin - new_xmin) * scale,
-	    -scale * cy + sh / 2.0 - (ymin - new_ymin) * scale,
+	    -scale * cx + sw / 2.0 - (2 * xmin - new_xmin) * scale,
+	    -scale * cy + sh / 2.0 - (2 * ymin - new_ymin) * scale,
 	    sw, sh, scale, NULL, NULL);
 
 	struct diff diff = {
