@@ -261,6 +261,18 @@ static void show_areas(struct diff *diff, uint32_t *a)
 }
 
 
+static void free_areas(struct diff *diff)
+{
+	struct area *next;
+
+	while (diff->areas) {
+		next = diff->areas->next;
+		free(diff->areas);
+		diff->areas = next;
+	}
+}
+
+
 static void diff_end(void *ctx)
 {
 	struct diff *diff = ctx;
@@ -276,6 +288,7 @@ static void diff_end(void *ctx)
 
 	differences(diff, old_img, diff->new_img);
 	show_areas(diff, old_img);
+	free_areas(diff);
 
 	cro_img_write(diff->cr_ctx, diff->output_name);
 }
@@ -351,6 +364,8 @@ void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
 	differences(&diff, img_old, img_new);
 	show_areas(&diff, img_old);
 	cairo_surface_mark_dirty(s);
+
+	free_areas(&diff);
 
 	cairo_set_source_surface(cr, s, 0, 0);
 	cairo_paint(cr);
