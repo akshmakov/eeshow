@@ -37,6 +37,15 @@
 
 #define	MASK 0xffffff
 
+/* steal from schhist/ppmdiff.c */
+
+#define	ONLY_OLD	0xff5050
+#define	ONLY_NEW	0x00c000
+#define	BOTH		0x707070
+
+#define	AREA_FILL	0xffffc8
+
+
 
 struct area {
 	int xa, ya, xb, yb;
@@ -176,15 +185,6 @@ fail_open:
 	free(diff);
 	return NULL;
 }
-
-
-/* steal from schhist/ppmdiff.c */
-
-#define	ONLY_OLD	0xff0000
-#define	ONLY_NEW	0x00d000
-#define	BOTH		0x707070
-
-#define	AREA_FILL	0xffffc8
 
 
 static void mark_area(struct diff *diff, int x, int y)
