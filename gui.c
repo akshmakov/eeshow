@@ -82,6 +82,11 @@ struct gui_ctx {
 	struct hist *vcs_hist;	/* underlying VCS data; NULL if none */
 
 	bool showing_history;
+	enum selecting {
+		sel_only,	/* select the only revision we show */
+		sel_new,	/* select the new revision */
+		sel_old,	/* select the old revision */
+	} selecting;
 
 	struct overlay *sheet_overlays;
 	struct overlay *hist_overlays;
@@ -413,6 +418,57 @@ static void hide_history(struct gui_ctx *ctx)
 }
 
 
+#define	NORMAL_FONT	"Helvetica 10"
+#define	BOLD_FONT	"Helvetica Bold 10"
+
+#define FG_DIFF_NEW	{ 0.0, 0.6, 0.0, 1.0 }
+#define FG_DIFF_OLD	{ 0.8, 0.0, 0.0, 1.0 }
+
+#define	COLOR(rgba)	((struct color) rgba)
+#define	RGBA(r, g, b, a) ((struct color) { (r), (g), (b), (a) })
+
+
+static void set_history_style(struct gui_hist *h, bool current)
+{
+	struct gui_ctx *ctx = h->ctx;
+	struct overlay_style style = overlay_style_dense;
+	const struct gui_hist *new = ctx->curr_hist;
+	const struct gui_hist *old = ctx->last_hist;
+
+	/* this is in addition to showing detailed content */
+	if (current)
+		style.width++;
+
+	switch (ctx->selecting) {
+	case sel_only:
+		style.frame = RGBA(0.0, 0.0, 0.0, 0.9);
+		break;
+	case sel_old:
+		style.frame = RGBA(0.8, 0.2, 0.2, 0.9);
+		break;
+	case sel_new:
+		style.frame = RGBA(0.0, 0.6, 0.0, 0.9);
+		break;
+	default:
+		abort();
+	}
+
+	if (ctx->curr_hist == h || ctx->last_hist == h) {
+		style.width++;
+		style.font = BOLD_FONT;
+	}
+	if (ctx->last_hist) {
+		if (new->age > old->age)
+			swap(new, old);
+		if (h == new)
+			style.bg = RGBA(0.6, 1.0, 0.6, 0.8);
+		if (h == old)
+			style.bg = RGBA(1.0, 0.8, 0.8, 0.8);
+	}
+	overlay_style(h->over, &style);
+}
+
+
 static bool hover_history(void *user, bool on)
 {
 	struct gui_hist *h = user;
@@ -427,6 +483,7 @@ static bool hover_history(void *user, bool on)
 		overlay_text(h->over, "<small>%s</small>",
 		    vcs_git_summary(h->hist));
 	}
+	set_history_style(h, on);
 	redraw(ctx);
 	return 1;
 }
@@ -453,28 +510,70 @@ static void click_history(void *user)
 {
 	struct gui_hist *h = user;
 	struct gui_ctx *ctx = h->ctx;
+	struct gui_hist **new = &ctx->curr_hist;
+	struct gui_hist **old = &ctx->last_hist;
+	struct gui_sheet *sheet;
+	bool set_curr = ctx->selecting == sel_new;
 
 	hide_history(ctx);
-	if (h->sheets)
+
+	if (!h->sheets)
+		return;
+
+	if (!ctx->last_hist) {
 		go_to_history(h);
+		return;
+	}
+
+	if ((*new)->age > (*old)->age) {
+		swap(new, old);
+		set_curr = !set_curr;
+	}
+
+	sheet = find_corresponding_sheet(h->sheets,
+	    ctx->curr_hist->sheets, ctx->curr_sheet);
+
+	switch (ctx->selecting) {
+	case sel_new:
+		*new = h;
+		break;
+	case sel_old:
+		*old = h;
+		break;
+	case sel_only:
+	default:
+		abort();
+	}
+
+
+	if (ctx->curr_hist == ctx->last_hist) {
+		go_to_sheet(ctx, sheet);
+		go_to_history(ctx->curr_hist);
+		return;
+	}
+
+	if (set_curr) {
+		go_to_sheet(ctx, sheet);
+	} else {
+		render_delta(ctx);
+		do_revision_overlays(ctx);
+		redraw(ctx);
+	}
 }
 
 
-static void show_history(struct gui_ctx *ctx)
+static void show_history(struct gui_ctx *ctx, enum selecting sel)
 {
 	struct gui_hist *h = ctx->hist;
 
 	ctx->showing_history = 1;
+	ctx->selecting = sel;
 	overlay_remove_all(&ctx->hist_overlays);
 	for (h = ctx->hist; h; h = h->next) {
 		h->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
 		    hover_history, click_history, h);
 		hover_history(h, 0);
-		overlay_style(h->over,
-		    h == ctx->curr_hist ?
-		      ctx->last_hist ?
-		        &style_dense_diff_new : &style_dense_selected :
-		    h == ctx->last_hist ? &style_dense_diff_old : &style_dense);
+		set_history_style(h, 0);
 	}
 	redraw(ctx);
 }
@@ -484,8 +583,16 @@ static void show_history_cb(void *user)
 {
 	struct gui_hist *h = user;
 	struct gui_ctx *ctx = h->ctx;
+	enum selecting sel = sel_only;
+	const struct gui_hist *new = ctx->curr_hist;
+	const struct gui_hist *old = ctx->last_hist;
 
-	show_history(ctx);
+	if (ctx->last_hist) {
+		if (new->age > old->age)
+			swap(new, old);
+		sel = h == new ? sel_new : sel_old;
+	}
+	show_history(ctx, sel);
 }
 
 
@@ -536,7 +643,7 @@ static void revision_overlays_diff(struct gui_ctx *ctx)
 	show_history_details(new, 0);
 
 	old->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
-	    show_history_details, click_history, old);
+	    show_history_details, show_history_cb, old);
 	overlay_style(old->over, &overlay_style_diff_old);
 	show_history_details(old, 0);
 }
@@ -767,9 +874,11 @@ static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
 		break;
 	case GDK_KEY_Up:
 	case GDK_KEY_KP_Up:
+		show_history(ctx, sel_new);
+		break;
 	case GDK_KEY_Down:
 	case GDK_KEY_KP_Down:
-		show_history(ctx);
+		show_history(ctx, sel_old);
 		break;
 	case GDK_KEY_q:
 		gtk_main_quit();
