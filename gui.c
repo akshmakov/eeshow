@@ -79,6 +79,8 @@ struct gui_ctx {
 	struct gui_hist *hist;	/* revision history; NULL if none */
 	struct hist *vcs_hist;	/* underlying VCS data; NULL if none */
 
+	bool showing_history;
+
 	struct overlay *sheet_overlays;
 	struct overlay *hist_overlays;
 	struct aoi *aois;	/* areas of interest; in canvas coord  */
@@ -396,9 +398,13 @@ static void setup_styles(void)
 /* ----- Revision history -------------------------------------------------- */
 
 
+static void do_revision_overlays(struct gui_ctx *ctx);
+
+
 static void hide_history(struct gui_ctx *ctx)
 {
-	overlay_remove_all(&ctx->hist_overlays);
+	ctx->showing_history = 0;
+	do_revision_overlays(ctx);
 	redraw(ctx);
 }
 
@@ -420,10 +426,6 @@ static bool hover_history(void *user, bool on)
 	redraw(ctx);
 	return 1;
 }
-
-
-//static void do_sheet_overlays(struct gui_ctx *ctx);
-static void do_revision_overlays(struct gui_ctx *ctx);
 
 
 static void go_to_history(struct gui_hist *h)
@@ -458,6 +460,7 @@ static void show_history(struct gui_ctx *ctx)
 {
 	struct gui_hist *h = ctx->hist;
 
+	ctx->showing_history = 1;
 	overlay_remove_all(&ctx->hist_overlays);
 	for (h = ctx->hist; h; h = h->next) {
 		h->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
@@ -670,8 +673,11 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event,
 	case 1:
 		if (aoi_click(ctx->aois, event->x, event->y))
 			break;
-		aoi_click(curr_sheet->aois,
-		    x + curr_sheet->xmin, y + curr_sheet->ymin);
+		if (aoi_click(curr_sheet->aois,
+		    x + curr_sheet->xmin, y + curr_sheet->ymin))
+			break;
+		if (ctx->showing_history)
+			hide_history(ctx);
 		break;
 	case 2:
 		pan_begin(ctx, event->x, event->y);
@@ -976,6 +982,7 @@ int gui(unsigned n_args, char **args, bool recurse)
 		.panning	= 0,
 		.hist		= NULL,
 		.vcs_hist	= NULL,
+		.showing_history= 0,
 		.sheet_overlays	= NULL,
 		.hist_overlays	= NULL,
 		.aois		= NULL,
