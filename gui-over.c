@@ -43,7 +43,7 @@
 
 struct overlay {
 	const char *s;
-	const struct overlay_style *style;
+	struct overlay_style style;
 
 	struct aoi **aois;
 	bool (*hover)(void *user, bool on);
@@ -162,7 +162,7 @@ static void rrect(cairo_t *cr, int x, int y, int w, int h, int r)
 
 struct overlay *overlay_draw(struct overlay *over, cairo_t *cr, int *x, int *y)
 {
-	const struct overlay_style *style = over->style;
+	const struct overlay_style *style = &over->style;
 	const double *fg = style->fg;
 	const double *bg = style->bg;
 	const double *frame = style->frame;
@@ -293,7 +293,7 @@ struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
 
 	over = alloc_type(struct overlay);
 	over->s = NULL;
-	over->style = &overlay_style_default;
+	over->style = overlay_style_default;
 
 	over->aois = aois;
 	over->hover = hover;
@@ -311,7 +311,7 @@ struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
 
 void overlay_style(struct overlay *over, const struct overlay_style *style)
 {
-	over->style = style;
+	over->style = *style;
 }
 
 
