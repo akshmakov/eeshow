@@ -34,6 +34,7 @@
 #include "git-hist.h"
 #include "sch.h"
 #include "delta.h"
+#include "diff.h"
 #include "gui-aoi.h"
 #include "gui-over.h"
 #include "gui.h"
@@ -140,6 +141,17 @@ static struct gui_sheet *find_corresponding_sheet(struct gui_sheet *pick_from,
 #define	SHEET_OVERLAYS_Y	10
 
 
+static void hack(const struct gui_ctx *ctx, cairo_t *cr)
+{
+	const struct gui_sheet *a = ctx->curr_sheet;
+	const struct gui_sheet *b = find_corresponding_sheet(
+	    ctx->last_hist->sheets, ctx->curr_hist->sheets, ctx->curr_sheet);
+
+	diff_to_canvas(cr, ctx->x, ctx->y, 1.0 / (1 << ctx->zoom),
+	    a->gfx_ctx, b->gfx_ctx);
+}
+
+
 static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
     gpointer user_data)
 {
@@ -157,10 +169,13 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	if (!ctx->last_hist) {
 		cro_canvas_draw(sheet->gfx_ctx, cr, x, y, f);
 	} else {
+#if 0
 		/* @@@ fix geometry later */
 		cro_canvas_draw(ctx->delta_ab.gfx_ctx, cr, x, y, f);
 		cro_canvas_draw(ctx->delta_a.gfx_ctx, cr, x, y, f);
 		cro_canvas_draw(ctx->delta_b.gfx_ctx, cr, x, y, f);
+#endif
+		hack(ctx, cr);
 	}
 
 	overlay_draw_all(ctx->sheet_overlays, cr,
@@ -186,8 +201,13 @@ static void render_sheet(struct gui_sheet *sheet)
 }
 
 
+/* @@@ not nice to have this so far out */
+static void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet);
+
+
 static void render_delta(struct gui_ctx *ctx)
 {
+#if 0
 	struct sheet *sch_a, *sch_b, *sch_ab;
 	const struct gui_sheet *a = ctx->curr_sheet;
 	const struct gui_sheet *b = find_corresponding_sheet(
@@ -211,6 +231,14 @@ static void render_delta(struct gui_ctx *ctx)
 	cro_color_override(ctx->delta_b.gfx_ctx, COLOR_GREEN2);
 
 	// @@@ clean up when leaving sheet
+#endif
+	struct gui_sheet *b = find_corresponding_sheet(
+	    ctx->last_hist->sheets, ctx->curr_hist->sheets, ctx->curr_sheet);
+
+	if (!b->rendered) {
+		render_sheet(b);
+		mark_aois(ctx, b);
+	}
 }
 
 
