@@ -44,6 +44,7 @@ void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr,
     int x, int y, float scale);
 
 uint32_t *cro_img(struct cro_ctx *ctx, int x0, int yo, int w, int h,
+    int xe, int ye,
     float scale, cairo_t **res_cr, int *res_stride);
 
 #endif /* !CRO_H */

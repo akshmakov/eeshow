@@ -337,19 +337,29 @@ void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
 	merge_coord(old_ymin, new_ymin, old_h, new_h, &ymin, &h);
 
 	/*
-	 * @@@ we should handle offset differences (xmin - old_xmin, et al.)
-	 * before scaling. Else we risk rounding differences to lead to
-	 * single-pixel differences, which the differences algorithm will
-	 * be eager to mark with big yellow boxes.
+	 * We use two sets of offset differences: one applied to eeschema
+	 * coordinates (the xe, ye pair), and one applied to canvas coordinates
+	 * (the xo, yo pair).
+	 *
+	 * This is to prevent different offsets from leading to rounding
+	 * differences, resulting in single-pixel differences, which in turn
+	 * the differences algorithm will be eager to mark with big yellow
+	 * boxes.
 	 */
 	img_old = cro_img(old,
-	    sw / 2.0 - (cx + 2 * xmin - old_xmin) * scale,
-	    sh / 2.0 - (cy + 2 * ymin - old_ymin) * scale,
-	    sw, sh, scale, &old_cr, &stride);
+	    sw / 2.0 - (cx + xmin) * scale,
+	    sh / 2.0 - (cy + ymin) * scale,
+	    sw, sh,
+	    xmin - old_xmin,
+	    ymin - old_ymin,
+	    scale, &old_cr, &stride);
 	img_new = cro_img(new,
-	    sw / 2.0 - (cx + 2 * xmin - new_xmin) * scale,
-	    sh / 2.0 - (cy + 2 * ymin - new_ymin) * scale,
-	    sw, sh, scale, NULL, NULL);
+	    sw / 2.0 - (cx + xmin) * scale,
+	    sh / 2.0 - (cy + ymin) * scale,
+	    sw, sh,
+	    xmin - new_xmin,
+	    ymin - new_ymin,
+	    scale, NULL, NULL);
 
 	struct diff diff = {
 		.w		= sw,
