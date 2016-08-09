@@ -10,6 +10,8 @@ Data model:
 - check for memory leaks
 - sheets appearing multiple times are parsed anew each time. Should we try
   to combine them ?
+- likewise, reuse sheets and libraries that are the same in the next/previous
+  revision (according to their OID)
 
 Visualization (dwg.c and such):
 - glabel: build for "right" style, then rotate poly (like hlabel)
@@ -38,7 +40,22 @@ GUI:
 - fonts grow beyond their bounding boxes when zooming in
 - dragging can be slow. maybe reusing old content and only redrawing new
   will help ?
+- glabels: on hover, show clickable list of sheets where else label is used
+- highlight nets ?
 
-On-going:
-- use Pango to support markup in overlay boxes:
-  https://developer.gnome.org/pango/unstable/PangoMarkupFormat.html
+GUI/history
+- revision selection is still a bit inconvenient and lacks quick way for
+  showing un-diffed sheets. Should add "delta" button.
+- use Tab to rapidly toggle between old/new sheet
+- should have quick way to show diff of a single commit
+- in history, set font to non-bold if showing details
+- add scrolling to history
+- add manual selection with Up/Down/Enter
+- highlight subsheets containing differences
+- "what I am selecting" indication (color of frames of sheets in history)
+  is not very clear.
+
+GUI/sheets:
+- show sheet number (e.g., on hover)
+- need a way to change new/old sheet association, in case automatic selection
+  fails (reserved hotkeys: Left/Rigth)
