@@ -397,14 +397,8 @@ static void hide_history(struct gui_ctx *ctx)
 }
 
 
-#define	NORMAL_FONT	"Helvetica 10"
-#define	BOLD_FONT	"Helvetica Bold 10"
-
-#define FG_DIFF_NEW	{ 0.0, 0.6, 0.0, 1.0 }
-#define FG_DIFF_OLD	{ 0.8, 0.0, 0.0, 1.0 }
-
-#define	COLOR(rgba)	((struct color) rgba)
-#define	RGBA(r, g, b, a) ((struct color) { (r), (g), (b), (a) })
+#define	RGBA(r, g, b, a)	((struct color) { (r), (g), (b), (a) })
+#define	COLOR(color)		RGBA(color)
 
 
 static void set_history_style(struct gui_hist *h, bool current)
@@ -420,13 +414,13 @@ static void set_history_style(struct gui_hist *h, bool current)
 
 	switch (ctx->selecting) {
 	case sel_only:
-		style.frame = RGBA(0.0, 0.0, 0.0, 0.9);
+		style.frame = COLOR(FRAME_SEL_ONLY);
 		break;
 	case sel_old:
-		style.frame = RGBA(0.8, 0.2, 0.2, 0.9);
+		style.frame = COLOR(FRAME_SEL_OLD);
 		break;
 	case sel_new:
-		style.frame = RGBA(0.0, 0.6, 0.0, 0.9);
+		style.frame = COLOR(FRAME_SEL_NEW);
 		break;
 	default:
 		abort();
@@ -438,9 +432,9 @@ static void set_history_style(struct gui_hist *h, bool current)
 	}
 	if (ctx->old_hist) {
 		if (h == new)
-			style.bg = RGBA(0.6, 1.0, 0.6, 0.8);
+			style.bg = COLOR(BG_NEW);
 		if (h == old)
-			style.bg = RGBA(1.0, 0.8, 0.8, 0.8);
+			style.bg = COLOR(BG_OLD);
 	}
 	overlay_style(h->over, &style);
 }

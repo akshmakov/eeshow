@@ -17,10 +17,6 @@
 #define	OVER_RADIUS	6
 #define	OVER_SEP	8
 
-
-#define	NORMAL_FONT	"Helvetica 10"
-#define	BOLD_FONT	"Helvetica Bold 10"
-
 #define	NORMAL_PAD	8
 #define	NORMAL_RADIUS	6
 #define	NORMAL_SKIP	8

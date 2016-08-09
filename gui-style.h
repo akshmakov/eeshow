@@ -16,6 +16,17 @@
 #include "gui-over.h"
 
 
+#define	NORMAL_FONT	"Helvetica 10"
+#define	BOLD_FONT	"Helvetica Bold 10"
+
+#define	FRAME_SEL_ONLY	0.0, 0.0, 0.0, 0.9
+#define	FRAME_SEL_OLD	0.8, 0.2, 0.2, 0.9
+#define	FRAME_SEL_NEW	0.0, 0.6, 0.0, 0.9
+
+#define	BG_NEW		0.6, 1.0, 0.6, 0.8
+#define	BG_OLD		1.0, 0.8, 0.8, 0.8
+
+
 extern struct overlay_style overlay_style_default;
 extern struct overlay_style overlay_style_dense;
 extern struct overlay_style overlay_style_diff_new;
