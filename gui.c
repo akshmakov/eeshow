@@ -383,26 +383,6 @@ static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet);
 static bool go_up_sheet(struct gui_ctx *ctx);
 
 
-/* ----- Overlay styles ---------------------------------------------------- */
-
-
-static struct overlay_style style_dense;
-static struct overlay_style style_dense_selected;
-static struct overlay_style style_dense_diff_new;
-static struct overlay_style style_dense_diff_old;
-
-
-static void setup_styles(void)
-{
-	style_dense = overlay_style_dense;
-	style_dense_selected = overlay_style_dense_selected;
-	style_dense_diff_new = overlay_style_diff_new;
-	style_dense_diff_old = overlay_style_diff_old;
-	style_dense.wmax = style_dense_selected.wmax =
-	    style_dense_diff_new.wmax = style_dense_diff_old.wmax = 400;
-}
-
-
 /* ----- Revision history -------------------------------------------------- */
 
 
@@ -1093,8 +1073,6 @@ int gui(unsigned n_args, char **args, bool recurse)
 		fprintf(stderr, "no valid sheets\n");
 		return 1;
 	}
-
-	setup_styles();
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
