@@ -526,6 +526,50 @@ void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr, int xo, int yo,
 }
 
 
+/* ----- Image for external use (simplified API) --------------------------- */
+
+
+uint32_t *cro_img(struct cro_ctx *ctx, int xo, int yo, int w, int h,
+    float scale, cairo_t **res_cr, int *res_stride)
+{
+	int stride;
+	uint32_t *data;
+	cairo_t *cr;
+	cairo_surface_t *s;
+
+	stride = cairo_format_stride_for_width(CAIRO_FORMAT_RGB24, w);
+	data = alloc_size(stride * h);
+
+	s = cairo_image_surface_create_for_data((unsigned char *) data,
+	    CAIRO_FORMAT_RGB24, w, h, stride);
+	cr = cairo_create(s);
+
+	cairo_set_source_rgb(cr, 1, 1, 1);
+	cairo_paint(cr);
+
+	cairo_select_font_face(cr, "Helvetica", CAIRO_FONT_SLANT_NORMAL,
+	    CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_line_width(cr, 2);
+	cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
+
+	ctx->cr = cr;
+	ctx->s = s;
+	ctx->xo = xo;
+	ctx->yo = yo;
+	ctx->scale = scale;
+	ctx->color_override = COLOR_NONE;
+
+	record_replay(&ctx->record);
+
+	if (res_cr)
+		*res_cr = cr;
+	if (res_stride)
+		*res_stride = stride;
+
+	return data;
+}
+
+
 /* ----- Operations -------------------------------------------------------- */
 
 
