@@ -959,6 +959,28 @@ static struct gui_sheet *get_sheets(struct gui_ctx *ctx,
  *   libraries that are the same, even if there are others that have changed.
  * - maybe put components into tree, so that they can be replaced individually
  *   (this would also help to identify sheets that don't need parsing)
+ *
+ * Sheet caching:
+ *
+ * We reuse previous sheets if
+ * - all libraries are identical (whether a given sheet uses them or not),
+ * - they have no sub-sheets, and
+ * - the objects IDs (hashes) are identical.
+ *
+ * Note that we only compare with the immediately preceding (newer) revision,
+ * so branches and merges can disrupt caching.
+ *
+ * Possible optimizations:
+ * - if we record which child sheets a sheet has, we could also clone it,
+ *   without having to parse it. However, this is somewhat complex and may
+ *   not save all that much time.
+ * - we could record what libraries a sheet uses, and parse only if one of
+ *   these has changed (benefits scenarios with many library files),
+ * - we could record what components a sheet uses, and parse only if one of
+ *   these has changed (benefits scenarios with few big libraries),
+ * - we could postpone library lookups to render time.
+ * - we could record IDs globally, which would help to avoid tripping over
+ *   branches and merges.
  */
 
 static const struct sheet *parse_files(struct gui_hist *hist,
