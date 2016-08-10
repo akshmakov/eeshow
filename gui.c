@@ -59,10 +59,15 @@ struct gui_sheet {
 
 struct gui_hist {
 	struct gui_ctx *ctx;		/* back link */
-	struct hist *vcs_hist;
+	struct hist *vcs_hist;		/* NULL if not from repo */
 	struct overlay *over;		/* current overlay */
 	struct gui_sheet *sheets;	/* NULL if failed */
 	unsigned age;			/* 0-based; uncommitted or HEAD = 0 */
+
+	/* caching support */
+	void **oids;			/* file object IDs */
+	struct lib lib;			/* combined library */
+
 	struct gui_hist *next;
 };
 
@@ -943,18 +948,31 @@ static struct gui_sheet *get_sheets(struct gui_ctx *ctx,
 }
 
 
-static const struct sheet *parse_sheets(struct hist *h,
-    int n_args, char **args, bool recurse)
+/*
+ * Library caching:
+ *
+ * We reuse previous components if all libraries are identical
+ *
+ * Future optimizations:
+ * - don't parse into single list of components, so that we can share
+ *   libraries that are the same, even if there are others that have changed.
+ * - maybe put components into tree, so that they can be replaced individually
+ *   (this would also help to identify sheets that don't need parsing)
+ */
+
+static const struct sheet *parse_files(struct gui_hist *hist,
+    int n_args, char **args, bool recurse, const struct gui_hist *prev)
 {
 	char *rev = NULL;
 	struct sch_ctx sch_ctx;
-	struct lib lib;
 	struct file sch_file;
-	int i;
+	struct file lib_files[n_args - 1];
+	int libs_open, i;
+	bool libs_cached = 0;
 	bool ok;
 
-	if (h)
-		rev = vcs_git_get_rev(h);
+	if (hist->vcs_hist)
+		rev = vcs_git_get_rev(hist->vcs_hist);
 
 	sch_init(&sch_ctx, recurse);
 	ok = file_open_revision(&sch_file, rev, args[n_args - 1], NULL);
@@ -966,26 +984,53 @@ static const struct sheet *parse_sheets(struct hist *h,
 		return NULL;
 	}
 
-	lib_init(&lib);
-	for (i = 0; i != n_args - 1; i++)
-		if (!lib_parse(&lib, args[i], &sch_file))
+	lib_init(&hist->lib);
+	for (libs_open = 0; libs_open != n_args - 1; libs_open++)
+		if (!file_open(lib_files + libs_open, args[libs_open],
+		    &sch_file))
 			goto fail;
-	if (!sch_parse(&sch_ctx, &sch_file, &lib))
+
+	if (hist->vcs_hist) {
+		hist->oids = alloc_size(sizeof(void *) * libs_open);
+		for (i = 0; i != libs_open; i++)
+			hist->oids[i] = file_oid(lib_files + i);
+		if (prev && prev->vcs_hist) {
+			for (i = 0; i != libs_open; i++)
+				if (!file_oid_eq(hist->oids[i], prev->oids[i]))
+					break;
+			if (i == libs_open) {
+				hist->lib.comps = prev->lib.comps;
+				libs_cached = 1;
+			}
+		}
+	}
+
+	if (!libs_cached)
+		for (i = 0; i != libs_open; i++)
+			if (!lib_parse_file(&hist->lib, lib_files +i))
+				goto fail;
+
+	if (!sch_parse(&sch_ctx, &sch_file, &hist->lib))
 		goto fail;
+
+	for (i = 0; i != libs_open; i++)
+		file_close(lib_files + i);
 	file_close(&sch_file);
 
 	/*
 	 * @@@ we have a major memory leak for the component library.
 	 * We should record parsed schematics and libraries separately, so
 	 * that we can clean them up, without having to rely on the history,
-	 * with - in the future, when sharing of unchanged item is
-	 * implemented - possibly many duplicate pointers.
+	 * with - when sharing unchanged item - possibly many duplicate
+	 * pointers.
 	 */
 	return sch_ctx.sheets;
 
 fail:
+	while (libs_open--)
+		file_close(lib_files + libs_open);
 	sch_free(&sch_ctx);
-	lib_free(&lib);
+	lib_free(&hist->lib);
 	file_close(&sch_file);
 	return NULL;
 }
@@ -1004,7 +1049,7 @@ static void add_hist(void *user, struct hist *h)
 {
 	struct add_hist_ctx *ahc = user;
 	struct gui_ctx *ctx = ahc->ctx;
-	struct gui_hist **anchor, *hist;
+	struct gui_hist **anchor, *hist, *prev;
 	const struct sheet *sch;
 	unsigned age = 0;
 
@@ -1012,13 +1057,16 @@ static void add_hist(void *user, struct hist *h)
 		return;
 	ahc->limit--;
 
-	for (anchor = &ctx->hist; *anchor; anchor = &(*anchor)->next)
+	prev = NULL;
+	for (anchor = &ctx->hist; *anchor; anchor = &(*anchor)->next) {
+		prev = *anchor;
 		age++;
+	}
 
 	hist = alloc_type(struct gui_hist);
 	hist->ctx = ctx;
 	hist->vcs_hist = h;
-	sch = parse_sheets(h, ahc->n_args, ahc->args, ahc->recurse);
+	sch = parse_files(hist, ahc->n_args, ahc->args, ahc->recurse, prev);
 	hist->sheets = sch ? get_sheets(ctx, sch) : NULL;
 	hist->age = age;
 
