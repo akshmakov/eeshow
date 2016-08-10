@@ -555,9 +555,10 @@ static void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet);
 
 static void close_subsheet(void *user)
 {
-	struct gui_ctx *ctx = user;
+	struct gui_sheet *sheet = user;
+	struct gui_ctx *ctx = sheet->ctx;
 
-	go_up_sheet(ctx);
+	go_to_sheet(ctx, sheet);
 }
 
 
@@ -627,10 +628,9 @@ static struct gui_sheet *find_parent_sheet(struct gui_sheet *sheets,
 }
 
 
-static void sheet_selector_recurse(struct gui_ctx *ctx,
-    const struct gui_sheet *sheet)
+static void sheet_selector_recurse(struct gui_ctx *ctx, struct gui_sheet *sheet)
 {
-	const struct gui_sheet *parent;
+	struct gui_sheet *parent;
 	const char *title;
 	struct overlay *over;
 
@@ -640,14 +640,8 @@ static void sheet_selector_recurse(struct gui_ctx *ctx,
 	title = sheet->sch->title;
 	if (!title)
 		title = "(unnamed)";
-	/*
-	 * @@@ dirty hack: instead of jumping to the selected sheet (which
-	 * would require a little more work), we merely go "up". In a flat
-	 * hierarchy with just one level of sub-sheets, that does pretty
-	 * much what one would expect from proper jumping.
-	 */
 	over = overlay_add(&ctx->sheet_overlays, &ctx->aois,
-	    NULL, close_subsheet, ctx);
+	    NULL, close_subsheet, sheet);
 	overlay_text(over, "<b>%s</b>", title);
 }
 
