@@ -32,6 +32,9 @@ struct file;
 
 void vcs_git_init(void);
 
+void *vcs_git_get_oid(const void *ctx);	/* mallocs */
+bool vcs_git_oid_eq(const void *a, const void *b);
+
 struct vcs_git *vcs_git_open(const char *revision, const char *name,
     const struct vcs_git *related);
 bool vcs_git_read(void *ctx, struct file *file,

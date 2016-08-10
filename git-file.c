@@ -34,10 +34,34 @@ struct vcs_git {
 
 	git_repository *repo;
 	git_tree *tree;
+	git_object *obj;
 
 	const void *data;
 	unsigned size;
 };
+
+
+/* ----- OID matching ------------------------------------------------------ */
+
+
+void *vcs_git_get_oid(const void *ctx)
+{
+	const struct vcs_git *vcs_git = ctx;
+	struct git_oid *new;
+
+	new = alloc_type(git_oid);
+	git_oid_cpy(new, git_object_id(vcs_git->obj));
+	return new;
+}
+
+
+bool vcs_git_oid_eq(const void *a, const void *b)
+{
+	return !git_oid_cmp(a, b);
+}
+
+
+/* ----- Open -------------------------------------------------------------- */
 
 
 static git_repository *select_repo(const char *path)
@@ -298,9 +322,10 @@ static git_tree_entry *find_file(git_repository *repo, git_tree *tree,
 }
 
 
-static const void *get_data(git_repository *repo, git_tree_entry *entry,
+static const void *get_data(struct vcs_git *vcs_git, git_tree_entry *entry,
     unsigned *size)
 {
+	git_repository *repo =vcs_git->repo;
 	git_object *obj;
 	git_blob *blob;
 
@@ -314,6 +339,7 @@ static const void *get_data(git_repository *repo, git_tree_entry *entry,
 		fprintf(stderr, "%s\n", e->message);
 		exit(1);
 	}
+	vcs_git->obj = obj;
 
 	if (verbose > 2) {
 		git_buf buf = { 0 };
@@ -358,7 +384,7 @@ static bool access_file_data(struct vcs_git *vcs_git, const char *name)
 	if (verbose)
 		fprintf(stderr, "reading %s\n", name);
 
-	vcs_git->data = get_data(vcs_git->repo, entry, &vcs_git->size);
+	vcs_git->data = get_data(vcs_git, entry, &vcs_git->size);
 	return 1;
 }
 
@@ -467,6 +493,9 @@ fail:
 }
 
 
+/* ----- Read -------------------------------------------------------------- */
+
+
 bool vcs_git_read(void *ctx, struct file *file,
     bool (*parse)(const struct file *file, void *user, const char *line),
     void *user)
@@ -487,6 +516,9 @@ bool vcs_git_read(void *ctx, struct file *file,
 	}
 	return 1;
 }
+
+
+/* ----- Close ------------------------------------------------------------- */
 
 
 void vcs_git_close(void *ctx)

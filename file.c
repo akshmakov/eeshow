@@ -22,6 +22,24 @@
 #include "file.h"
 
 
+void *file_oid(const struct file *file)
+{
+	if (!file->vcs)
+		return NULL;
+	return vcs_git_get_oid(file->vcs);
+}
+
+
+bool file_oid_eq(const void *a, const void *b)
+{
+	/*
+	 * If both a and b are NULL, we don't have revision data and thus
+	 * can't tell if they're identical.
+	 */
+	return a && b && vcs_git_oid_eq(a, b);
+}
+
+
 bool file_cat(const struct file *file, void *user, const char *line)
 {
 	printf("%s\n", line);

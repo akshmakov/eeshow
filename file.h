@@ -26,6 +26,9 @@ struct file {
 };
 
 
+void *file_oid(const struct file *file);
+bool file_oid_eq(const void *a, const void *b);
+
 bool file_cat(const struct file *file, void *user, const char *line);
 
 char *file_graft_relative(const char *base, const char *name);
