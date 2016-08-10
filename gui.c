@@ -59,7 +59,7 @@ struct gui_sheet {
 
 struct gui_hist {
 	struct gui_ctx *ctx;		/* back link */
-	struct hist *hist;
+	struct hist *vcs_hist;
 	struct overlay *over;		/* current overlay */
 	struct gui_sheet *sheets;	/* NULL if failed */
 	unsigned age;			/* 0-based; uncommitted or HEAD = 0 */
@@ -447,12 +447,12 @@ static bool hover_history(void *user, bool on)
 	char *s;
 
 	if (on) {
-		s = vcs_git_long_for_pango(h->hist);
+		s = vcs_git_long_for_pango(h->vcs_hist);
 		overlay_text_raw(h->over, s);
 		free(s);
 	} else {
 		overlay_text(h->over, "<small>%s</small>",
-		    vcs_git_summary(h->hist));
+		    vcs_git_summary(h->vcs_hist));
 	}
 	set_history_style(h, on);
 	redraw(ctx);
@@ -561,11 +561,11 @@ static bool show_history_details(void *user, bool on)
 	char *s;
 
 	if (on) {
-		s = vcs_git_long_for_pango(h->hist);
+		s = vcs_git_long_for_pango(h->vcs_hist);
 		overlay_text_raw(h->over, s);
 		free(s);
 	} else {
-		overlay_text(h->over, "%.40s", vcs_git_summary(h->hist));
+		overlay_text(h->over, "%.40s", vcs_git_summary(h->vcs_hist));
 	}
 	redraw(ctx);
 	return 1;
@@ -1016,7 +1016,7 @@ static void add_hist(void *user, struct hist *h)
 		age++;
 	*anchor = alloc_type(struct gui_hist);
 	(*anchor)->ctx = ctx;
-	(*anchor)->hist = h;
+	(*anchor)->vcs_hist = h;
 	sch = parse_sheets(h, ahc->n_args, ahc->args, ahc->recurse);
 	(*anchor)->sheets = sch ? get_sheets(ctx, sch) : NULL;
 	(*anchor)->age = age;
