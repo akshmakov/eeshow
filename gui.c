@@ -45,6 +45,7 @@ struct gui_ctx;
 
 struct gui_sheet {
 	const struct sheet *sch;
+	struct gui_ctx *ctx;		/* back link */
 	struct cro_ctx *gfx_ctx;
 
 	int w, h;		/* in eeschema coordinates */
@@ -939,6 +940,7 @@ static struct gui_sheet *get_sheets(struct gui_ctx *ctx,
 	for (sheet = sheets; sheet; sheet = sheet->next) {
 		new = alloc_type(struct gui_sheet);
 		new->sch = sheet;
+		new->ctx = ctx;
 		new->rendered = 0;
 
 		*next = new;
