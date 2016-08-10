@@ -96,7 +96,6 @@ struct sheet {
 	const char *title;		/* malloced, unless delta */
 	struct sch_obj *objs;
 	struct sch_obj **next_obj;
-	struct sheet *parent;
 	struct sheet *next;
 
 	bool has_children;		/* aka sub-sheets */

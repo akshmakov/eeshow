@@ -278,7 +278,6 @@ static void init_res(struct sheet *res)
 	res->title = NULL;
         res->objs = NULL;
         res->next_obj = &res->objs;
-        res->parent = NULL;
         res->next = NULL;
 }
 

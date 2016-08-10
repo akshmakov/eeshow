@@ -292,20 +292,12 @@ static struct sheet *new_sheet(struct sch_ctx *ctx)
 
 	sheet->oid = NULL;
 
-	sheet->parent = ctx->curr_sheet;
 	ctx->curr_sheet = sheet;
 
 	*ctx->next_sheet = sheet;
 	ctx->next_sheet = &sheet->next;
 
 	return sheet;
-}
-
-
-static void end_sheet(struct sch_ctx *ctx)
-{
-	ctx->curr_sheet = ctx->curr_sheet->parent;
-	assert(ctx->curr_sheet);
 }
 
 
@@ -317,7 +309,7 @@ static const struct sheet *recurse_sheet(struct sch_ctx *ctx,
     const struct file *related)
 {
 	const char *name = ctx->obj.u.sheet.file;
-	struct sheet *sheet;
+	struct sheet *parent, *sheet;
 	struct file file;
 	void *oid;
 	bool res;
@@ -325,6 +317,7 @@ static const struct sheet *recurse_sheet(struct sch_ctx *ctx,
 	if (!file_open(&file, name, related))
 		return NULL;
 
+	parent = ctx->curr_sheet;
 	sheet = new_sheet(ctx);
 	oid = file_oid(&file);
 	sheet->oid = oid;
@@ -335,7 +328,7 @@ static const struct sheet *recurse_sheet(struct sch_ctx *ctx,
 		for (other = ctx->prev->sheets; other; other = other->next)
 			if (!other->has_children &&
 			    file_oid_eq(other->oid, oid)) {
-				end_sheet(ctx);
+				ctx->curr_sheet = parent;
 				sheet->title = other->title;
 				sheet->objs = other->objs;
 				return sheet;
@@ -347,9 +340,9 @@ static const struct sheet *recurse_sheet(struct sch_ctx *ctx,
 	file_close(&file);
 	if (!res)
 		return NULL;	/* leave it to caller to clean up */
-	end_sheet(ctx);
 
-	ctx->curr_sheet->has_children = 1;
+	ctx->curr_sheet = parent;
+	parent->has_children = 1;
 
 	return sheet;
 }
