@@ -549,7 +549,8 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 			}
 			*to = 0;
 			obj->u.text.s = s;
-			submit_obj(ctx, sch_obj_text);
+			submit_obj(ctx, obj->u.text.fn == dwg_glabel ?
+			    sch_obj_glabel : sch_obj_text);
 		}
 		return 1;
 	case sch_wire:
@@ -627,6 +628,7 @@ static void free_sheet(struct sheet *sch)
 	for (obj = sch->objs; obj; obj = next) {
 		next = obj->next;
 		switch (obj->type) {
+		case sch_obj_glabel:
 		case sch_obj_text:
 			free((char *) obj->u.text.s);
 			break;

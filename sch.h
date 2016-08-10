@@ -40,6 +40,7 @@ struct sch_obj {
 		sch_obj_junction,
 		sch_obj_noconn,
 		sch_obj_text,
+		sch_obj_glabel,
 		sch_obj_comp,
 		sch_obj_sheet,
 	} type;

@@ -148,6 +148,7 @@ void sch_render(const struct sheet *sheet)
 		case sch_obj_noconn:
 			dwg_noconn(obj->x, obj->y);
 			break;
+		case sch_obj_glabel:
 		case sch_obj_text:
 			{
 				const struct sch_text *text = &obj->u.text;
