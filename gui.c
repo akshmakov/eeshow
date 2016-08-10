@@ -1009,7 +1009,7 @@ static const struct sheet *parse_files(struct gui_hist *hist,
 			goto fail;
 
 	if (hist->vcs_hist) {
-		hist->oids = alloc_size(sizeof(void *) * libs_open);
+		hist->oids = alloc_type_n(void *, libs_open);
 		for (i = 0; i != libs_open; i++)
 			hist->oids[i] = file_oid(lib_files + i);
 		if (prev && prev->vcs_hist) {

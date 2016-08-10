@@ -28,6 +28,7 @@
 	alloc_size_tmp; })
 
 #define alloc_type(t) ((t *) alloc_size(sizeof(t)))
+#define alloc_type_n(t, n) ((t *) alloc_size(sizeof(t) * (n)))
 
 #define stralloc(s)					\
     ({	char *stralloc_tmp = strdup(s);			\

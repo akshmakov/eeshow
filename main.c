@@ -174,7 +174,7 @@ int main(int argc, char **argv)
 		unsigned n = argc - optind;
 		char **args;
 
-		args = alloc_size(sizeof(char *) * n);
+		args = alloc_type_n(char *, n);
 		memcpy(args, argv + optind, sizeof(const char *) * n);
 	
 		optind = 0; /* reset getopt */
@@ -192,14 +192,14 @@ int main(int argc, char **argv)
 
 	if (dashdash == argc) {
 		gfx_argc = 1;
-		gfx_argv = alloc_size(sizeof(const char *) * 2);
+		gfx_argv = alloc_type_n(char *, 2);
 		gfx_argv[0] = (char *) (*ops)->name;
 		gfx_argv[1] = NULL;
 	} else {
 		gfx_argc = argc - dashdash - 1;
 		if (!gfx_argc)
 			usage(*argv);
-		gfx_argv = alloc_size(sizeof(const char *) * (gfx_argc + 1));
+		gfx_argv = alloc_type_n(char *, gfx_argc + 1);
 		memcpy(gfx_argv, argv + dashdash + 1,
 		    sizeof(const char *) * (gfx_argc + 1));
 

@@ -95,7 +95,7 @@ static void recurse(struct hist *h,
 	n_branches--;
 	memcpy(b, branches, sizeof(struct hist *) * n_branches);
 
-	h->older = alloc_size(sizeof(struct hist *) * n);
+	h->older = alloc_type_n(struct hist *, n);
 	h->n_older = n;
 
 	for (i = 0; i != n; i++) {

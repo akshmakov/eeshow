@@ -40,8 +40,8 @@ static bool parse_poly(struct lib_poly *poly, const char *line, int points)
 	int i, n;
 
 	poly->points = points;
-	poly->x = alloc_size(sizeof(int) * points);
-	poly->y = alloc_size(sizeof(int) * points);
+	poly->x = alloc_type_n(int, points);
+	poly->y = alloc_type_n(int, points);
 	for (i = 0; i != points; i++) {
 		if (sscanf(line, "%d %d %n",
 		    poly->x + i, poly->y + i, &n) != 2)
