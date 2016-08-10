@@ -98,6 +98,10 @@ struct sheet {
 	struct sch_obj **next_obj;
 	struct sheet *parent;
 	struct sheet *next;
+
+	struct sheet *children;		/* "child" sub-sheets */
+	struct sheet **next_child;
+	struct sheet *next_sib;		/* siblings sub-sheets of this sheet */
 };
 
 struct sch_ctx {

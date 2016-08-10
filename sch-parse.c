@@ -288,6 +288,10 @@ static struct sheet *new_sheet(struct sch_ctx *ctx)
 	sheet->next_obj = &sheet->objs;
 	sheet->next = NULL;
 
+	sheet->children = NULL;
+	sheet->next_child = &sheet->children;
+	sheet->next_sib = NULL;
+
 	sheet->parent = ctx->curr_sheet;
 	ctx->curr_sheet = sheet;
 
@@ -312,7 +316,7 @@ static const struct sheet *recurse_sheet(struct sch_ctx *ctx,
     const struct file *related)
 {
 	const char *name = ctx->obj.u.sheet.file;
-	const struct sheet *sheet;
+	struct sheet *sheet;
 	struct file file;
 	bool res;
 
@@ -325,6 +329,10 @@ static const struct sheet *recurse_sheet(struct sch_ctx *ctx,
 	if (!res)
 		return NULL;	/* caller MUST clean up */
 	end_sheet(ctx);
+
+	*ctx->curr_sheet->next_child = sheet;
+	ctx->curr_sheet->next_child = &sheet->next_sib;
+	sheet->next_sib = NULL;
 
 	return sheet;
 }
@@ -640,4 +648,3 @@ void sch_free(struct sch_ctx *ctx)
 		ctx->sheets = next;
 	}
 }
-
