@@ -1004,7 +1004,7 @@ static void add_hist(void *user, struct hist *h)
 {
 	struct add_hist_ctx *ahc = user;
 	struct gui_ctx *ctx = ahc->ctx;
-	struct gui_hist **anchor;
+	struct gui_hist **anchor, *hist;
 	const struct sheet *sch;
 	unsigned age = 0;
 
@@ -1014,13 +1014,16 @@ static void add_hist(void *user, struct hist *h)
 
 	for (anchor = &ctx->hist; *anchor; anchor = &(*anchor)->next)
 		age++;
-	*anchor = alloc_type(struct gui_hist);
-	(*anchor)->ctx = ctx;
-	(*anchor)->vcs_hist = h;
+
+	hist = alloc_type(struct gui_hist);
+	hist->ctx = ctx;
+	hist->vcs_hist = h;
 	sch = parse_sheets(h, ahc->n_args, ahc->args, ahc->recurse);
-	(*anchor)->sheets = sch ? get_sheets(ctx, sch) : NULL;
-	(*anchor)->age = age;
-	(*anchor)->next = NULL;
+	hist->sheets = sch ? get_sheets(ctx, sch) : NULL;
+	hist->age = age;
+
+	hist->next = NULL;
+	*anchor = hist;
 }
 
 
