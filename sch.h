@@ -99,9 +99,10 @@ struct sheet {
 	struct sheet *parent;
 	struct sheet *next;
 
-	struct sheet *children;		/* "child" sub-sheets */
-	struct sheet **next_child;
-	struct sheet *next_sib;		/* siblings sub-sheets of this sheet */
+	bool has_children;		/* aka sub-sheets */
+
+	/* caching */
+	void *oid;
 };
 
 struct sch_ctx {
@@ -115,6 +116,9 @@ struct sch_ctx {
 	struct sheet *sheets;
 	struct sheet **next_sheet;
 
+	/* for caching */
+	const struct sch_ctx *prev;
+
 	const struct lib *lib;
 };
 
@@ -122,7 +126,8 @@ struct sch_ctx {
 void decode_alignment(struct text *txt, char hor, char vert);
 
 void sch_render(const struct sheet *sheet);
-bool sch_parse(struct sch_ctx *ctx, struct file *file, const struct lib *lib);
+bool sch_parse(struct sch_ctx *ctx, struct file *file, const struct lib *lib,
+    const struct sch_ctx *prev);
 void sch_init(struct sch_ctx *ctx, bool recurse);
 void sch_free(struct sch_ctx *ctx);
 

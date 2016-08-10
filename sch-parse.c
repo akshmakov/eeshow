@@ -288,9 +288,9 @@ static struct sheet *new_sheet(struct sch_ctx *ctx)
 	sheet->next_obj = &sheet->objs;
 	sheet->next = NULL;
 
-	sheet->children = NULL;
-	sheet->next_child = &sheet->children;
-	sheet->next_sib = NULL;
+	sheet->has_children = 0;
+
+	sheet->oid = NULL;
 
 	sheet->parent = ctx->curr_sheet;
 	ctx->curr_sheet = sheet;
@@ -312,27 +312,44 @@ static void end_sheet(struct sch_ctx *ctx)
 static bool parse_line(const struct file *file, void *user, const char *line);
 
 
+#include <stdint.h>
 static const struct sheet *recurse_sheet(struct sch_ctx *ctx,
     const struct file *related)
 {
 	const char *name = ctx->obj.u.sheet.file;
 	struct sheet *sheet;
 	struct file file;
+	void *oid;
 	bool res;
 
 	if (!file_open(&file, name, related))
 		return NULL;
+
 	sheet = new_sheet(ctx);
+	oid = file_oid(&file);
+	sheet->oid = oid;
+
+	if (ctx->prev && oid) {
+		const struct sheet *other;
+
+		for (other = ctx->prev->sheets; other; other = other->next)
+			if (!other->has_children &&
+			    file_oid_eq(other->oid, oid)) {
+				end_sheet(ctx);
+				sheet->title = other->title;
+				sheet->objs = other->objs;
+				return sheet;
+			}
+	}
+
 	ctx->state = sch_descr;
 	res = file_read(&file, parse_line, ctx);
 	file_close(&file);
 	if (!res)
-		return NULL;	/* caller MUST clean up */
+		return NULL;	/* leave it to caller to clean up */
 	end_sheet(ctx);
 
-	*ctx->curr_sheet->next_child = sheet;
-	ctx->curr_sheet->next_child = &sheet->next_sib;
-	sheet->next_sib = NULL;
+	ctx->curr_sheet->has_children = 1;
 
 	return sheet;
 }
@@ -560,9 +577,11 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 }
 
 
-bool sch_parse(struct sch_ctx *ctx, struct file *file, const struct lib *lib)
+bool sch_parse(struct sch_ctx *ctx, struct file *file, const struct lib *lib,
+    const struct sch_ctx *prev)
 {
 	ctx->lib = lib;
+	ctx->prev = prev;
 	return file_read(file, parse_line, ctx);
 }
 
@@ -611,6 +630,7 @@ static void free_sheet(struct sheet *sch)
 	if (!sch)
 		return;
 	free((char *) sch->title);
+	free(sch->oid);
 	for (obj = sch->objs; obj; obj = next) {
 		next = obj->next;
 		switch (obj->type) {

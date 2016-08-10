@@ -215,7 +215,7 @@ found:
 
 	optind = 0; /* reset getopt */
 
-	if (!sch_parse(&sch_ctx, &sch_file, &lib))
+	if (!sch_parse(&sch_ctx, &sch_file, &lib, NULL))
 		return 1;
 	file_close(&sch_file);
 

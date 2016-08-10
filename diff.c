@@ -161,7 +161,7 @@ static void *diff_init(int argc, char *const *argv)
 	for (arg = optind; arg != argc - 1; arg++)
 		if (!lib_parse(&new_lib, argv[arg], &sch_file))
 			goto fail_parse;
-	if (!sch_parse(&new_sch, &sch_file, &new_lib))
+	if (!sch_parse(&new_sch, &sch_file, &new_lib, NULL))
 		goto fail_parse;
 	file_close(&sch_file);
 

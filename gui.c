@@ -66,6 +66,7 @@ struct gui_hist {
 
 	/* caching support */
 	void **oids;			/* file object IDs */
+	struct sch_ctx sch_ctx;
 	struct lib lib;			/* combined library */
 
 	struct gui_hist *next;
@@ -964,7 +965,6 @@ static const struct sheet *parse_files(struct gui_hist *hist,
     int n_args, char **args, bool recurse, const struct gui_hist *prev)
 {
 	char *rev = NULL;
-	struct sch_ctx sch_ctx;
 	struct file sch_file;
 	struct file lib_files[n_args - 1];
 	int libs_open, i;
@@ -974,13 +974,13 @@ static const struct sheet *parse_files(struct gui_hist *hist,
 	if (hist->vcs_hist)
 		rev = vcs_git_get_rev(hist->vcs_hist);
 
-	sch_init(&sch_ctx, recurse);
+	sch_init(&hist->sch_ctx, recurse);
 	ok = file_open_revision(&sch_file, rev, args[n_args - 1], NULL);
 
 	if (rev)
 		free(rev);
 	if (!ok) {
-		sch_free(&sch_ctx);
+		sch_free(&hist->sch_ctx);
 		return NULL;
 	}
 
@@ -1010,7 +1010,8 @@ static const struct sheet *parse_files(struct gui_hist *hist,
 			if (!lib_parse_file(&hist->lib, lib_files +i))
 				goto fail;
 
-	if (!sch_parse(&sch_ctx, &sch_file, &hist->lib))
+	if (!sch_parse(&hist->sch_ctx, &sch_file, &hist->lib,
+	    libs_cached ? &prev->sch_ctx : NULL))
 		goto fail;
 
 	for (i = 0; i != libs_open; i++)
@@ -1024,12 +1025,12 @@ static const struct sheet *parse_files(struct gui_hist *hist,
 	 * with - when sharing unchanged item - possibly many duplicate
 	 * pointers.
 	 */
-	return sch_ctx.sheets;
+	return hist->sch_ctx.sheets;
 
 fail:
 	while (libs_open--)
 		file_close(lib_files + libs_open);
-	sch_free(&sch_ctx);
+	sch_free(&hist->sch_ctx);
 	lib_free(&hist->lib);
 	file_close(&sch_file);
 	return NULL;
