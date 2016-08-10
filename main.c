@@ -47,17 +47,18 @@ static struct gfx_ops const *ops_list[] = {
 void usage(const char *name)
 {
 	fprintf(stderr,
-"usage: %s [gtk_flags] [-r] [[rev:]file.lib ...] [rev:]file.sch\n"
+"usage: %s [gtk_flags] [-r] [-N n] [[rev:]file.lib ...] [rev:]file.sch\n"
 "       %s [-r] [-v ...] [[rev:]file.lib ...] [rev:]file.sch\n"
 "       %*s[-- driver_spec]\n"
 "       %s [-v ...] -C [rev:]file\n"
 "       %s [-v ...] -H path_into_repo\n"
 "\n"
-"  rev  git revision\n"
-"  -r   recurse into sub-sheets\n"
-"  -v   increase verbosity of diagnostic output\n"
-"  -C   'cat' the file to standard output\n"
-"  -H   show history of repository on standard output\n"
+"  rev   git revision\n"
+"  -r    recurse into sub-sheets\n"
+"  -v    increase verbosity of diagnostic output\n"
+"  -C    'cat' the file to standard output\n"
+"  -H    show history of repository on standard output\n"
+"  -N n  limit history to n revisions\n"
 "\n"
 "No driver spec: enter GUI\n"
 "\n"
@@ -96,6 +97,7 @@ int main(int argc, char **argv)
 	const char *cat = NULL;
 	const char *history = NULL;
 	const char *fmt = NULL;
+	int limit = 0;
 	char c;
 	int arg, dashdash;
 	bool have_dashdash = 0;
@@ -112,7 +114,7 @@ int main(int argc, char **argv)
 	if (!have_dashdash)
 		gtk_init(&argc, &argv);
 
-	while ((c = getopt(dashdash, argv, "rvC:F:H:")) != EOF)
+	while ((c = getopt(dashdash, argv, "rvC:F:H:N:")) != EOF)
 		switch (c) {
 		case 'r':
 			recurse = 1;
@@ -128,6 +130,9 @@ int main(int argc, char **argv)
 			break;
 		case 'H':
 			history = optarg;
+			break;
+		case 'N':
+			limit = atoi(optarg);
 			break;
 		default:
 			usage(*argv);
@@ -173,7 +178,7 @@ int main(int argc, char **argv)
 		memcpy(args, argv + optind, sizeof(const char *) * n);
 	
 		optind = 0; /* reset getopt */
-		return gui(n, args, recurse);
+		return gui(n, args, recurse, limit);
 	}
 
 	sch_init(&sch_ctx, recurse);

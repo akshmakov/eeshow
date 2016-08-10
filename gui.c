@@ -996,7 +996,7 @@ struct add_hist_ctx {
 	int n_args;
 	char **args;
 	bool recurse;
-unsigned limit;
+	unsigned limit;
 };
 
 
@@ -1008,9 +1008,10 @@ static void add_hist(void *user, struct hist *h)
 	const struct sheet *sch;
 	unsigned age = 0;
 
-if (!ahc->limit)
-	return;
-ahc->limit--;
+	if (!ahc->limit)
+		return;
+	ahc->limit--;
+
 	for (anchor = &ctx->hist; *anchor; anchor = &(*anchor)->next)
 		age++;
 	*anchor = alloc_type(struct gui_hist);
@@ -1024,7 +1025,7 @@ ahc->limit--;
 
 
 static void get_revisions(struct gui_ctx *ctx,
-    int n_args, char **args, bool recurse)
+    int n_args, char **args, bool recurse, int limit)
 {
 	const char *sch_name = args[n_args - 1];
 	struct add_hist_ctx add_hist_ctx = {
@@ -1032,7 +1033,7 @@ static void get_revisions(struct gui_ctx *ctx,
 		.n_args		= n_args,
 		.args		= args,
 		.recurse	= recurse,
-.limit = 30,
+		.limit		= limit < 0 ? -limit : limit,
 	};
 
 	if (!vcs_git_try(sch_name)) {
@@ -1045,7 +1046,7 @@ static void get_revisions(struct gui_ctx *ctx,
 }
 
 
-int gui(unsigned n_args, char **args, bool recurse)
+int gui(unsigned n_args, char **args, bool recurse, int limit)
 {
 	GtkWidget *window;
 	struct gui_ctx ctx = {
@@ -1060,7 +1061,7 @@ int gui(unsigned n_args, char **args, bool recurse)
 		.old_hist	= NULL,
 	};
 
-	get_revisions(&ctx, n_args, args, recurse);
+	get_revisions(&ctx, n_args, args, recurse, limit);
 	for (ctx.new_hist = ctx.hist; ctx.new_hist && !ctx.new_hist->sheets;
 	    ctx.new_hist = ctx.new_hist->next);
 	if (!ctx.new_hist) {
@@ -1107,7 +1108,9 @@ int gui(unsigned n_args, char **args, bool recurse)
 	go_to_sheet(&ctx, ctx.new_hist->sheets);
 	gtk_widget_show_all(window);
 
-	gtk_main();
+	/* for performance testing, use -N-depth */
+	if (limit >= 0)
+		gtk_main();
 
 	return 0;
 }
