@@ -45,7 +45,7 @@ struct gui_ctx;
 
 struct gui_sheet {
 	const struct sheet *sch;
-	struct gui_ctx *ctx;		/* back link */
+	struct gui_ctx *ctx;	/* back link */
 	struct cro_ctx *gfx_ctx;
 
 	int w, h;		/* in eeschema coordinates */
@@ -53,22 +53,23 @@ struct gui_sheet {
 
 	bool rendered;		/* 0 if still have to render it */
 
+	struct overlay *over;	/* current overlay */
 	struct aoi *aois;	/* areas of interest; in schematics coord  */
 
 	struct gui_sheet *next;
 };
 
 struct gui_hist {
-	struct gui_ctx *ctx;		/* back link */
-	struct hist *vcs_hist;		/* NULL if not from repo */
-	struct overlay *over;		/* current overlay */
-	struct gui_sheet *sheets;	/* NULL if failed */
-	unsigned age;			/* 0-based; uncommitted or HEAD = 0 */
+	struct gui_ctx *ctx;	/* back link */
+	struct hist *vcs_hist;	/* NULL if not from repo */
+	struct overlay *over;	/* current overlay */
+	struct gui_sheet *sheets; /* NULL if failed */
+	unsigned age;		/* 0-based; uncommitted or HEAD = 0 */
 
 	/* caching support */
-	void **oids;			/* file object IDs */
+	void **oids;		/* file object IDs */
 	struct sch_ctx sch_ctx;
-	struct lib lib;			/* combined library */
+	struct lib lib;		/* combined library */
 
 	struct gui_hist *next;
 };
@@ -562,6 +563,33 @@ static void close_subsheet(void *user)
 }
 
 
+static bool hover_sheet(void *user, bool on)
+{
+	struct gui_sheet *sheet = user;
+	struct gui_ctx *ctx = sheet->ctx;
+	const char *title = sheet->sch->title;
+
+	if (!title)
+		title = "(unnamed)";
+	if (on) {
+		const struct gui_sheet *s;
+		int n = 0, this = -1;
+
+		for (s = ctx->new_hist->sheets; s; s = s->next) {
+			n++;
+			if (s == sheet)
+				this = n;
+		}
+		overlay_text(sheet->over, "<b>%s</b>\n<big>%d / %d</big>",
+		    title, this, n);
+	} else {
+		overlay_text(sheet->over, "<b>%s</b>", title);
+	}
+	redraw(ctx);
+	return 1;
+}
+
+
 static bool show_history_details(void *user, bool on)
 {
 	struct gui_hist *h = user;
@@ -631,18 +659,13 @@ static struct gui_sheet *find_parent_sheet(struct gui_sheet *sheets,
 static void sheet_selector_recurse(struct gui_ctx *ctx, struct gui_sheet *sheet)
 {
 	struct gui_sheet *parent;
-	const char *title;
-	struct overlay *over;
 
 	parent = find_parent_sheet(ctx->new_hist->sheets, sheet);
 	if (parent)
 		sheet_selector_recurse(ctx, parent);
-	title = sheet->sch->title;
-	if (!title)
-		title = "(unnamed)";
-	over = overlay_add(&ctx->sheet_overlays, &ctx->aois,
-	    NULL, close_subsheet, sheet);
-	overlay_text(over, "<b>%s</b>", title);
+	sheet->over = overlay_add(&ctx->sheet_overlays, &ctx->aois,
+	    hover_sheet, close_subsheet, sheet);
+	hover_sheet(sheet, 0);
 }
 
 
