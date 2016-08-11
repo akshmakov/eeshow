@@ -99,6 +99,8 @@ struct gui_ctx {
 
 	struct overlay *sheet_overlays;
 	struct overlay *hist_overlays;
+	struct overlay *pop_overlays; /* pop-up dialogs */
+	int pop_x, pop_y;
 	struct aoi *aois;	/* areas of interest; in canvas coord  */
 
 	struct gui_sheet delta_a;
@@ -200,6 +202,7 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	    SHEET_OVERLAYS_X, SHEET_OVERLAYS_Y);
 	overlay_draw_all(ctx->hist_overlays, cr,
 	    VCS_OVERLAYS_X, VCS_OVERLAYS_Y);
+	overlay_draw_all(ctx->pop_overlays, cr, ctx->pop_x, ctx->pop_y);
 
 	return FALSE;
 }
@@ -275,6 +278,17 @@ static void canvas_coord(const struct gui_ctx *ctx,
 	sy = ey - alloc.height / 2;
 	*x = (sx << ctx->zoom) + ctx->x;
 	*y = (sy << ctx->zoom) + ctx->y;
+}
+
+
+static void eeschema_coord(const struct gui_ctx *ctx,
+    int x, int y, int *rx, int *ry)
+{
+	GtkAllocation alloc;
+
+	gtk_widget_get_allocation(ctx->da, &alloc);
+	*rx = ((x - ctx->x) >> ctx->zoom) + alloc.width / 2;
+	*ry = ((y - ctx->y) >> ctx->zoom) + alloc.height / 2;
 }
 
 
@@ -911,21 +925,52 @@ static void select_subsheet(void *user)
 struct glabel_aoi_ctx {
 	const struct gui_sheet *sheet;
 	const struct sch_obj *obj;
+	struct dwg_bbox bbox;
 	struct overlay *over;
 };
+
+
+/* small offset to hide rounding errors */
+#define	CHEAT	1
 
 
 static bool hover_glabel(void *user, bool on)
 {
 	struct glabel_aoi_ctx *aoi_ctx = user;
 	struct gui_ctx *ctx = aoi_ctx->sheet->ctx;
+	const struct gui_sheet *curr_sheet = ctx->curr_sheet;
+	const struct dwg_bbox *bbox = &aoi_ctx->bbox;
 
 	if (on) {
-		aoi_ctx->over = overlay_add(&ctx->sheet_overlays, NULL,// aois
+		GtkAllocation alloc;
+		struct overlay_style style = overlay_style_default;
+		int sx, sy, ex, ey, mx, my;
+
+		aoi_ctx->over = overlay_add(&ctx->pop_overlays, NULL,// aois
 		    NULL, NULL, NULL);
 		overlay_text_raw(aoi_ctx->over, aoi_ctx->obj->u.text.s);
+
+		style.radius = 0;
+		style.bg = RGBA(1.0, 0.8, 0.4, 0.8);
+		style.frame = RGBA(0.6, 0.0, 0.2, 0.8);
+
+		overlay_style(aoi_ctx->over, &style);
+
+		eeschema_coord(ctx,
+		    bbox->x - curr_sheet->xmin, bbox->y - curr_sheet->ymin,
+		    &sx, &sy);
+		eeschema_coord(ctx, bbox->x + bbox->w - curr_sheet->xmin,
+		    bbox->y + bbox->h - curr_sheet->ymin, &ex, &ey);
+
+		gtk_widget_get_allocation(ctx->da, &alloc);
+		mx = (sx + ex) / 2;
+		my = (sy + ey) / 2;
+		ctx->pop_x = mx < alloc.width / 2 ?
+		    sx - CHEAT : -(alloc.width - ex) + CHEAT;
+		ctx->pop_y = my < alloc.height / 2 ?
+		    sy - CHEAT : -(alloc.height - ey) + CHEAT;
 	} else {
-		overlay_remove(&ctx->sheet_overlays, aoi_ctx->over);
+		overlay_remove(&ctx->pop_overlays, aoi_ctx->over);
 	}
 	redraw(ctx);
 	return 1;
@@ -960,6 +1005,7 @@ static void add_glabel_aoi(struct gui_sheet *sheet, const struct sch_obj *obj)
 {
 	const struct dwg_bbox *bbox = &obj->u.text.bbox;
 	struct glabel_aoi_ctx *aoi_ctx = alloc_type(struct glabel_aoi_ctx);
+
 	struct aoi cfg = {
 		.x	= bbox->x,
 		.y	= bbox->y,
@@ -971,6 +1017,7 @@ static void add_glabel_aoi(struct gui_sheet *sheet, const struct sch_obj *obj)
 
 	aoi_ctx->sheet = sheet;
 	aoi_ctx->obj = obj;
+	aoi_ctx->bbox = *bbox;
 
 	aoi_add(&sheet->aois, &cfg);
 }
@@ -1198,6 +1245,7 @@ int gui(unsigned n_args, char **args, bool recurse, int limit)
 		.showing_history= 0,
 		.sheet_overlays	= NULL,
 		.hist_overlays	= NULL,
+		.pop_overlays	= NULL,
 		.aois		= NULL,
 		.old_hist	= NULL,
 	};
