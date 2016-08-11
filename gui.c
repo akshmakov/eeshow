@@ -917,6 +917,8 @@ static void select_subsheet(void *user)
 	const struct sch_obj *obj = aoi_ctx->obj;
 	struct gui_sheet *sheet;
 
+	if (!obj->u.sheet.sheet)
+		return;
 	for (sheet = ctx->new_hist->sheets; sheet; sheet = sheet->next)
 		if (sheet->sch == obj->u.sheet.sheet) {
 			go_to_sheet(ctx, sheet);
