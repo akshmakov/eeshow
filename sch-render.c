@@ -122,7 +122,7 @@ static void render_sheet(const struct sch_obj *obj,
 	do_hsheet_text(obj, sheet);
 
 	for (field = sheet->fields; field; field = field->next)
-		dwg_hlabel(obj->x, obj->y, field->s,
+		dwg_hlabel(field->x, field->y, field->s,
 		    field->side, field->dim,
 		    field->shape, NULL);
 	// free(field->s)
