@@ -304,7 +304,6 @@ static struct sheet *new_sheet(struct sch_ctx *ctx)
 static bool parse_line(const struct file *file, void *user, const char *line);
 
 
-#include <stdint.h>
 static const struct sheet *recurse_sheet(struct sch_ctx *ctx,
     const struct file *related)
 {
