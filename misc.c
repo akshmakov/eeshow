@@ -35,12 +35,16 @@ unsigned matrix_to_angle(const int m[6])
 		return 180;
 	if (eq(m, 0, 1, 1, 0))
 		return 270;
+
 	if (eq(m, -1, 0, 0, -1))
 		return 0;
-	if (eq(m, 1, 0, 0, 1))	/* x-flipped */
-		return 180;
 	if (eq(m, 0, 1, -1, 0))	/* x-flipped, 90 deg */
 		return 90;
+	if (eq(m, 1, 0, 0, 1))	/* x-flipped */
+		return 180;
+	if (eq(m, 0, -1, 1, 0))	/* x-flipped, 270 deg */
+		return 270;
+
 	fprintf(stderr, "unrecognized matrix %d %d %d %d\n",
 	    m[1], m[2], m[4], m[5]);
 	exit(1);
@@ -60,10 +64,13 @@ bool matrix_is_mirrored(const int m[6])
 
 	if (eq(m, -1, 0, 0, -1))
 		return 1;
-	if (eq(m, 1, 0, 0, 1))
-		return 1;
 	if (eq(m, 0, 1, -1, 0))
 		return 1;
+	if (eq(m, 1, 0, 0, 1))
+		return 1;
+	if (eq(m, 0, -1, 1, 0))
+		return 1;
+
 	assert(0);
 }
 
