@@ -304,7 +304,7 @@ static struct sheet *new_sheet(struct sch_ctx *ctx)
 static bool parse_line(const struct file *file, void *user, const char *line);
 
 
-static const struct sheet *recurse_sheet(struct sch_ctx *ctx,
+static struct sheet *recurse_sheet(struct sch_ctx *ctx,
     const struct file *related)
 {
 	const char *name = ctx->obj.u.sheet.file;
@@ -509,11 +509,16 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 
 			sheet_obj = submit_obj(ctx, sch_obj_sheet);
 			if (ctx->recurse) {
-				const struct sheet *sheet;
+				struct sheet *sheet;
 
 				sheet = recurse_sheet(ctx, file);
 				if (!sheet)
 					return 0;
+				if (sheet_obj->u.sheet.name) {
+					free((char *) sheet->title);
+					sheet->title =
+					    stralloc(sheet_obj->u.sheet.name);
+				}
 				sheet_obj->u.sheet.sheet = sheet;
 			} else {
 				sheet_obj->u.sheet.sheet = NULL;
