@@ -350,6 +350,7 @@ void dwg_hlabel(int x, int y, const char *s, int dir, int dim,
 	case dwg_out:
 		n = make_box(box_right, dim, vx, vy);
 		break;
+	case dwg_tri:
 	case dwg_bidir:
 		n = make_box(box_both, dim, vx, vy);
 		break;
