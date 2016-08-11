@@ -1,5 +1,5 @@
 /*
- * main.h - Convert Eeschema schematics to FIG
+ * diag.h - Diagnostics
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -10,9 +10,16 @@
  * (at your option) any later version.
  */
 
-#ifndef MAIN_H
-#define	MAIN_H
+#ifndef DIAG_H
+#define	DIAG_H
 
-void usage(const char *name);
+/*
+ * 0: no progress indications
+ * 1: reasonable progress indications
+ * 2: verbose output
+ * > 2: go wild !
+ */
 
-#endif /* !MAIN_H */
+extern int verbose;
+
+#endif /* !DIAG_H */

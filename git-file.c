@@ -21,7 +21,7 @@
 #include <git2.h>
 
 #include "util.h"
-#include "main.h"
+#include "diag.h"
 #include "file.h"
 #include "git-util.h"
 #include "git-file.h"

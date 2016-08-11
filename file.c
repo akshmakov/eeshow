@@ -17,7 +17,7 @@
 #include <string.h>
 
 #include "util.h"
-#include "main.h"
+#include "diag.h"
 #include "git-file.h"
 #include "file.h"
 

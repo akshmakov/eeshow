@@ -20,6 +20,7 @@
 #include <gtk/gtk.h>
 
 #include "util.h"
+#include "diag.h"
 #include "fig.h"
 #include "cro.h"
 #include "diff.h"
@@ -31,9 +32,6 @@
 #include "git-hist.h"
 #include "gui.h"
 #include "main.h"
-
-
-int verbose = 0;
 
 
 static struct gfx_ops const *ops_list[] = {

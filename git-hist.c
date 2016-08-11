@@ -17,7 +17,7 @@
 #include <alloca.h>
 
 #include "util.h"
-#include "main.h"
+#include "diag.h"
 #include "fmt-pango.h"	/* for vcs_long_for_pango */
 #include "git-util.h"
 #include "git-file.h"
