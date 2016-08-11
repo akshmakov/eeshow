@@ -88,8 +88,7 @@ static void recurse(struct hist *h,
 
 	n = git_commit_parentcount(h->commit);
 	if (verbose > 2)
-		fprintf(stderr, "commit %p: %u + %u\n",
-		    h->commit, n_branches, n);
+		progress(3, "commit %p: %u + %u\n", h->commit, n_branches, n);
 
 	b = alloca(sizeof(struct hist) * (n_branches - 1 + n));
 	n_branches--;
@@ -104,8 +103,7 @@ static void recurse(struct hist *h,
 
 		if (git_commit_parent(&commit, h->commit, i)) {
 			e = giterr_last();
-			fprintf(stderr, "git_commit_parent: %s\n", e->message);
-			exit(1);
+			fatal("git_commit_parent: %s\n", e->message);
 		}
 		for (j = 0; j != n_branches; j++) {
 			found = find_commit(b[j], commit);
@@ -156,22 +154,17 @@ struct hist *vcs_git_hist(const char *path)
 	if (git_repository_open_ext(&repo, path,
 	    GIT_REPOSITORY_OPEN_CROSS_FS, NULL)) {
 		e = giterr_last();
-		fprintf(stderr, "%s: %s\n", path, e->message);
-		exit(1);
+		fatal("%s: %s\n", path, e->message);
 	}
 
 	if (git_reference_name_to_id(&oid, repo, "HEAD")) {
 		e = giterr_last();
-		fprintf(stderr, "%s: %s\n",
-		    git_repository_path(repo), e->message);
-		exit(1);
+		fatal("%s: %s\n", git_repository_path(repo), e->message);
 	}
 
 	if (git_commit_lookup(&head->commit, repo, &oid)) {
 		e = giterr_last();
-		fprintf(stderr, "%s: %s\n",
-		    git_repository_path(repo), e->message);
-		exit(1);
+		fatal("%s: %s\n", git_repository_path(repo), e->message);
 	}
 
 	recurse(head, 1, &head);
@@ -210,8 +203,7 @@ const char *vcs_git_summary(struct hist *h)
 		return summary;
 
 	e = giterr_last();
-	fprintf(stderr, "git_commit_summary: %s\n", e->message);
-	exit(1);
+	fatal("git_commit_summary: %s\n", e->message);
 }
 
 
@@ -243,8 +235,7 @@ char *vcs_git_long_for_pango(struct hist *h)
 
 fail:
 	e = giterr_last();
-	fprintf(stderr, "vcs_git_long_for_pango: %s\n", e->message);
-	exit(1);
+	fatal("vcs_git_long_for_pango: %s\n", e->message);
 }
 
 
@@ -269,9 +260,7 @@ void dump_hist(struct hist *h)
 	if (h->commit) {
 		if (git_object_short_id(&buf, (git_object *) h->commit)) {
 			e = giterr_last();
-			fprintf(stderr, "git_object_short_id: %s\n",
-			    e->message);
-			exit(1);
+			fatal("git_object_short_id: %s\n", e->message);
 		}
 		printf("%*s%s  %s\n",
 		    2 * h->branch, "", buf.ptr, vcs_git_summary(h));

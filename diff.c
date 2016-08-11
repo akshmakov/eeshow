@@ -20,6 +20,7 @@
 #include <cairo/cairo.h>
 
 #include "util.h"
+#include "diag.h"
 #include "main.h"
 #include "cro.h"
 #include "file.h"
@@ -280,11 +281,8 @@ static void diff_end(void *ctx)
 	int w, h, stride;
 
 	old_img = cro_img_end(diff->cr_ctx, &w, &h, &stride);
-	if (diff->w != w || diff->h != h) {
-		fprintf(stderr, "%d x %d vs. %d x %d image\n",
-		    w, h, diff->w, diff->h);
-		exit(1);
-	}
+	if (diff->w != w || diff->h != h)
+		fatal("%d x %d vs. %d x %d image\n", w, h, diff->w, diff->h);
 
 	differences(diff, old_img, diff->new_img);
 	show_areas(diff, old_img);

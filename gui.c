@@ -29,6 +29,7 @@
 #include <gtk/gtk.h>
 
 #include "util.h"
+#include "diag.h"
 #include "style.h"
 #include "cro.h"
 #include "gfx.h"
@@ -1294,10 +1295,8 @@ int gui(unsigned n_args, char **args, bool recurse, int limit)
 	get_revisions(&ctx, n_args, args, recurse, limit);
 	for (ctx.new_hist = ctx.hist; ctx.new_hist && !ctx.new_hist->sheets;
 	    ctx.new_hist = ctx.new_hist->next);
-	if (!ctx.new_hist) {
-		fprintf(stderr, "no valid sheets\n");
-		return 1;
-	}
+	if (!ctx.new_hist)
+		fatal("no valid sheets\n");
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 

@@ -22,6 +22,38 @@
 unsigned verbose = 0;
 
 
+void fatal(const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
+	exit(1); /* @@@ for now ... */
+}
+
+
+void error(const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
+}
+
+
+void warning(const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	fprintf(stderr, "warning: ");
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
+}
+
+
 void progress(unsigned level, const char *fmt, ...)
 {
 	va_list ap;

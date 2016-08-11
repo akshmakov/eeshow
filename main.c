@@ -204,9 +204,7 @@ int main(int argc, char **argv)
 		for (ops = ops_list; ops != ARRAY_END(ops_list); ops++)
 			if (!strcmp((*ops)->name, *gfx_argv))
 				goto found;
-		fprintf(stderr, "graphics backend \"%s\" not found\n",
-		    *gfx_argv);
-		exit(1);
+		fatal("graphics backend \"%s\" not found\n", *gfx_argv);
 found:
 		;
 	}
@@ -221,11 +219,8 @@ found:
 	if (recurse) {
 		const struct sheet *sheet;
 
-		if (!gfx_multi_sheet()) {
-			fprintf(stderr,
-			    "graphics backend only supports single sheet\n");
-			exit(1);
-		}
+		if (!gfx_multi_sheet())
+			fatal("graphics backend only supports single sheet\n");
 		for (sheet = sch_ctx.sheets; sheet; sheet = sheet->next) {
 			sch_render(sheet);
 			if (sheet->next)

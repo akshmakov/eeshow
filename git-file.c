@@ -99,22 +99,17 @@ static git_tree *pick_revision(git_repository *repo, const char *revision)
 	if (git_revparse_single(&obj, repo, revision)) {
 		const git_error *e = giterr_last();
 
-		fprintf(stderr, "%s: %s\n",
-		    git_repository_path(repo), e->message);
-		exit(1);
+		fatal("%s: %s\n", git_repository_path(repo), e->message);
 	}
 
-	if (git_object_type(obj) != GIT_OBJ_COMMIT) {
-		fprintf(stderr, "%s: not a commit\n", revision);
-		exit(1);
-	}
+	if (git_object_type(obj) != GIT_OBJ_COMMIT)
+		fatal("%s: not a commit\n", revision);
 	commit = (git_commit *) obj;
 
 	if (git_commit_tree(&tree, commit)) {
 		const git_error *e = giterr_last();
 
-		fprintf(stderr, "%s: %s\n", revision, e->message);
-		exit(1);
+		fatal("%s: %s\n", revision, e->message);
 	}
 
 	return tree;
@@ -134,10 +129,8 @@ static char *canonical_path_into_repo(const char *repo_dir, const char *path)
 		perror(repo_dir);
 		exit(1);
 	}
-	if (!S_ISDIR(repo_st.st_mode)) {
-		fprintf(stderr, "%s: not a directory\n", repo_dir);
-		exit(1);
-	}
+	if (!S_ISDIR(repo_st.st_mode))
+		fatal("%s: not a directory\n", repo_dir);
 
 	/* convert relative paths to absolute */
 
@@ -167,10 +160,8 @@ static char *canonical_path_into_repo(const char *repo_dir, const char *path)
 		progress(3, "probing \"%s\" tail \"%s\"\n", tmp, tail);
 		if (stat(tmp, &path_st) == 0)
 			break;
-		if (!tmp[1]) {
-			fprintf(stderr, "%s: cannot resolve\n", path);
-			exit(1);
-		}
+		if (!tmp[1])
+			fatal("%s: cannot resolve\n", path);
 		slash = strrchr(tmp, '/');
 		if (tail != end)
 			tail[-1] = '/';
@@ -198,15 +189,13 @@ static char *canonical_path_into_repo(const char *repo_dir, const char *path)
 			if (!*from)
 				break;
 		}
-		if (to == tail) {
-			/*
-			 * We have something like this:
-			 * /home/repo/dead/../../foo
-			 */
-			fprintf(stderr, "%s: can't climb out of dead path\n",
-			    path);
-			exit(1);
-		}
+
+		/*
+		 * We have something like this:
+		 * /home/repo/dead/../../foo
+		 */
+		if (to == tail)
+			fatal("%s: can't climb out of dead path\n", path);
 
 		/*
 		 * We have something like
@@ -255,12 +244,9 @@ static char *canonical_path_into_repo(const char *repo_dir, const char *path)
 		slash = strrchr(tmp, '/');
 
 		/* "this cannot happen" */
-		if (tail == tmp || !slash) {
-			fprintf(stderr,
-			    "divergent paths:\nrepo \"%s\"\nobject \"%s\"\n",
+		if (tail == tmp || !slash)
+			fatal("divergent paths:\nrepo \"%s\"\nobject \"%s\"\n",
 			    repo_dir, tail);
-			exit(1);
-		}
 
 		if (tail != end)
 			tail[-1] = '/';
@@ -301,7 +287,7 @@ static git_tree_entry *find_file(git_repository *repo, git_tree *tree,
 	if (git_tree_entry_bypath(&entry, tree, canon_path)) {
 		const git_error *e = giterr_last();
 
-		fprintf(stderr, "%s: %s\n", path, e->message);
+		error("%s: %s\n", path, e->message);
 		free(canon_path);
 		return NULL;
 	}
@@ -318,15 +304,12 @@ static const void *get_data(struct vcs_git *vcs_git, git_tree_entry *entry,
 	git_object *obj;
 	git_blob *blob;
 
-	if (git_tree_entry_type(entry) != GIT_OBJ_BLOB) {
-		fprintf(stderr, "entry is not a blob\n");
-		exit(1);
-	}
+	if (git_tree_entry_type(entry) != GIT_OBJ_BLOB)
+		fatal("entry is not a blob\n");
 	if (git_tree_entry_to_object(&obj, repo, entry)) {
 		const git_error *e = giterr_last();
 
-		fprintf(stderr, "%s\n", e->message);
-		exit(1);
+		fatal("%s\n", e->message);
 	}
 	vcs_git->obj = obj;
 
@@ -336,8 +319,7 @@ static const void *get_data(struct vcs_git *vcs_git, git_tree_entry *entry,
 		if (git_object_short_id(&buf, obj))  {
 			const git_error *e = giterr_last();
 
-			fprintf(stderr, "%s\n", e->message);
-			exit(1);
+			fatal("%s\n", e->message);
 		}
 		progress(3, "object %s\n", buf.ptr);
 		git_buf_free(&buf);
@@ -394,8 +376,7 @@ static bool related_other_repo(struct vcs_git *vcs_git)
 
 	/* @@@ find revision <= date of revision in related */
 	if (!shown)
-		fprintf(stderr,
-		    "warning: related_other_repo is not yet implemented\n");
+		warning("related_other_repo is not yet implemented\n");
 	shown = 1;
 	return 0;
 }
@@ -463,7 +444,7 @@ struct vcs_git *vcs_git_open(const char *revision, const char *name,
 
 	vcs_git->repo = select_repo(name);
 	if (!vcs_git->repo) {
-		fprintf(stderr, "%s: not found\n", name);
+		error("%s: not found\n", name);
 		goto fail;
 	}
 	progress(2, "using repository %s\n",

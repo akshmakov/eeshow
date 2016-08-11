@@ -16,6 +16,7 @@
 #include <assert.h>
 
 #include "util.h"
+#include "diag.h"
 #include "misc.h"
 #include "style.h"
 #include "gfx.h"
@@ -379,8 +380,7 @@ const struct comp *lib_find(const struct lib *lib, const char *name)
 			if (!strcmp(alias->name, name))
 				return comp;
 	}
-	fprintf(stderr, "\"%s\" not found\n", name);
-	exit(1);
+	fatal("\"%s\" not found\n", name);
 }
 
 

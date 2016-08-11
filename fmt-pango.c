@@ -19,6 +19,7 @@
 #include <alloca.h>
 
 #include "util.h"
+#include "diag.h"
 #include "fmt-pango.h"
 
 
@@ -107,8 +108,7 @@ unsigned vsfmt_pango(char *buf, const char *fmt, va_list ap)
 			res++;
 			break;
 		default:
-			fprintf(stderr, "unrecognized format '%%%c'\n", *q);
-			exit(1);
+			fatal("unrecognized format '%%%c'\n", *q);
 		}
 		p = q;
 	}

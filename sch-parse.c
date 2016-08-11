@@ -20,6 +20,7 @@
 #include <assert.h>
 
 #include "util.h"
+#include "diag.h"
 #include "dwg.h"
 #include "file.h"
 #include "lib.h"
@@ -41,8 +42,7 @@ static enum dwg_shape do_decode_shape(const char *s)
 		return dwg_tri;
 	if (!strcmp(s, "BiDi"))
 		return dwg_bidir;
-	fprintf(stderr, "unknown shape: \"%s\"\n", s);
-	exit(1);
+	fatal("unknown shape: \"%s\"\n", s);
 }
 
 
@@ -176,8 +176,7 @@ static enum dwg_shape decode_form(char form)
 	case 'U':
 		return dwg_unspec;
 	default:
-		fprintf(stderr, "unknown form: \"%c\"\n", form);
-		exit(1);
+		fatal("unknown form: \"%c\"\n", form);
 	}
 }
 
@@ -194,8 +193,7 @@ static int decode_side(char side)
 	case 'T':
 		return 3;	/* down */
 	default:
-		fprintf(stderr, "unknown side: \"%c\"\n", side);
-		exit(1);
+		fatal("unknown side: \"%c\"\n", side);
 	}
 }
 
@@ -569,9 +567,7 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 	default:
 		abort();
 	}
-	fprintf(stderr, "%s:%u: cannot parse\n\"%s\"\n",
-	    file->name, file->lineno, line);
-	exit(1);
+	fatal("%s:%u: cannot parse\n\"%s\"\n", file->name, file->lineno, line);
 }
 
 

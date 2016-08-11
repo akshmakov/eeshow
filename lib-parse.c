@@ -16,6 +16,7 @@
 #include <assert.h>
 
 #include "util.h"
+#include "diag.h"
 #include "text.h"
 #include "file.h"
 #include "lib.h"
@@ -250,11 +251,9 @@ static bool lib_parse_line(const struct file *file,
 		 * zero2 seems to be the font style: 0 = normal, 1 = bold ?
 		 */
 		if (n == 12) {
-			if (zero1) {
-				fprintf(stderr, "%u: only understand 0 x x\n"
+			if (zero1)
+				fatal("%u: only understand 0 x x\n"
 				    "\"%s\"\n", file->lineno, line);
-				exit(1);
-			}
 			obj->u.text.style = decode_style(style);
 			obj->type = lib_obj_text;
 			return 1;
@@ -272,8 +271,7 @@ static bool lib_parse_line(const struct file *file,
 	default:
 		abort();
 	}
-	fprintf(stderr, "%u: cannot parse\n\"%s\"\n", file->lineno, line);
-	exit(1);
+	fatal("%u: cannot parse\n\"%s\"\n", file->lineno, line);
 }
 
 
