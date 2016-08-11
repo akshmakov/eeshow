@@ -25,15 +25,20 @@ enum dwg_shape {
 	dwg_bidir,	// Bidirectional
 };
 
+struct dwg_bbox {
+	int x, y;
+	int w, h;
+};
+
 
 void dwg_label(int x, int y, const char *s, int dir, int dim,
-    enum dwg_shape shape);
+    enum dwg_shape shape, struct dwg_bbox *bbox);
 void dwg_hlabel(int x, int y, const char *s, int dir, int dim,
-    enum dwg_shape shape);
+    enum dwg_shape shape, struct dwg_bbox *bbox);
 void dwg_glabel(int x, int y, const char *s, int dir, int dim,
-    enum dwg_shape shape);
+    enum dwg_shape shape, struct dwg_bbox *bbox);
 void dwg_text(int x, int y, const char *s, int dir, int dim,
-    enum dwg_shape shape);
+    enum dwg_shape shape, struct dwg_bbox *bbox);
 
 void dwg_junction(int x, int y);
 void dwg_noconn(int x, int y);

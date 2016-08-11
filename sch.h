@@ -54,11 +54,13 @@ struct sch_obj {
 		} wire;
 		struct sch_text {
 			void (*fn)(int x, int y, const char *s,
-			    int dir, int dim, enum dwg_shape shape);
+			    int dir, int dim, enum dwg_shape shape,
+			    struct dwg_bbox *bbox);
 			const char *s;
 			int dir;	/* orientation */
 			int dim;	/* dimension */
 			enum dwg_shape shape;
+			struct dwg_bbox bbox; /* set when rendering; glabel */
 		} text;
 		struct sch_comp {
 			const struct comp *comp; /* current component */

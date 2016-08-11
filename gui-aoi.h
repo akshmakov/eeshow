@@ -33,5 +33,6 @@ void aoi_update(struct aoi *aoi, const struct aoi *cfg);
 bool aoi_hover(const struct aoi *aois, int x, int y);
 bool aoi_click(const struct aoi *aois, int x, int y);
 void aoi_remove(struct aoi **aois, const struct aoi *aoi);
+void aoi_dehover(void);
 
 #endif /* !GUI_AOI_H */

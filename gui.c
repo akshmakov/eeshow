@@ -35,6 +35,7 @@
 #include "sch.h"
 #include "delta.h"
 #include "diff.h"
+#include "dwg.h"
 #include "gui-aoi.h"
 #include "gui-style.h"
 #include "gui-over.h"
@@ -678,6 +679,7 @@ static void do_sheet_overlays(struct gui_ctx *ctx)
 
 static void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
 {
+	aoi_dehover();
 	if (!sheet->rendered) {
 		render_sheet(sheet);
 		mark_aois(ctx, sheet);
@@ -906,6 +908,30 @@ static void select_subsheet(void *user)
 }
 
 
+struct glabel_aoi_ctx {
+	const struct gui_sheet *sheet;
+	const struct sch_obj *obj;
+	struct overlay *over;
+};
+
+
+static bool hover_glabel(void *user, bool on)
+{
+	struct glabel_aoi_ctx *aoi_ctx = user;
+	struct gui_ctx *ctx = aoi_ctx->sheet->ctx;
+
+	if (on) {
+		aoi_ctx->over = overlay_add(&ctx->sheet_overlays, NULL,// aois
+		    NULL, NULL, NULL);
+		overlay_text_raw(aoi_ctx->over, aoi_ctx->obj->u.text.s);
+	} else {
+		overlay_remove(&ctx->sheet_overlays, aoi_ctx->over);
+	}
+	redraw(ctx);
+	return 1;
+}
+
+
 /* ----- Initialization ---------------------------------------------------- */
 
 
@@ -930,6 +956,26 @@ static void add_sheet_aoi(struct gui_ctx *ctx, struct gui_sheet *parent,
 }
 
 
+static void add_glabel_aoi(struct gui_sheet *sheet, const struct sch_obj *obj)
+{
+	const struct dwg_bbox *bbox = &obj->u.text.bbox;
+	struct glabel_aoi_ctx *aoi_ctx = alloc_type(struct glabel_aoi_ctx);
+	struct aoi cfg = {
+		.x	= bbox->x,
+		.y	= bbox->y,
+		.w	= bbox->w,
+		.h	= bbox->h,
+		.hover	= hover_glabel,
+		.user	= aoi_ctx,
+	};
+
+	aoi_ctx->sheet = sheet;
+	aoi_ctx->obj = obj;
+
+	aoi_add(&sheet->aois, &cfg);
+}
+
+
 static void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet)
 {
 	const struct sch_obj *obj;
@@ -940,6 +986,8 @@ static void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet)
 		case sch_obj_sheet:
 			add_sheet_aoi(ctx, sheet, obj);
 			break;
+		case sch_obj_glabel:
+			add_glabel_aoi(sheet, obj);
 		default:
 			break;
 		}

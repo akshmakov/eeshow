@@ -103,3 +103,12 @@ void aoi_remove(struct aoi **aois, const struct aoi *aoi)
 	*aois = aoi->next;
 	free((void *) aoi);
 }
+
+
+void aoi_dehover(void)
+{
+	if (hovering)
+		hovering->hover(hovering->user, 0);
+	hovering = NULL;
+}
+

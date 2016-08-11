@@ -124,14 +124,14 @@ static void render_sheet(const struct sch_obj *obj,
 	for (field = sheet->fields; field; field = field->next)
 		dwg_hlabel(obj->x, obj->y, field->s,
 		    field->side, field->dim,
-		    field->shape);
+		    field->shape, NULL);
 	// free(field->s)
 }
 
 
 void sch_render(const struct sheet *sheet)
 {
-	const struct sch_obj *obj;
+	struct sch_obj *obj;
 
 	for (obj = sheet->objs; obj; obj = obj->next)
 		switch (obj->type) {
@@ -151,10 +151,10 @@ void sch_render(const struct sheet *sheet)
 		case sch_obj_glabel:
 		case sch_obj_text:
 			{
-				const struct sch_text *text = &obj->u.text;
+				struct sch_text *text = &obj->u.text;
 
 				text->fn(obj->x, obj->y, text->s, text->dir,
-				    text->dim, text->shape);
+				    text->dim, text->shape, &text->bbox);
 			}
 			break;
 		case sch_obj_comp:

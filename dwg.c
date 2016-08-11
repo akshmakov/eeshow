@@ -25,6 +25,32 @@
 #include "dwg.h"
 
 
+/* ----- Helper functions -------------------------------------------------- */
+
+
+static void bbox_from_poly(struct dwg_bbox *bbox, unsigned n,
+    const int *vx, const int *vy)
+{
+	unsigned i;
+	int xmax, ymax;
+
+	bbox->x = xmax = *vx;
+	bbox->y = ymax = *vy;
+	for (i = 1; i != n; i++) {
+		if (vx[i] < bbox->x)
+			bbox->x = vx[i];
+		if (vy[i] < bbox->y)
+			bbox->y = vy[i];
+		if (vx[i] > xmax)
+			xmax = vx[i];
+		if (vy[i] > ymax)
+			ymax = vy[i];
+	}
+	bbox->w = xmax - bbox->x + 1;
+	bbox->h = ymax - bbox->y + 1;
+}
+
+
 /* ----- Labels ------------------------------------------------------------ */
 
 
@@ -54,7 +80,7 @@ static enum box_type flip_box(enum box_type box)
 
 
 void dwg_label(int x, int y, const char *s, int dir, int dim,
-    enum dwg_shape shape)
+    enum dwg_shape shape, struct dwg_bbox *bbox)
 {
 	struct text txt = {
 		.s = s,
@@ -99,7 +125,7 @@ void dwg_label(int x, int y, const char *s, int dir, int dim,
 
 
 void dwg_glabel(int x, int y, const char *s, int dir, int dim,
-    enum dwg_shape shape)
+    enum dwg_shape shape, struct dwg_bbox *bbox)
 {
 	struct text txt = {
 		.s = s,
@@ -235,6 +261,9 @@ void dwg_glabel(int x, int y, const char *s, int dir, int dim,
 	vy[0] = vy[n - 1];
 	gfx_poly(n, vx, vy, COLOR_GLABEL, COLOR_NONE, LAYER_GLABEL);
 
+	if (bbox)
+		bbox_from_poly(bbox, n, vx, vy);
+
 	if (asprintf(&tag, "G:%s", s)) {}
 	gfx_tag(tag, n, vx, vy);
 }
@@ -296,7 +325,7 @@ static int make_box(enum box_type box, int h, int *vx, int *vy)
 
 
 void dwg_hlabel(int x, int y, const char *s, int dir, int dim,
-    enum dwg_shape shape)
+    enum dwg_shape shape, struct dwg_bbox *bbox)
 {
 	struct text txt = {
 		.s = s,
@@ -374,7 +403,7 @@ void dwg_hlabel(int x, int y, const char *s, int dir, int dim,
 
 
 void dwg_text(int x, int y, const char *s, int dir, int dim,
-    enum dwg_shape shape)
+    enum dwg_shape shape, struct dwg_bbox *bbox)
 {
 	struct text txt = {
 		.s = s,
