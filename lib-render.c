@@ -142,6 +142,9 @@ static void draw_pin_name(const struct comp *comp, const struct lib_pin *pin,
 {
 	int ox, oy, sx, sy;
 
+	if (!strcmp(pin->name, "~"))
+		return;
+
 	if (comp->name_offset) {
 		ox = dx * (pin->length + comp->name_offset);
 		oy = dy * (pin->length + comp->name_offset);
@@ -158,8 +161,7 @@ static void draw_pin_name(const struct comp *comp, const struct lib_pin *pin,
 	}
 
 	struct text txt = {
-		/* @@@ or should we strcmp "~" and if 0, ignore the name ? */
-		.s = *pin->name == '~' ? pin->name + 1 : pin->name,
+		.s = pin->name,
 		.x = mx(pin->x + ox, pin->y + oy, m) + sx,
 		.y = my(pin->x + ox, pin->y + oy, m) + sy,
 		.size = pin->name_size,
