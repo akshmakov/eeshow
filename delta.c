@@ -36,7 +36,7 @@
 /* ----- Components -------------------------------------------------------- */
 
 
-static bool comp_lib_objs(const struct lib_obj *a, const struct lib_obj *b)
+static bool comp_eq_objs(const struct lib_obj *a, const struct lib_obj *b)
 {
 	/*
 	 * @@@ over-simplify a little. We don't search to find objects that
@@ -97,6 +97,19 @@ static bool comp_lib_objs(const struct lib_obj *a, const struct lib_obj *b)
 }
 
 
+static bool comp_eq_aliases(const struct comp_alias *a,
+    const struct comp_alias *b)
+{
+	while (a && b) {
+		if (strcmp(a->name, b->name))
+			return 0;
+		a = a->next;
+		b = b->next;
+	}
+	return a == b;
+}
+
+
 static bool comp_eq(const struct comp *a, const struct comp *b)
 {
 	if (a == b)
@@ -113,7 +126,9 @@ static bool comp_eq(const struct comp *a, const struct comp *b)
 		return 0;
 	if (a->name_offset != b->name_offset)
 		return 0;
-	return comp_lib_objs(a->objs, b->objs);
+	if (!comp_eq_aliases(a->aliases, b->aliases))
+		return 0;
+	return comp_eq_objs(a->objs, b->objs);
 }
 
 

@@ -367,10 +367,15 @@ static void draw(const struct comp *comp, const struct lib_obj *obj,
 const struct comp *lib_find(const struct lib *lib, const char *name)
 {
 	const struct comp *comp;
+	const struct comp_alias *alias;
 
-	for (comp = lib->comps; comp; comp = comp->next)
+	for (comp = lib->comps; comp; comp = comp->next) {
 		if (!strcmp(comp->name, name))
 			return comp;
+		for (alias = comp->aliases; alias; alias = alias->next)
+			if (!strcmp(alias->name, name))
+				return comp;
+	}
 	fprintf(stderr, "\"%s\" not found\n", name);
 	exit(1);
 }

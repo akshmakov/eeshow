@@ -78,6 +78,7 @@ static bool parse_def(struct lib *lib, const char *line)
 		s = tmp;
 	}
 	lib->curr_comp->name = s;
+	lib->curr_comp->aliases = NULL;
 	lib->curr_comp->units = units;
 
 	lib->curr_comp->visible = 0;
@@ -133,6 +134,20 @@ static bool parse_arc(struct lib_obj *obj, const char *line)
 }
 
 
+/* ----- Aliases ----------------------------------------------------------- */
+
+
+static void add_alias(struct comp *comp, const char *alias)
+{
+	struct comp_alias *new;
+
+	new = alloc_type(struct comp_alias);
+	new->name = alias;
+	new->next = comp->aliases;
+	comp->aliases = new;
+}
+
+
 /* ----- Library parser ---------------------------------------------------- */
 
 
@@ -143,7 +158,7 @@ static bool lib_parse_line(const struct file *file,
 	int n = 0;
 	unsigned points;
 	struct lib_obj *obj;
-	char *style;
+	char *s, *style;
 	unsigned zero1, zero2;
 	char vis;
 
@@ -164,6 +179,10 @@ static bool lib_parse_line(const struct file *file,
 		    &n, &vis) == 2) {
 			if (vis == 'V')
 				lib->curr_comp->visible |= 1 << n;
+			return 1;
+		}
+		if (sscanf(line, "ALIAS %ms", &s) == 1) {
+			add_alias(lib->curr_comp, s);
 			return 1;
 		}
 		/* @@@ explicitly ignore FPLIST */
@@ -309,14 +328,27 @@ static void free_objs(struct lib_obj *objs)
 }
 
 
+static void free_comp(struct comp *comp)
+{
+	struct comp_alias *next;
+
+	free((char *) comp->name);
+	while (comp->aliases) {
+		next = comp->aliases->next;
+		free((char *) comp->aliases->name);
+		comp->aliases = next;
+	}
+	free_objs(comp->objs);
+	free(comp);
+}
+
+
 void lib_free(struct lib *lib)
 {
 	struct comp *comp, *next;
 
 	for (comp = lib->comps; comp; comp = next) {
 		next = comp->next;
-		free((char *) comp->name);
-		free_objs(comp->objs);
-		free(comp);
+		free_comp(comp);
 	}
 }

@@ -87,8 +87,14 @@ struct lib_obj {
 	struct lib_obj *next;
 };
 
+struct comp_alias {
+	const char *name;
+	struct comp_alias *next;
+};
+
 struct comp {
 	const char *name;
+	struct comp_alias *aliases;
 	unsigned units;
 
 	unsigned visible;	/* visible fields, bit mask */
