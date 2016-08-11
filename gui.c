@@ -1148,7 +1148,7 @@ static const struct sheet *parse_files(struct gui_hist *hist,
 	bool libs_cached = 0;
 	bool ok;
 
-	if (hist->vcs_hist)
+	if (hist->vcs_hist && hist->vcs_hist->commit)
 		rev = vcs_git_get_rev(hist->vcs_hist);
 
 	sch_init(&hist->sch_ctx, recurse);

@@ -229,6 +229,8 @@ char *vcs_git_long_for_pango(struct hist *h)
 	const git_signature *sig;
 	char *s;
 
+	if (!h->commit)
+		return stralloc("Uncommitted changes");
 	if (git_object_short_id(&buf, (git_object *) h->commit))
 		goto fail;
 	commit_time = git_commit_time(h->commit);
