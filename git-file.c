@@ -76,8 +76,7 @@ static git_repository *select_repo(const char *path)
 	 * So we trim off elements until we find a repository.
 	 */
 	while (1) {
-		if (verbose > 2)
-			fprintf(stderr, "trying \"%s\"\n", tmp);
+		progress(3, "trying \"%s\"\n", tmp);
 		if (!git_repository_open_ext(&repo, *tmp ? tmp : "/",
 		    GIT_REPOSITORY_OPEN_CROSS_FS, NULL))
 			break;
@@ -165,9 +164,7 @@ static char *canonical_path_into_repo(const char *repo_dir, const char *path)
 	end = tail = strchr(tmp, 0);
 
 	while (1) {
-		if (verbose > 2)
-			fprintf(stderr, "probing \"%s\" tail \"%s\"\n",
-			    tmp, tail);
+		progress(3, "probing \"%s\" tail \"%s\"\n", tmp, tail);
 		if (stat(tmp, &path_st) == 0)
 			break;
 		if (!tmp[1]) {
@@ -183,8 +180,7 @@ static char *canonical_path_into_repo(const char *repo_dir, const char *path)
 
 	/* remove . and .. from tail */
 
-	if (verbose > 2)
-		fprintf(stderr, "input tail \"%s\"\n", tail);
+	progress(3, "input tail \"%s\"\n", tail);
 	from = to = tail;
 	while (1) {
 		if (!strncmp(from, "./", 2)) {
@@ -224,14 +220,12 @@ static char *canonical_path_into_repo(const char *repo_dir, const char *path)
 			to--;
 	}
 	*to = 0;
-	if (verbose > 2)
-		fprintf(stderr, "output tail \"%s\"\n", tail);
+	progress(3, "output tail \"%s\"\n", tail);
 
 	/* resolve all symlinks */
 
 	real = realpath(tmp, NULL);
-	if (verbose > 2)
-		fprintf(stderr, "realpath(\"%s\") = \"%s\"\n", tmp, real);
+	progress(3, "realpath(\"%s\") = \"%s\"\n", tmp, real);
 
 	/* append tail */
 
@@ -245,16 +239,13 @@ static char *canonical_path_into_repo(const char *repo_dir, const char *path)
 	free(tmp);
 	tmp = tmp2;
 
-	if (verbose > 1)
-		fprintf(stderr, "full object path \"%s\"\n", tmp);
+	progress(2, "full object path \"%s\"\n", tmp);
 
 	/* find which part of our path is inside the repo */
 
 	end = tail = strchr(tmp, 0);
 	while (1) {
-		if (verbose > 2)
-			fprintf(stderr, "trying \"%s\" tail \"%s\"\n",
-			    tmp, tail);
+		progress(3, "trying \"%s\" tail \"%s\"\n", tmp, tail);
 
 		if (stat(tmp, &path_st) == 0 &&
 		    path_st.st_dev == repo_st.st_dev &&
@@ -277,8 +268,7 @@ static char *canonical_path_into_repo(const char *repo_dir, const char *path)
 		*slash = 0;
 	}
 
-	if (verbose > 1)
-		fprintf(stderr, "path in repo \"%s\"\n", tail);
+	progress(2, "path in repo \"%s\"\n", tail);
 
 	tmp2 = stralloc(tail);
 	free(tmp);
@@ -303,8 +293,7 @@ static git_tree_entry *find_file(git_repository *repo, git_tree *tree,
 	if (len >= 5 && !strcmp(repo_path + len - 5, "/.git"))
 		repo_path[len == 5 ? 1 : len - 5] = 0;
 
-	if (verbose > 1)
-		fprintf(stderr, "repo dir \"%s\"\n", repo_path);
+	progress(2, "repo dir \"%s\"\n", repo_path);
 
 	canon_path = canonical_path_into_repo(repo_path, path);
 	free(repo_path);
@@ -350,7 +339,7 @@ static const void *get_data(struct vcs_git *vcs_git, git_tree_entry *entry,
 			fprintf(stderr, "%s\n", e->message);
 			exit(1);
 		}
-		fprintf(stderr, "object %s\n", buf.ptr);
+		progress(3, "object %s\n", buf.ptr);
 		git_buf_free(&buf);
 	}
 	blob = (git_blob *) obj;
@@ -381,8 +370,7 @@ static bool access_file_data(struct vcs_git *vcs_git, const char *name)
 	entry = find_file(vcs_git->repo, vcs_git->tree, name);
 	if (!entry)
 		return 0;
-	if (verbose)
-		fprintf(stderr, "reading %s\n", name);
+	progress(1, "reading %s\n", name);
 
 	vcs_git->data = get_data(vcs_git, entry, &vcs_git->size);
 	return 1;
@@ -418,9 +406,8 @@ static bool related_only_repo(struct vcs_git *vcs_git)
 	const struct vcs_git *related = vcs_git->related;
 	char *tmp;
 
-	if (verbose > 1)
-		fprintf(stderr, "trying graft \"%s\" \"%s\"\n",
-		    related->name, vcs_git->name);
+	progress(2, "trying graft \"%s\" \"%s\"\n",
+	    related->name, vcs_git->name);
 	tmp = file_graft_relative(related->name, vcs_git->name);
 	if (!tmp)
 		return 0;
@@ -479,9 +466,8 @@ struct vcs_git *vcs_git_open(const char *revision, const char *name,
 		fprintf(stderr, "%s: not found\n", name);
 		goto fail;
 	}
-	if (verbose > 1)
-		fprintf(stderr, "using repository %s\n",
-		    git_repository_path(vcs_git->repo));
+	progress(2, "using repository %s\n",
+	    git_repository_path(vcs_git->repo));
 
 	if (!revision)
 		revision = "HEAD";

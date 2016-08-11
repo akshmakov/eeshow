@@ -10,7 +10,26 @@
  * (at your option) any later version.
  */
 
+
+#include <stdarg.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+
 #include "diag.h"
 
 
-int verbose = 0;
+unsigned verbose = 0;
+
+
+void progress(unsigned level, const char *fmt, ...)
+{
+	va_list ap;
+
+	if (level > verbose)
+		return;
+	va_start(ap, fmt);
+	fprintf(stderr, "%*s", level * 2, "");
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
+}

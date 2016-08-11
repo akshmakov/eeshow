@@ -20,6 +20,14 @@
  * > 2: go wild !
  */
 
-extern int verbose;
+extern unsigned verbose;
+
+
+/*
+ * Progress message, used mainly for debugging. "level" is the minimum
+ * verbosity level required.
+ */
+
+void progress(unsigned level, const char *fmt, ...);
 
 #endif /* !DIAG_H */
