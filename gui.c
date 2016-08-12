@@ -1234,7 +1234,8 @@ static void add_hist(void *user, struct hist *h)
 
 	if (!ahc->limit)
 		return;
-	ahc->limit--;
+	if (ahc->limit > 0)
+		ahc->limit--;
 
 	prev = NULL;
 	for (anchor = &ctx->hist; *anchor; anchor = &(*anchor)->next) {
@@ -1263,7 +1264,7 @@ static void get_revisions(struct gui_ctx *ctx,
 		.n_args		= n_args,
 		.args		= args,
 		.recurse	= recurse,
-		.limit		= limit < 0 ? -limit : limit,
+		.limit		= limit ? limit < 0 ? -limit : limit : -1,
 	};
 
 	if (!vcs_git_try(sch_name)) {

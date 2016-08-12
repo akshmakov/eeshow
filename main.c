@@ -56,7 +56,7 @@ void usage(const char *name)
 "  -v    increase verbosity of diagnostic output\n"
 "  -C    'cat' the file to standard output\n"
 "  -H    show history of repository on standard output\n"
-"  -N n  limit history to n revisions\n"
+"  -N n  limit history to n revisions (unlimited if omitted or 0)\n"
 "\n"
 "No driver spec: enter GUI\n"
 "\n"
