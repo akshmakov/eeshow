@@ -71,6 +71,7 @@ struct gui_hist {
 
 	/* caching support */
 	void **oids;		/* file object IDs */
+	int libs_open;
 	struct sch_ctx sch_ctx;
 	struct lib lib;		/* combined library */
 
@@ -1241,9 +1242,10 @@ static const struct sheet *parse_files(struct gui_hist *hist,
 
 	if (hist->vcs_hist) {
 		hist->oids = alloc_type_n(void *, libs_open);
+		hist->libs_open = libs_open;
 		for (i = 0; i != libs_open; i++)
 			hist->oids[i] = file_oid(lib_files + i);
-		if (prev && prev->vcs_hist) {
+		if (prev && prev->vcs_hist && prev->libs_open == libs_open) {
 			for (i = 0; i != libs_open; i++)
 				if (!file_oid_eq(hist->oids[i], prev->oids[i]))
 					break;
