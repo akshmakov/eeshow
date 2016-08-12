@@ -380,7 +380,8 @@ const struct comp *lib_find(const struct lib *lib, const char *name)
 			if (!strcmp(alias->name, name))
 				return comp;
 	}
-	fatal("\"%s\" not found\n", name);
+	error("\"%s\" not found\n", name);
+	return NULL;
 }
 
 
@@ -390,10 +391,26 @@ bool lib_field_visible(const struct comp *comp, int n)
 }
 
 
+static void missing_component(const int m[4])
+{
+	int sx = mx(0, 0, m);
+	int sy = my(0, 0, m);
+	int ex = mx(MISSING_WIDTH, MISSING_HEIGHT, m);
+	int ey = my(MISSING_WIDTH, MISSING_HEIGHT, m);
+
+	gfx_rect(sx, sy, ex, ey, COLOR_MISSING_FG, COLOR_MISSING_BG,
+	    LAYER_COMP_DWG);
+}
+
+
 void lib_render(const struct comp *comp, unsigned unit, const int m[4])
 {
 	const struct lib_obj *obj;
 
+	if (!comp) {
+		missing_component(m);
+		return;
+	}
 	if (!unit)
 		unit = 1;
 	for (obj = comp->objs; obj; obj = obj->next) {

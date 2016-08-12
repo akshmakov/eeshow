@@ -31,6 +31,7 @@ uint32_t color_rgb[] = {
 	[COLOR_RED3]		= 0xb00000,
 	[COLOR_MAGENTA4]	= 0x900090,
 	[COLOR_BROWN2]		= 0xc06000,
+	[COLOR_PINK4]		= 0xff8080,
 
 	/* user-defined colors */
 	[COLOR_DARK_YELLOW]	= 0x848400,

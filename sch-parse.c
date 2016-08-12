@@ -114,12 +114,12 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 	    &hor, &vert, &italic, &bold) != 11)
 		return 0;
 
-	if (flags || !lib_field_visible(comp->comp, n)) {
+	if (flags || (comp->comp && !lib_field_visible(comp->comp, n))) {
 		free(field);
 		return 1;
 	}
 
-	if (n == 0 && comp->comp->units > 1) {
+	if (n == 0 && comp->comp && comp->comp->units > 1) {
 		int len = strlen(txt->s);
 		char *s;
 

@@ -34,6 +34,7 @@
 #define	COLOR_RED3		19
 #define	COLOR_MAGENTA4		21
 #define	COLOR_BROWN2		26
+#define	COLOR_PINK4		27
 
 #define	COLOR_DARK_YELLOW	32	/* user-defined */
 #define	COLOR_LIGHT_GREY	33	/* user-defined, not used for FIG */
@@ -54,6 +55,8 @@
 #define	COLOR_FIELD		COLOR_CYAN4
 #define	COLOR_PIN_NAME		COLOR_FIELD
 #define	COLOR_PIN_NUMBER	COLOR_RED4
+#define	COLOR_MISSING_FG	COLOR_RED
+#define	COLOR_MISSING_BG	COLOR_PINK4
 
 #define	FONT_HELVETICA_BOLD	18
 
@@ -90,6 +93,8 @@
 
 #define	NEWLINE_SKIP		1.4	// * text size
 
+#define	MISSING_WIDTH		300	// size of missing things indicator box
+#define	MISSING_HEIGHT		300
 
 extern uint32_t color_rgb[];
 

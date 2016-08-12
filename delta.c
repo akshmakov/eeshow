@@ -114,6 +114,8 @@ static bool comp_eq(const struct comp *a, const struct comp *b)
 {
 	if (a == b)
 		return 1;
+	if (!(a && b))
+		return 0;
 	if (strcmp(a->name, b->name))
 		return 0;
 	if (a->units != b->units)
