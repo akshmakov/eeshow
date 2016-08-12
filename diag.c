@@ -14,6 +14,8 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#include <errno.h>
 
 
 #include "diag.h"
@@ -21,6 +23,23 @@
 
 unsigned verbose = 0;
 
+
+/* ----- Specialized diagnostic functions ---------------------------------- */
+
+
+void diag_pfatal(const char *s)
+{
+	fatal("%s: %s\n", s, strerror(errno));
+}
+
+
+void diag_perror(const char *s)
+{
+	error("%s: %s\n", s, strerror(errno));
+}
+
+
+/* ----- General diagnostic functions -------------------------------------- */
 
 void fatal(const char *fmt, ...)
 {

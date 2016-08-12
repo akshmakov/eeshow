@@ -49,10 +49,8 @@ static void uplink(struct hist *down, struct hist *up)
 {
 	down->newer = realloc(down->newer,
 	    sizeof(struct hist *) * (down->n_newer + 1));
-	if (!down->newer) {
-		perror("realloc");
-		exit(1);
-	}
+	if (!down->newer)
+		diag_pfatal("realloc");
 	down->newer[down->n_newer++] = up;
 }
 

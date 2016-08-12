@@ -124,10 +124,8 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 		char *s;
 
 		s = realloc((void *) txt->s, len + 3);
-		if (!s) {
-			perror("realloc");
-			exit(1);
-		}
+		if (!s)
+			diag_pfatal("realloc");
 		if (comp->unit <= 26)
 			sprintf(s + len, "%c", 'A' + comp->unit - 1);
 		else

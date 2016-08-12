@@ -23,6 +23,7 @@
 #include <cairo/cairo-pdf.h>
 
 #include "util.h"
+#include "diag.h"
 #include "style.h"
 #include "text.h"
 #include "gfx.h"
@@ -344,7 +345,7 @@ static cairo_status_t stream_to_stdout(void *closure,
 	wrote = write(1, data, length);
 	if (wrote == (ssize_t) length)
 		return CAIRO_STATUS_SUCCESS;
-	perror("stdout");
+	diag_perror("stdout");
 	return CAIRO_STATUS_WRITE_ERROR;
 }
 
@@ -373,10 +374,8 @@ static void cr_pdf_new_sheet(void *ctx)
 
 	cc->n_sheets++;
 	cc->sheets = realloc(cc->sheets, sizeof(struct record) * cc->n_sheets);
-	if (!cc->sheets) {
-		perror("realloc");
-		exit(1);
-	}
+	if (!cc->sheets)
+		diag_pfatal("realloc");
 	cc->sheets[cc->n_sheets - 1] = cc->record;
 	record_wipe(&cc->record);
 }

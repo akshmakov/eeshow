@@ -182,11 +182,11 @@ bool file_open(struct file *file, const char *name, const struct file *related)
 		return 1;
 
 	if (verbose)
-		perror(name);	/* @@@ may need changing later */
+		diag_perror(name);
 
 	if (!strchr(name, ':')) {
 		if (!verbose)
-			perror(name);
+			diag_perror(name);
 		goto fail;
 	}
 

@@ -20,6 +20,7 @@
 #include <assert.h>
 
 #include "util.h"
+#include "diag.h"
 #include "style.h"
 #include "text.h"
 #include "main.h"
@@ -269,10 +270,8 @@ static void *fig_init(int argc, char *const *argv)
 	}
 
 	file = fopen(template, "r");
-	if (!file) {
-		perror(template);
-		exit(1);
-	}
+	if (!file)
+		diag_pfatal(template);
 	while (fgets(buf, sizeof(buf), file)) {
 		while (apply_vars(buf, n_vars, vars));
 		printf("%s", buf);

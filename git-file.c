@@ -125,10 +125,8 @@ static char *canonical_path_into_repo(const char *repo_dir, const char *path)
 
 	/* identify inode of repo root */
 
-	if (stat(repo_dir, &repo_st) < 0) {
-		perror(repo_dir);
-		exit(1);
-	}
+	if (stat(repo_dir, &repo_st) < 0)
+		diag_pfatal(repo_dir);
 	if (!S_ISDIR(repo_st.st_mode))
 		fatal("%s: not a directory\n", repo_dir);
 

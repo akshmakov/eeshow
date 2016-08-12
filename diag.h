@@ -23,6 +23,18 @@
 extern unsigned verbose;
 
 
+/* ----- Specialized diagnostic functions ---------------------------------- */
+
+
+/* perror, based on "fatal" or "error" */
+
+void diag_pfatal(const char *s);
+void diag_perror(const char *s);
+
+
+/* ----- General diagnostic functions -------------------------------------- */
+
+
 /*
  * Terminate immediately. Further execution makes no sense.
  * E.g., out of memory.
