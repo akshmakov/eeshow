@@ -113,6 +113,11 @@ struct gui_ctx {
 				/* current sheet, always on new_hist */
 	struct gui_hist *new_hist;
 	struct gui_hist *old_hist;	/* NULL if not comparing */
+
+	/* progress bar */
+	unsigned hist_size;	/* total number of revisions */
+	unsigned progress;	/* progress counter */
+	unsigned progress_scale;/* right-shift by this value */
 };
 
 
@@ -1019,6 +1024,72 @@ static bool hover_glabel(void *user, bool on)
 }
 
 
+/* ----- Progress bar ------------------------------------------------------ */
+
+
+#define	PROGRESS_BAR_HEIGHT	10
+
+
+static void progress_draw_event(GtkWidget *widget, cairo_t *cr,
+    gpointer user_data)
+{
+	struct gui_ctx *ctx = user_data;
+	unsigned x;
+
+	x = ctx->progress >> ctx->progress_scale;
+	if (!x) {
+		/* @@@ needed ? Gtk seems to always clear the the surface. */
+		cairo_set_source_rgb(cr, 1, 1, 1);
+		cairo_paint(cr);
+	}
+
+	cairo_set_source_rgb(cr, 0, 0.7, 0);
+	cairo_set_line_width(cr, 0);
+	cairo_rectangle(cr, 0, 0, x, PROGRESS_BAR_HEIGHT);
+	cairo_fill(cr);
+}
+
+
+static void setup_progress_bar(struct gui_ctx *ctx, GtkWidget *window)
+{
+	GdkScreen *screen;
+	unsigned w;
+
+	screen = gtk_window_get_screen(GTK_WINDOW(window));
+	w = gdk_screen_get_width(screen);
+
+	ctx->progress_scale = 0;
+	while ((ctx->hist_size >> ctx->progress_scale) > w / 2)
+		ctx->progress_scale++;
+	gtk_window_set_default_size(GTK_WINDOW(window),
+	    ctx->hist_size >> ctx->progress_scale, PROGRESS_BAR_HEIGHT);
+	ctx->progress = 0;
+
+	g_signal_connect(G_OBJECT(ctx->da), "draw",
+	    G_CALLBACK(progress_draw_event), ctx);
+
+	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+	gtk_window_set_decorated(GTK_WINDOW(window), 0);
+
+	gtk_widget_show_all(window);
+	redraw(ctx);
+	gtk_main_iteration_do(0);
+}
+
+
+static void progress_update(struct gui_ctx *ctx)
+{
+	unsigned mask = (1 << ctx->progress_scale) - 1;
+
+	ctx->progress++;
+	if ((ctx->progress & mask) != mask)
+		return;
+
+	redraw(ctx);
+	gtk_main_iteration_do(0);
+}
+
+
 /* ----- Initialization ---------------------------------------------------- */
 
 
@@ -1252,13 +1323,38 @@ static void add_hist(void *user, struct hist *h)
 
 	hist->next = NULL;
 	*anchor = hist;
+
+	if (ctx->hist_size)
+		progress_update(ctx);
+}
+
+
+static void count_history(void *user, struct hist *h)
+{
+	struct gui_ctx *ctx = user;
+
+	ctx->hist_size++;
+}
+
+
+static void get_history(struct gui_ctx *ctx, const char *sch_name, int limit)
+{
+	if (!vcs_git_try(sch_name)) {
+		ctx->vcs_hist = NULL;
+		return;
+	} 
+	
+	ctx->vcs_hist = vcs_git_hist(sch_name);
+	if (limit)
+		ctx->hist_size = limit > 0 ? limit : -limit;
+	else
+		hist_iterate(ctx->vcs_hist, count_history, ctx);
 }
 
 
 static void get_revisions(struct gui_ctx *ctx,
     int n_args, char **args, bool recurse, int limit)
 {
-	const char *sch_name = args[n_args - 1];
 	struct add_hist_ctx add_hist_ctx = {
 		.ctx		= ctx,
 		.n_args		= n_args,
@@ -1267,13 +1363,10 @@ static void get_revisions(struct gui_ctx *ctx,
 		.limit		= limit ? limit < 0 ? -limit : limit : -1,
 	};
 
-	if (!vcs_git_try(sch_name)) {
-		ctx->vcs_hist = NULL;
-		add_hist(&add_hist_ctx, NULL);
-	} else {
-		ctx->vcs_hist = vcs_git_hist(sch_name);
+	if (ctx->vcs_hist)
 		hist_iterate(ctx->vcs_hist, add_hist, &add_hist_ctx);
-	}
+	else
+		add_hist(&add_hist_ctx, NULL);
 }
 
 
@@ -1291,7 +1384,16 @@ int gui(unsigned n_args, char **args, bool recurse, int limit)
 		.pop_overlays	= NULL,
 		.aois		= NULL,
 		.old_hist	= NULL,
+		.hist_size	= 0,
 	};
+
+	get_history(&ctx, args[n_args - 1], limit);
+	if (ctx.hist_size) {
+		window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+		ctx.da = gtk_drawing_area_new();
+		gtk_container_add(GTK_CONTAINER(window), ctx.da);
+		setup_progress_bar(&ctx, window);
+	}
 
 	get_revisions(&ctx, n_args, args, recurse, limit);
 	for (ctx.new_hist = ctx.hist; ctx.new_hist && !ctx.new_hist->sheets;
@@ -1299,8 +1401,10 @@ int gui(unsigned n_args, char **args, bool recurse, int limit)
 	if (!ctx.new_hist)
 		fatal("no valid sheets\n");
 
-	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	if (ctx.hist_size)
+		gtk_widget_destroy(window);
 
+	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	ctx.da = gtk_drawing_area_new();
 	gtk_container_add(GTK_CONTAINER(window), ctx.da);
 
