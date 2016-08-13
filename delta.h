@@ -17,6 +17,8 @@
 #include "sch.h"
 
 
+bool sheet_eq(const struct sheet *a, const struct sheet *b);
+
 void delta(const struct sheet *a, const struct sheet *b,
     struct sheet *res_a, struct sheet *res_b, struct sheet *res_ab);
 void delta_free(struct sheet *d);

@@ -284,6 +284,30 @@ static bool obj_eq(const struct sch_obj *a, const struct sch_obj *b)
 }
 
 
+bool sheet_eq(const struct sheet *a, const struct sheet *b)
+{
+	const struct sch_obj *obj_a, *obj_b;
+
+	if (a == NULL && b == NULL)
+		return 1;
+	if (!(a && b))
+		return 0;
+
+	if (a->title != b->title && strcmp(a->title, b->title))
+		return 0;
+
+	obj_a = a->objs;
+	obj_b = b->objs;
+	while (obj_a && obj_b) {
+		if (!obj_eq(obj_a, obj_b))
+			return 0;
+		obj_a = obj_a->next;
+		obj_b = obj_b->next;
+	}
+	return obj_a == obj_b;
+}
+
+
 static void free_obj(struct sch_obj *obj)
 {
 	/* there may be more to free once we get into cloning components */
