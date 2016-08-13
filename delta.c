@@ -221,7 +221,8 @@ match:
  * fields individually.
  */
 
-static bool obj_eq(const struct sch_obj *a, const struct sch_obj *b)
+static bool obj_eq(const struct sch_obj *a, const struct sch_obj *b,
+    bool recurse)
 {
 	if (a->type != b->type)
 		return 0;
@@ -277,7 +278,11 @@ static bool obj_eq(const struct sch_obj *a, const struct sch_obj *b)
 			return 0;
 		if (strcmp(a->u.sheet.file, b->u.sheet.file))
 			return 0;
-		return sheet_fields_eq(a->u.sheet.fields, b->u.sheet.fields);
+		if (!sheet_fields_eq(a->u.sheet.fields, b->u.sheet.fields))
+			return 0;
+		if (!recurse)
+			return 1;
+		return sheet_eq(a->u.sheet.sheet, b->u.sheet.sheet);
 	default:
 		abort();
 	}
@@ -299,7 +304,7 @@ bool sheet_eq(const struct sheet *a, const struct sheet *b)
 	obj_a = a->objs;
 	obj_b = b->objs;
 	while (obj_a && obj_b) {
-		if (!obj_eq(obj_a, obj_b))
+		if (!obj_eq(obj_a, obj_b, 1))
 			return 0;
 		obj_a = obj_a->next;
 		obj_b = obj_b->next;
@@ -348,7 +353,7 @@ void delta(const struct sheet *a, const struct sheet *b,
 	while (objs_a) {
 		next_a = objs_a->next;
 		for (obj_b = &objs_b; *obj_b; obj_b = &(*obj_b)->next)
-			if (obj_eq(objs_a, *obj_b)) {
+			if (obj_eq(objs_a, *obj_b, 0)) {
 				struct sch_obj *tmp = *obj_b;
 
 				add_obj(res_ab, objs_a);
