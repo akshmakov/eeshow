@@ -771,7 +771,10 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
 
 	canvas_coord(ctx, event->x, event->y, &x, &y);
 
-	aoi_hover(ctx->aois, event->x, event->y) ||
+	aoi_move(ctx->aois, event->x, event->y) ||
+	    aoi_move(curr_sheet->aois,
+            x + curr_sheet->xmin, y + curr_sheet->ymin) ||
+	    aoi_hover(ctx->aois, event->x, event->y) ||
 	    aoi_hover(curr_sheet->aois,
 	    x + curr_sheet->xmin, y + curr_sheet->ymin);
 	pan_update(ctx, event->x, event->y);
@@ -791,9 +794,9 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event,
 
 	switch (event->button) {
 	case 1:
-		if (aoi_click(ctx->aois, event->x, event->y))
+		if (aoi_down(ctx->aois, event->x, event->y))
 			break;
-		if (aoi_click(curr_sheet->aois,
+		if (aoi_down(curr_sheet->aois,
 		    x + curr_sheet->xmin, y + curr_sheet->ymin))
 			break;
 		if (ctx->showing_history)
@@ -815,12 +818,18 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event,
     gpointer data)
 {
 	struct gui_ctx *ctx = data;
+	const struct gui_sheet *curr_sheet = ctx->curr_sheet;
 	int x, y;
 
 	canvas_coord(ctx, event->x, event->y, &x, &y);
 
 	switch (event->button) {
 	case 1:
+		if (aoi_up(ctx->aois, event->x, event->y))
+			break;
+		if (aoi_up(curr_sheet->aois,
+		    x + curr_sheet->xmin, y + curr_sheet->ymin))
+			break;
 		break;
 	case 2:
 		pan_end(ctx, event->x, event->y);

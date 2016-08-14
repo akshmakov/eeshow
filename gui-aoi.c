@@ -18,12 +18,19 @@
  */
 
 #include <stddef.h>
+#include <math.h>
+#include <assert.h>
 
 #include "util.h"
 #include "gui-aoi.h"
 
 
+#define	DRAG_RADIUS	5
+
+
 static const struct aoi *hovering = NULL;
+static const struct aoi *clicked = NULL;
+static int clicked_x, clicked_y;
 
 
 struct aoi *aoi_add(struct aoi **aois, const struct aoi *cfg)
@@ -48,6 +55,18 @@ void aoi_update(struct aoi *aoi, const struct aoi *cfg)
 }
 
 
+static const struct aoi *find_aoi(const struct aoi *aois, int x, int y)
+{
+	const struct aoi *aoi;
+
+	for (aoi = aois; aoi; aoi = aoi->next)
+		if (x >= aoi->x && x < aoi->x + aoi->w &&
+		    y >= aoi->y && y < aoi->y + aoi->h)
+			break;
+	return aoi;
+}
+
+
 bool aoi_hover(const struct aoi *aois, int x, int y)
 {
 	const struct aoi *aoi;
@@ -60,10 +79,7 @@ bool aoi_hover(const struct aoi *aois, int x, int y)
 		hovering = NULL;
 	}
 
-	for (aoi = aois; aoi; aoi = aoi->next)
-		if (x >= aoi->x && x < aoi->x + aoi->w &&
-		    y >= aoi->y && y < aoi->y + aoi->h)
-			break;
+	aoi = find_aoi(aois, x, y);
 	if (aoi && aoi->hover && aoi->hover(aoi->user, 1)) {
 		hovering = aoi;
 		return 1;
@@ -72,23 +88,66 @@ bool aoi_hover(const struct aoi *aois, int x, int y)
 }
 
 
-bool aoi_click(const struct aoi *aois, int x, int y)
+bool aoi_move(const struct aoi *aois, int x, int y)
 {
 	const struct aoi *aoi;
 
-	if (hovering) {
-		hovering->hover(hovering->user, 0);
-		hovering = NULL;
-	}
+	if (!clicked)
+		return 0;
+
+	/*
+	 * Ensure we're on the right list and are using the same coordinate
+	 * system.
+	 */
 	for (aoi = aois; aoi; aoi = aoi->next)
-		if (x >= aoi->x && x < aoi->x + aoi->w &&
-		    y >= aoi->y && y < aoi->y + aoi->h)
+		if (aoi == clicked)
 			break;
-	if (aoi && aoi->click) {
-		aoi->click(aoi->user);
-		return 1;
-	}
-	return 0;
+	if (!aoi)
+		return 0;
+
+	if (hypot(x - clicked_x, y - clicked_y) > DRAG_RADIUS)
+		clicked = NULL;
+	return 1;
+}
+
+
+bool aoi_down(const struct aoi *aois, int x, int y)
+{
+	assert(!clicked);
+
+	aoi_dehover();
+
+	clicked = find_aoi(aois, x, y);
+	if (!clicked)
+		return 0;
+
+	clicked_x = x;
+	clicked_y = y;
+
+	return 1;
+}
+
+
+bool aoi_up(const struct aoi *aois, int x, int y)
+{
+	const struct aoi *aoi;
+
+	if (!aoi_move(aois, x, y))
+		return 0;
+
+	/*
+	 * Ensure we're on the right list and are using the same coordinate
+	 * system.
+	 */
+	for (aoi = aois; aoi; aoi = aoi->next)
+		if (aoi == clicked)
+			break;
+	if (!aoi)
+		return 0;
+
+	clicked->click(clicked->user);
+	clicked = NULL;
+	return 1;
 }
 
 
