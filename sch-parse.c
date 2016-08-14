@@ -332,7 +332,7 @@ static struct sheet *recurse_sheet(struct sch_ctx *ctx,
 			if (!other->has_children &&
 			    file_oid_eq(other->oid, oid)) {
 				ctx->curr_sheet = parent;
-				sheet->title = other->title;
+				sheet->title = stralloc(other->title);
 				sheet->objs = other->objs;
 				return sheet;
 			}
