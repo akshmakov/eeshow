@@ -211,9 +211,10 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 
 	overlay_draw_all(ctx->sheet_overlays, cr,
 	    SHEET_OVERLAYS_X, SHEET_OVERLAYS_Y);
-	overlay_draw_all(ctx->hist_overlays, cr,
+	overlay_draw_all_d(ctx->hist_overlays, cr,
 	    VCS_OVERLAYS_X,
-	    VCS_OVERLAYS_Y + (ctx->showing_history ? ctx->hist_y_offset : 0));
+	    VCS_OVERLAYS_Y + (ctx->showing_history ? ctx->hist_y_offset : 0),
+	    0, 1);
 	overlay_draw_all(ctx->pop_overlays, cr, ctx->pop_x, ctx->pop_y);
 
 	return FALSE;
