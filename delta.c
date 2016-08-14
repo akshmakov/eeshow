@@ -185,8 +185,8 @@ static bool comp_fields_eq(const struct comp_field *a,
 static bool sheet_fields_eq(const struct sheet_field *a,
     const struct sheet_field *b)
 {
-	const struct sheet_field *ta = a;
-	const struct sheet_field *tb = b;
+	const struct sheet_field *ta;
+	const struct sheet_field *tb;
 
 	for (ta = a; ta; ta = ta->next) {
 		for (tb = b; tb; tb = tb->next) {
