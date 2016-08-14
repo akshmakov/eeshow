@@ -119,7 +119,7 @@ struct gui_ctx {
 	int hist_y_offset;	/* history list y offset */
 
 	/* progress bar */
-	unsigned hist_size;	/* total number of revisions */
+	int hist_size;		/* total number of revisions */
 	unsigned progress;	/* progress counter */
 	unsigned progress_scale;/* right-shift by this value */
 };
@@ -1063,8 +1063,9 @@ static bool hover_glabel(void *user, bool on)
 static void progress_draw_event(GtkWidget *widget, cairo_t *cr,
     gpointer user_data)
 {
+	GtkAllocation alloc;
 	struct gui_ctx *ctx = user_data;
-	unsigned x;
+	unsigned w, x;
 
 	x = ctx->progress >> ctx->progress_scale;
 	if (!x) {
@@ -1073,35 +1074,41 @@ static void progress_draw_event(GtkWidget *widget, cairo_t *cr,
 		cairo_paint(cr);
 	}
 
+	gtk_widget_get_allocation(ctx->da, &alloc);
+	w = ctx->hist_size >> ctx->progress_scale;
+
+	cairo_save(cr);
+	cairo_translate(cr,
+	    (alloc.width - w) / 2, (alloc.height - PROGRESS_BAR_HEIGHT) / 2);
+
 	cairo_set_source_rgb(cr, 0, 0.7, 0);
 	cairo_set_line_width(cr, 0);
 	cairo_rectangle(cr, 0, 0, x, PROGRESS_BAR_HEIGHT);
 	cairo_fill(cr);
+
+	cairo_set_source_rgb(cr, 0, 0, 0);
+	cairo_set_line_width(cr, 2);
+	cairo_rectangle(cr, 0, 0, w, PROGRESS_BAR_HEIGHT);
+	cairo_stroke(cr);
+
+	cairo_restore(cr);
 }
 
 
 static void setup_progress_bar(struct gui_ctx *ctx, GtkWidget *window)
 {
-	GdkScreen *screen;
-	unsigned w;
+	GtkAllocation alloc;
 
-	screen = gtk_window_get_screen(GTK_WINDOW(window));
-	w = gdk_screen_get_width(screen);
+	gtk_widget_get_allocation(ctx->da, &alloc);
 
 	ctx->progress_scale = 0;
-	while ((ctx->hist_size >> ctx->progress_scale) > w / 2)
+	while ((ctx->hist_size >> ctx->progress_scale) > alloc.width)
 		ctx->progress_scale++;
-	gtk_window_set_default_size(GTK_WINDOW(window),
-	    ctx->hist_size >> ctx->progress_scale, PROGRESS_BAR_HEIGHT);
 	ctx->progress = 0;
 
 	g_signal_connect(G_OBJECT(ctx->da), "draw",
 	    G_CALLBACK(progress_draw_event), ctx);
 
-	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-	gtk_window_set_decorated(GTK_WINDOW(window), 0);
-
-	gtk_widget_show_all(window);
 	redraw(ctx);
 	gtk_main_iteration_do(0);
 }
@@ -1423,26 +1430,33 @@ int gui(unsigned n_args, char **args, bool recurse, int limit)
 		.hist_size	= 0,
 	};
 
+	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	ctx.da = gtk_drawing_area_new();
+	gtk_container_add(GTK_CONTAINER(window), ctx.da);
+
+	gtk_window_set_default_size(GTK_WINDOW(window), 640, 480);
+	gtk_window_set_title(GTK_WINDOW(window), "eeshow");
+
+	gtk_widget_set_can_focus(ctx.da, TRUE);
+
+	gtk_widget_set_events(ctx.da,
+	    GDK_EXPOSE | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK |
+	    GDK_KEY_PRESS_MASK |
+	    GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK |
+	    GDK_SCROLL_MASK |
+	    GDK_POINTER_MOTION_MASK);
+
+	gtk_widget_show_all(window);
+
 	get_history(&ctx, args[n_args - 1], limit);
-	if (ctx.hist_size) {
-		window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-		ctx.da = gtk_drawing_area_new();
-		gtk_container_add(GTK_CONTAINER(window), ctx.da);
+	if (ctx.hist_size)
 		setup_progress_bar(&ctx, window);
-	}
 
 	get_revisions(&ctx, n_args, args, recurse, limit);
 	for (ctx.new_hist = ctx.hist; ctx.new_hist && !ctx.new_hist->sheets;
 	    ctx.new_hist = ctx.new_hist->next);
 	if (!ctx.new_hist)
 		fatal("no valid sheets\n");
-
-	if (ctx.hist_size)
-		gtk_widget_destroy(window);
-
-	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	ctx.da = gtk_drawing_area_new();
-	gtk_container_add(GTK_CONTAINER(window), ctx.da);
 
 	g_signal_connect(G_OBJECT(ctx.da), "draw",
 	    G_CALLBACK(on_draw_event), &ctx);
@@ -1462,18 +1476,7 @@ int gui(unsigned n_args, char **args, bool recurse, int limit)
 	g_signal_connect(window, "destroy",
 	    G_CALLBACK(gtk_main_quit), NULL);
 
-	gtk_widget_set_can_focus(ctx.da, TRUE);
-
-	gtk_widget_set_events(ctx.da,
-	    GDK_EXPOSE | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK |
-	    GDK_KEY_PRESS_MASK |
-	    GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK |
-	    GDK_SCROLL_MASK |
-	    GDK_POINTER_MOTION_MASK);
-
 //	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-	gtk_window_set_default_size(GTK_WINDOW(window), 640, 480);
-	gtk_window_set_title(GTK_WINDOW(window), "eeshow");
 
 	go_to_sheet(&ctx, ctx.new_hist->sheets);
 	gtk_widget_show_all(window);
