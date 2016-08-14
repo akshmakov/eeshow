@@ -76,7 +76,6 @@ static unsigned overlay_draw(struct overlay *over, cairo_t *cr,
 	unsigned ink_w, ink_h;	/* effectively used text area size */
 	unsigned w, h;		/* box size */
 	int tx, ty;		/* text start position */
-	int sx, sy;		/* box start position */
 
 	PangoLayout *layout;
 	PangoFontDescription *desc;
@@ -102,8 +101,6 @@ fprintf(stderr, "%d + %d  %d + %d\n",
 	w = ink_w + 2 * style->pad;
 	h = ink_h + 2 * style->pad;
 
-	sx = x;
-	sy = y;
 	if (dx < 0 || dy < 0) {
 		double x1, y1, x2, y2;
 		int sw, sh;
@@ -112,15 +109,15 @@ fprintf(stderr, "%d + %d  %d + %d\n",
 		sw = x2 - x1;
 		sh = y2 - y1;
 		if (dx < 0)
-			sx = sw + sx - w;
+			x = sw - x - w;
 		if (dy < 0)
-			sy = sh + sy - h;
+			y = sh - y - h;
 	}
 
-	tx = sx - ink_rect.x / PANGO_SCALE + style->pad;
-	ty = sy - ink_rect.y / PANGO_SCALE + style->pad;
+	tx = x - ink_rect.x / PANGO_SCALE + style->pad;
+	ty = y - ink_rect.y / PANGO_SCALE + style->pad;
 
-	rrect(cr, sx, sy, w, h, style->radius);
+	rrect(cr, x, y, w, h, style->radius);
 
 	cairo_set_source_rgba(cr, bg->r, bg->g, bg->b, bg->alpha);
 	cairo_fill_preserve(cr);
@@ -159,8 +156,8 @@ fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->
 
 	if (over->hover || over->click || over->drag) {
 		struct aoi aoi_cfg = {
-			.x	= sx,
-			.y	= sy,
+			.x	= x,
+			.y	= y,
 			.w	= w,
 			.h	= h,
 			.hover	= over->hover,
