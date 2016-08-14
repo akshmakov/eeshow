@@ -375,6 +375,7 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 		    &obj->x, &obj->y, &text->dir, &text->dim) == 4) {
 			ctx->state = sch_text;
 			obj->u.text.fn = dwg_text;
+			obj->u.text.shape = dwg_unspec; /* not used for text */
 			return 1;
 		}
 		if (sscanf(line, "Text GLabel %d %d %d %d %ms",
@@ -395,6 +396,8 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 		    &obj->x, &obj->y, &text->dir, &text->dim) == 4) {
 			ctx->state = sch_text;
 			obj->u.text.fn = dwg_label;
+			obj->u.text.shape = dwg_unspec;
+			    /* not used for (local) labels */
 			return 1;
 		}
 
