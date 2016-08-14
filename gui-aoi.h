@@ -22,6 +22,7 @@ struct aoi {
 
 	bool (*hover)(void *user, bool on);
 	void (*click)(void *user);
+	void (*drag)(void *user, int dx, int dy);
 	void *user;
 
 	struct aoi *next;

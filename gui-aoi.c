@@ -30,6 +30,7 @@
 
 static const struct aoi *hovering = NULL;
 static const struct aoi *clicked = NULL;
+static const struct aoi *dragging = NULL;
 static int clicked_x, clicked_y;
 
 
@@ -67,10 +68,23 @@ static const struct aoi *find_aoi(const struct aoi *aois, int x, int y)
 }
 
 
+static bool aoi_on_list(const struct aoi *aois, const struct aoi *ref)
+{
+	const struct aoi *aoi;
+	
+	for (aoi = aois; aoi; aoi = aoi->next)
+		if (aoi == ref)
+			return 1;
+	return 0;
+}
+
+
 bool aoi_hover(const struct aoi *aois, int x, int y)
 {
 	const struct aoi *aoi;
 
+	if (dragging)
+		return 0;
 	if (hovering) {
 		if (x >= hovering->x && x < hovering->x + hovering->w &&
 		    y >= hovering->y && y < hovering->y + hovering->h)
@@ -90,8 +104,15 @@ bool aoi_hover(const struct aoi *aois, int x, int y)
 
 bool aoi_move(const struct aoi *aois, int x, int y)
 {
-	const struct aoi *aoi;
-
+	if (dragging) {
+		if (aoi_on_list(aois, dragging)) {
+			dragging->drag(dragging->user,
+			    x - clicked_x, y - clicked_y);
+			clicked_x = x;
+			clicked_y = y;
+		}
+		return 1;
+	}
 	if (!clicked)
 		return 0;
 
@@ -99,14 +120,19 @@ bool aoi_move(const struct aoi *aois, int x, int y)
 	 * Ensure we're on the right list and are using the same coordinate
 	 * system.
 	 */
-	for (aoi = aois; aoi; aoi = aoi->next)
-		if (aoi == clicked)
-			break;
-	if (!aoi)
+	if (!aoi_on_list(aois, clicked))
 		return 0;
 
-	if (hypot(x - clicked_x, y - clicked_y) > DRAG_RADIUS)
+	if (hypot(x - clicked_x, y - clicked_y) > DRAG_RADIUS) {
+		if (clicked && clicked->drag) {
+			dragging = clicked;
+			dragging->drag(dragging->user,
+			    x - clicked_x, y - clicked_y);
+			clicked_x = x;
+			clicked_y = y;
+		}
 		clicked = NULL;
+	}
 	return 1;
 }
 
@@ -140,10 +166,14 @@ bool aoi_up(const struct aoi *aois, int x, int y)
 	 * system.
 	 */
 	for (aoi = aois; aoi; aoi = aoi->next)
-		if (aoi == clicked)
+		if (aoi == clicked || aoi == dragging)
 			break;
 	if (!aoi)
 		return 0;
+	if (dragging) {
+		dragging = NULL;
+		return 1;
+	}
 
 	clicked->click(clicked->user);
 	clicked = NULL;

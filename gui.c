@@ -116,6 +116,8 @@ struct gui_ctx {
 	struct gui_hist *new_hist;
 	struct gui_hist *old_hist;	/* NULL if not comparing */
 
+	int hist_y_offset;	/* history list y offset */
+
 	/* progress bar */
 	unsigned hist_size;	/* total number of revisions */
 	unsigned progress;	/* progress counter */
@@ -210,7 +212,8 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	overlay_draw_all(ctx->sheet_overlays, cr,
 	    SHEET_OVERLAYS_X, SHEET_OVERLAYS_Y);
 	overlay_draw_all(ctx->hist_overlays, cr,
-	    VCS_OVERLAYS_X, VCS_OVERLAYS_Y);
+	    VCS_OVERLAYS_X,
+	    VCS_OVERLAYS_Y + (ctx->showing_history ? ctx->hist_y_offset : 0));
 	overlay_draw_all(ctx->pop_overlays, cr, ctx->pop_x, ctx->pop_y);
 
 	return FALSE;
@@ -546,16 +549,28 @@ static void click_history(void *user)
 }
 
 
+static void drag_overlay(void *user, int dx, int dy)
+{
+	const struct gui_hist *h = user;
+	struct gui_ctx *ctx = h->ctx;
+
+	ctx->hist_y_offset += dy;
+	redraw(ctx);
+}
+
+
 static void show_history(struct gui_ctx *ctx, enum selecting sel)
 {
 	struct gui_hist *h = ctx->hist;
 
 	ctx->showing_history = 1;
+	ctx->hist_y_offset = 0;
 	ctx->selecting = sel;
 	overlay_remove_all(&ctx->hist_overlays);
 	for (h = ctx->hist; h; h = h->next) {
 		h->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
 		    hover_history, click_history, h);
+		overlay_draggable(h->over, drag_overlay);
 		hover_history(h, 0);
 		set_history_style(h, 0);
 	}
@@ -1404,6 +1419,7 @@ int gui(unsigned n_args, char **args, bool recurse, int limit)
 		.pop_overlays	= NULL,
 		.aois		= NULL,
 		.old_hist	= NULL,
+		.hist_y_offset 	= 0,
 		.hist_size	= 0,
 	};
 
