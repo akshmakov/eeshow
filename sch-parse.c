@@ -115,7 +115,13 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 	    &hor, &vert, &italic, &bold) != 11)
 		return 0;
 
-	if (flags || (comp->comp && !lib_field_visible(comp->comp, n))) {
+	if (flags) {
+/*
+ * @@@ visibility settings in component only seem to be used only as default
+ * for sheet and are ignored thereafter:
+ *
+ * || (comp->comp && !lib_field_visible(comp->comp, n))) {
+ */
 		free((char *) txt->s);
 		free(field);
 		return 1;

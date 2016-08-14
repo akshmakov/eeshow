@@ -120,8 +120,11 @@ static bool comp_eq(const struct comp *a, const struct comp *b)
 		return 0;
 	if (a->units != b->units)
 		return 0;
+#if 0
+	/* @@@ in-sheet settings override this */
 	if (a->visible != b->visible)
 		return 0;
+#endif
 	if (a->show_pin_name != b->show_pin_name)
 		return 0;
 	if (a->show_pin_num != b->show_pin_num)
