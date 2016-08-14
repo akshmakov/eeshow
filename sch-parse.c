@@ -102,6 +102,7 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 
 	field = alloc_type(struct comp_field);
 	txt = &field->txt;
+	txt->s = NULL;
 
 	if (sscanf(line, "F %d \"\" %c %d %d %u %u %c %c%c%c",
 	    &n, &hv, &txt->x, &txt->y, &txt->size, &flags, &hor, &vert,
@@ -115,6 +116,7 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 		return 0;
 
 	if (flags || (comp->comp && !lib_field_visible(comp->comp, n))) {
+		free((char *) txt->s);
 		free(field);
 		return 1;
 	}
