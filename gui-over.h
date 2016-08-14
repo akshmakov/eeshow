@@ -41,8 +41,10 @@ struct overlay_style {
 struct overlay;
 
 
-struct overlay *overlay_draw(struct overlay *over, cairo_t *cr, int *x, int *y);
+void overlay_draw_all_d(struct overlay *overlays, cairo_t *cr,
+    unsigned x, unsigned y, int dx, int dy);
 void overlay_draw_all(struct overlay *overlays, cairo_t *cr, int x, int y);
+
 struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
     bool (*hover)(void *user, bool on), void (*click)(void *user), void *user);
 void overlay_text_raw(struct overlay *over, const char *s);

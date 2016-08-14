@@ -66,7 +66,8 @@ static void rrect(cairo_t *cr, int x, int y, int w, int h, int r)
 }
 
 
-struct overlay *overlay_draw(struct overlay *over, cairo_t *cr, int *x, int *y)
+static unsigned overlay_draw(struct overlay *over, cairo_t *cr,
+    unsigned x, unsigned y, int dx, int dy)
 {
 	const struct overlay_style *style = &over->style;
 	const struct color *fg = &style->fg;
@@ -101,18 +102,18 @@ fprintf(stderr, "%d + %d  %d + %d\n",
 	w = ink_w + 2 * style->pad;
 	h = ink_h + 2 * style->pad;
 
-	sx = *x;
-	sy = *y;
-	if (sx < 0 || sy < 0) {
+	sx = x;
+	sy = y;
+	if (dx < 0 || dy < 0) {
 		double x1, y1, x2, y2;
 		int sw, sh;
 
 		cairo_clip_extents(cr, &x1, &y1, &x2, &y2);
 		sw = x2 - x1;
 		sh = y2 - y1;
-		if (sx < 0)
+		if (dx < 0)
 			sx = sw + sx - w;
-		if (sy < 0)
+		if (dy < 0)
 			sy = sh + sy - h;
 	}
 
@@ -156,7 +157,7 @@ fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->
 	cairo_reset_clip(cr);
 	g_object_unref(layout);
 
-	if (over->hover || over->click) {
+	if (over->hover || over->click || over->drag) {
 		struct aoi aoi_cfg = {
 			.x	= sx,
 			.y	= sy,
@@ -174,21 +175,37 @@ fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->
 			over->aoi = aoi_add(over->aois, &aoi_cfg);
 	}
 
-	if (*y >= 0)
-		*y += h + style->skip;
-	else
-		*y -= h + style->skip;
+	return h;
+}
 
-	return over->next;
+
+void overlay_draw_all_d(struct overlay *overlays, cairo_t *cr,
+    unsigned x, unsigned y, int dx, int dy)
+{
+	struct overlay *over;
+	unsigned h;
+
+	for (over = overlays; over; over = over->next) {
+		h = overlay_draw(over, cr, x, y, dx, dy);
+		y += dy * (h + over->style.skip);
+	}
 }
 
 
 void overlay_draw_all(struct overlay *overlays, cairo_t *cr, int x, int y)
 {
-	struct overlay *over;
+	int dx = 1;
+	int dy = 1;
 
-	for (over = overlays; over; over = over->next)
-		overlay_draw(over, cr, &x, &y);
+	if (x < 0) {
+		x = -x;
+		dx = -1;
+	}
+	if (y < 0) {
+		y = -y;
+		dy = -1;
+	}
+	overlay_draw_all_d(overlays, cr, x, y, dx, dy);
 }
 
 
