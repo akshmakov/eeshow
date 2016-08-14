@@ -74,6 +74,7 @@ struct gui_hist {
 	int libs_open;
 	struct sch_ctx sch_ctx;
 	struct lib lib;		/* combined library */
+	bool identical;		/* identical with previous entry */
 
 	struct gui_hist *next;
 };
@@ -467,6 +468,10 @@ static void set_history_style(struct gui_hist *h, bool current)
 		if (h == old)
 			style.bg = COLOR(BG_OLD);
 	}
+
+	if (h->identical)
+		style.fg = RGBA(0.5, 0.5, 0.5, 1);
+
 	overlay_style(h->over, &style);
 }
 
@@ -1212,7 +1217,7 @@ static struct gui_sheet *get_sheets(struct gui_ctx *ctx,
  */
 
 static const struct sheet *parse_files(struct gui_hist *hist,
-    int n_args, char **args, bool recurse, const struct gui_hist *prev)
+    int n_args, char **args, bool recurse, struct gui_hist *prev)
 {
 	char *rev = NULL;
 	struct file sch_file;
@@ -1269,6 +1274,9 @@ static const struct sheet *parse_files(struct gui_hist *hist,
 		file_close(lib_files + i);
 	file_close(&sch_file);
 
+	if (prev && sheet_eq(prev->sch_ctx.sheets, hist->sch_ctx.sheets))
+		prev->identical = 1;
+
 	/*
 	 * @@@ we have a major memory leak for the component library.
 	 * We should record parsed schematics and libraries separately, so
@@ -1319,6 +1327,7 @@ static void add_hist(void *user, struct hist *h)
 	hist = alloc_type(struct gui_hist);
 	hist->ctx = ctx;
 	hist->vcs_hist = h;
+	hist->identical = 0;
 	sch = parse_files(hist, ahc->n_args, ahc->args, ahc->recurse, prev);
 	hist->sheets = sch ? get_sheets(ctx, sch) : NULL;
 	hist->age = age;
