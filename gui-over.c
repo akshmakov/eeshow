@@ -101,18 +101,10 @@ fprintf(stderr, "%d + %d  %d + %d\n",
 	w = ink_w + 2 * style->pad;
 	h = ink_h + 2 * style->pad;
 
-	if (dx < 0 || dy < 0) {
-		double x1, y1, x2, y2;
-		int sw, sh;
-
-		cairo_clip_extents(cr, &x1, &y1, &x2, &y2);
-		sw = x2 - x1;
-		sh = y2 - y1;
-		if (dx < 0)
-			x = sw - x - w;
-		if (dy < 0)
-			y = sh - y - h;
-	}
+	if (dx < 0)
+		x -= w;
+	if (dy < 0)
+		y -= h;
 
 	tx = x - ink_rect.x / PANGO_SCALE + style->pad;
 	ty = y - ink_rect.y / PANGO_SCALE + style->pad;
@@ -194,14 +186,23 @@ void overlay_draw_all(struct overlay *overlays, cairo_t *cr, int x, int y)
 	int dx = 1;
 	int dy = 1;
 
-	if (x < 0) {
-		x = -x;
-		dx = -1;
+	if (x < 0 || y < 0) {
+		double x1, y1, x2, y2;
+		int sw, sh;
+
+		cairo_clip_extents(cr, &x1, &y1, &x2, &y2);
+		sw = x2 - x1;
+		sh = y2 - y1;
+		if (x < 0) {
+			x = sw + x;
+			dx = -1;
+		}
+		if (y < 0) {
+			y = sh + y;
+			dy = -1;
+		}
 	}
-	if (y < 0) {
-		y = -y;
-		dy = -1;
-	}
+
 	overlay_draw_all_d(overlays, cr, x, y, dx, dy);
 }
 
