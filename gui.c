@@ -1023,9 +1023,9 @@ static bool hover_glabel(void *user, bool on)
 	overlay_remove_all(&ctx->pop_overlays);
 	for (sheet = ctx->new_hist->sheets; sheet; sheet = sheet->next) {
 		n++;
+		if (sheet == curr_sheet)
+			continue;
 		for (obj = sheet->sch->objs; obj; obj = obj->next) {
-			if (sheet == curr_sheet)
-				continue;
 			if (obj->type != sch_obj_glabel)
 				continue;
 			if (strcmp(obj->u.text.s, aoi_ctx->obj->u.text.s))
