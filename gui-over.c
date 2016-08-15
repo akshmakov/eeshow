@@ -49,7 +49,7 @@ struct overlay {
 
 	struct aoi *aoi;
 
-	struct overlay *next;
+	struct overlay *next, *prev;
 };
 
 
@@ -171,12 +171,20 @@ fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->
 void overlay_draw_all_d(struct overlay *overlays, cairo_t *cr,
     unsigned x, unsigned y, int dx, int dy)
 {
-	struct overlay *over;
+	struct overlay *over = overlays;
 	unsigned h;
 
-	for (over = overlays; over; over = over->next) {
+	if (dy < 0)
+		while (over && over->next)
+			over = over->next;
+	while (over) {
 		h = overlay_draw(over, cr, x, y, dx, dy);
 		y += dy * (h + over->style.skip);
+		if (dy >= 0)
+			over = over->next;
+		else
+			over = over->prev;
+		
 	}
 }
 
@@ -210,7 +218,7 @@ void overlay_draw_all(struct overlay *overlays, cairo_t *cr, int x, int y)
 struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
     bool (*hover)(void *user, bool on), void (*click)(void *user), void *user)
 {
-	struct overlay *over;
+	struct overlay *over, *prev;
 	struct overlay **anchor;
 
 	over = alloc_type(struct overlay);
@@ -223,8 +231,11 @@ struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
 	over->user = user;
 	over->aoi = NULL;
 
-	for (anchor = overlays; *anchor; anchor = &(*anchor)->next);
+	prev = NULL;
+	for (anchor = overlays; *anchor; anchor = &(*anchor)->next)
+		prev = *anchor;
 	over->next = NULL;
+	over->prev = prev;
 	*anchor = over;
 
 	return over;
@@ -272,15 +283,13 @@ static void overlay_free(struct overlay *over)
 
 void overlay_remove(struct overlay **overlays, struct overlay *over)
 {
-	struct overlay **anchor;
-
-	for (anchor = overlays; *anchor; anchor = &(*anchor)->next)
-		if (*anchor == over) {
-			*anchor = over->next;
-			overlay_free(over);
-			return;
-		}
-	abort();
+	if (over->next)
+		over->next->prev = over->prev;
+	if (over->prev)
+		over->prev->next = over->next;
+	else
+		*overlays = over->next;
+	overlay_free(over);
 }
 
 
