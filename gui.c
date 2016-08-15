@@ -475,6 +475,8 @@ static void set_history_style(struct gui_hist *h, bool current)
 
 	if (h->identical)
 		style.fg = RGBA(0.5, 0.5, 0.5, 1);
+	if (!h->sheets)
+		style.fg = RGBA(0.7, 0.0, 0.0, 1);
 
 	overlay_style(h->over, &style);
 }
