@@ -287,6 +287,8 @@ static bool obj_eq(const struct sch_obj *a, const struct sch_obj *b,
 			return 0;
 		if (!recurse)
 			return 1;
+		if (a->u.sheet.error != b->u.sheet.error)
+			return 0;
 		return sheet_eq(a->u.sheet.sheet, b->u.sheet.sheet);
 	default:
 		abort();

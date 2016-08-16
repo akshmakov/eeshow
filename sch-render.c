@@ -118,7 +118,8 @@ static void render_sheet(const struct sch_obj *obj,
 	const struct sheet_field *field;
 
 	gfx_rect(obj->x, obj->y, obj->x + sheet->w, obj->y + sheet->h,
-	    COLOR_HSHEET_BOX, COLOR_NONE, LAYER_HSHEET_BOX);
+	    COLOR_HSHEET_BOX, sheet->error ? COLOR_MISSING_BG : COLOR_NONE,
+	    LAYER_HSHEET_BOX);
 	do_hsheet_text(obj, sheet);
 
 	for (field = sheet->fields; field; field = field->next)

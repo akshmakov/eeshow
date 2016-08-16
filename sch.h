@@ -79,6 +79,7 @@ struct sch_obj {
 			const char *file;
 			unsigned file_dim;
 			bool rotated;
+			bool error;	/* if set, sheet == NULL */
 			const struct sheet *sheet;
 				/* pointer to sub-sheet; NULL if absent */
 

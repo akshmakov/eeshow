@@ -516,13 +516,14 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 			struct sch_obj *sheet_obj;
 
 			sheet_obj = submit_obj(ctx, sch_obj_sheet);
+			sheet_obj->u.sheet.error = 0;
 			if (ctx->recurse) {
 				struct sheet *sheet;
 
 				sheet = recurse_sheet(ctx, file);
 				if (!sheet)
-					return 0;
-				if (sheet_obj->u.sheet.name) {
+					sheet_obj->u.sheet.error = 1;
+				if (sheet && sheet_obj->u.sheet.name) {
 					free((char *) sheet->title);
 					sheet->title =
 					    stralloc(sheet_obj->u.sheet.name);
