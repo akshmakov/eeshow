@@ -146,6 +146,10 @@ bool aoi_down(const struct aoi *aois, int x, int y)
 	clicked = find_aoi(aois, x, y);
 	if (!clicked)
 		return 0;
+	if (!clicked->click) {
+		clicked = NULL;
+		return 0;
+	}
 
 	clicked_x = x;
 	clicked_y = y;
