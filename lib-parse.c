@@ -29,6 +29,8 @@ static enum text_style decode_style(const char *s)
 {
 	if (!strcmp(s, "Normal"))
 		return text_normal;
+	if (!strcmp(s, "Italic"))
+		return text_italic;
 	assert(0);
 }
 

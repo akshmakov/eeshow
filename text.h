@@ -25,6 +25,7 @@ enum text_align {
 
 enum text_style {
 	text_normal,
+	text_italic,
 };
 
 struct text {
