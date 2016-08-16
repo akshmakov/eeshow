@@ -403,7 +403,8 @@ static void missing_component(const int m[4])
 }
 
 
-void lib_render(const struct comp *comp, unsigned unit, const int m[4])
+void lib_render(const struct comp *comp, unsigned unit, unsigned convert,
+    const int m[4])
 {
 	const struct lib_obj *obj;
 
@@ -415,6 +416,8 @@ void lib_render(const struct comp *comp, unsigned unit, const int m[4])
 		unit = 1;
 	for (obj = comp->objs; obj; obj = obj->next) {
 		if (obj->unit && obj->unit != unit)
+			continue;
+		if (obj->convert && obj->convert != convert)
 			continue;
 		draw(comp, obj, m);
 	}

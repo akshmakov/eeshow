@@ -162,7 +162,8 @@ void sch_render(const struct sheet *sheet)
 				const struct sch_comp *comp = &obj->u.comp;
 				const struct comp_field *field;
 
-				lib_render(comp->comp, comp->unit, comp->m);
+				lib_render(comp->comp, comp->unit,
+				    comp->convert, comp->m);
 				for (field = comp->fields; field;
 				    field = field->next)
 					dump_field(field, comp->m);

@@ -263,6 +263,8 @@ static bool obj_eq(const struct sch_obj *a, const struct sch_obj *b,
 			return 0;
 		if (a->u.comp.unit != b->u.comp.unit)
 			return 0;
+		if (a->u.comp.convert != b->u.comp.convert)
+			return 0;
 		if (memcmp(a->u.comp.m, b->u.comp.m, sizeof(a->u.comp.m)))
 			return 0;
 		return comp_fields_eq(a->u.comp.fields, b->u.comp.fields);

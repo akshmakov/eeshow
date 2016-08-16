@@ -65,6 +65,7 @@ struct sch_obj {
 		struct sch_comp {
 			const struct comp *comp; /* current component */
 			unsigned unit;	/* unit of current component */
+			unsigned convert;/* "De Morgan"  selection */
 			struct comp_field {
 				struct text txt;
 				struct comp_field *next;

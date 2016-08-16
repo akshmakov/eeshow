@@ -491,7 +491,8 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 			free(s);
 			return 1;
 		}
-		if (sscanf(line, "U %u", &obj->u.comp.unit) == 1)
+		if (sscanf(line, "U %u %u",
+		    &obj->u.comp.unit, &obj->u.comp.convert) == 2)
 			return 1;
 		if (sscanf(line, "P %d %d", &obj->x, &obj->y) == 2)
 			return 1;
