@@ -4,6 +4,8 @@ Parsing and input processing:
 - parse .kicad_wks
 - on parse error, politely complain, don't terminate;
   convert abort / assert(0) to proper error indications
+- quoted strings can have embedded double quotes, with \" (see parse_field)
+- check what happens with UTF-8 (c4puter/motherboard)
 
 Data model:
 - implement destructors
