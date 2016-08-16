@@ -44,7 +44,7 @@
 #define	ONLY_NEW	0x00c000
 #define	BOTH		0x707070
 
-#define	AREA_FILL	0xffffc8
+#define	AREA_FILL	0xffd0f0
 
 
 
