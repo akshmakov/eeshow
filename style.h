@@ -97,5 +97,6 @@
 #define	MISSING_HEIGHT		300
 
 extern uint32_t color_rgb[];
+extern unsigned n_color_rgb;
 
 #endif /* !STYLE_H */

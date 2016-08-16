@@ -201,10 +201,12 @@ static void fig_header(void)
 }
 
 
-static void fig_color32(void)
+static void fig_colors(void)
 {
-	/* User32, COLOR_DARK_YELLOW */
-	printf("0 32 #848400\n");
+	unsigned i;
+
+	for (i = 32; i != n_color_rgb; i++)
+		printf("0 %d #%06x\n", i, color_rgb[i]);
 
 }
 
@@ -266,7 +268,7 @@ static void *fig_init(int argc, char *const *argv)
 
 	if (!template) {
 		fig_header();
-		fig_color32();
+		fig_colors();
 		return NULL;
 	}
 
@@ -279,7 +281,7 @@ static void *fig_init(int argc, char *const *argv)
 		if (*buf == '#')
 			continue;
 		if (!--lines_to_colors)
-			fig_color32();
+			fig_colors();
 		/*
 		 * @@@ known bug: if the template is empty, we won't output
 		 * color 32.

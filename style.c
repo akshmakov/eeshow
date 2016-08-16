@@ -12,6 +12,7 @@
 
 #include <stdint.h>
 
+#include "util.h"
 #include "style.h"
 
 
@@ -37,3 +38,5 @@ uint32_t color_rgb[] = {
 	[COLOR_DARK_YELLOW]	= 0x848400,
 	[COLOR_LIGHT_GREY]	= 0xd0d0d0,
 };
+
+unsigned n_color_rgb = ARRAY_ELEMENTS(color_rgb);
