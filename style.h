@@ -37,10 +37,11 @@
 #define	COLOR_PINK4		27
 
 #define	COLOR_DARK_YELLOW	32	/* user-defined */
-#define	COLOR_LIGHT_GREY	33	/* user-defined, not used for FIG */
+#define	COLOR_LIGHT_GREY	33	/* user-defined, not used by FIG */
+#define	COLOR_LIGHT_YELLOW	34	/* user-defined */
 
 #define	COLOR_COMP_DWG		COLOR_RED4
-#define	COLOR_COMP_DWG_BG	COLOR_YELLOW
+#define	COLOR_COMP_DWG_BG	COLOR_LIGHT_YELLOW
 #define	COLOR_SHEET_DWG		COLOR_BLUE
 #define	COLOR_TEXT		COLOR_BLUE
 #define	COLOR_WIRE		COLOR_GREEN4
