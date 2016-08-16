@@ -220,12 +220,13 @@ bool file_read(struct file *file,
     bool (*parse)(const struct file *file, void *user, const char *line),
     void *user)
 {
-	char buf[1000];
+	static char *buf = NULL;
+	static size_t n = 0;
 	char *nl;
 
 	if (file->vcs)
 		return vcs_read(file->vcs, file, parse, user);
-	while (fgets(buf, sizeof(buf), file->file)) {
+	while (getline(&buf, &n, file->file) > 0) {
 		nl = strchr(buf, '\n');
 		if (nl)
 			*nl = 0;
