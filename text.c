@@ -99,9 +99,15 @@ void text_fig(const struct text *txt, int color, unsigned layer)
 	const char *s;
 	int x = txt->x;
 	int y = txt->y;
+	unsigned multiline = 0;
 
-	x += rx(0, align(txt->size, txt->vert), txt->rot);
-	y += ry(0, align(txt->size, txt->vert), txt->rot);
+	for (s = txt->s; *s; s++)
+		if (*s == '\n')
+			multiline += NEWLINE_SKIP * txt->size;
+	x += rx(0, align(txt->size + multiline, txt->vert) - multiline,
+	    txt->rot);
+	y += ry(0, align(txt->size + multiline, txt->vert) - multiline,
+	    txt->rot);
 	while (1) {
 		s = strtok(tmp, "\n");
 		if (!s)
