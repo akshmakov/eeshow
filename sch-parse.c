@@ -99,6 +99,9 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 	char hv, hor, vert, italic, bold;
 	struct comp_field *field;
 	struct text *txt;
+	char *s;
+	const char *p;
+	int pos, len;
 
 	field = alloc_type(struct comp_field);
 	txt = &field->txt;
@@ -110,10 +113,27 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 		free(field);
 		return 1;
 	}
-	if (sscanf(line, "F %d \"%m[^\"]\" %c %d %d %u %u %c %c%c%c",
-	    &n, &txt->s, &hv, &txt->x, &txt->y, &txt->size, &flags,
-	    &hor, &vert, &italic, &bold) != 11)
+
+	if (sscanf(line, "F %d \"%n", &n, &pos) != 1)
 		return 0;
+	for (p = line + pos; *p && *p != '"'; p++)
+		if (*p == '\\' && p[1])
+			p++;
+	if (*p != '"')
+		return 0;
+
+	len = p - (line + pos);
+	s = alloc_size(len + 1);
+	memcpy(s, line + pos, len);
+	s[len] = 0;
+
+	if (sscanf(p + 1, " %c %d %d %u %u %c %c%c%c",
+	    &hv, &txt->x, &txt->y, &txt->size, &flags,
+	    &hor, &vert, &italic, &bold) != 9) {
+		free(s);
+		return 0;
+	}
+	txt->s = s;
 
 	if (flags) {
 /*
@@ -128,9 +148,7 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 	}
 
 	if (n == 0 && comp->comp && comp->comp->units > 1) {
-		int len = strlen(txt->s);
-		char *s;
-
+		len = strlen(txt->s);
 		s = realloc((void *) txt->s, len + 3);
 		if (!s)
 			diag_pfatal("realloc");
