@@ -181,6 +181,8 @@ static void cr_arc(void *ctx, int x, int y, int r, int sa, int ea,
 	cairo_new_path(cc->cr);
 	cairo_arc(cc->cr, cx(cc, x), cy(cc, y), cd(cc, r),
 	    -ea / 180.0 * M_PI, -sa / 180.0 * M_PI);
+	if (fill_color != COLOR_NONE)
+		cairo_close_path(cc->cr);
 	paint(cc, color, fill_color);
 }
 
