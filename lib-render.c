@@ -131,10 +131,28 @@ static void draw_arc(const struct lib_arc *arc, const int m[6])
 		}
 	}
 
+	/*
+	 * cr_arc (and maybe others) close the arc if filling, so we supply a
+	 * foreground color as well. Other objects are closed and don't need
+	 * need a foreground color when filling.
+	 */
+	switch (arc->fill) {
+	case 'N':
+		break;
+	case 'F':
+		gfx_arc(x, y, arc->r, sa, ea,
+		    COLOR_COMP_DWG, COLOR_COMP_DWG, LAYER_COMP_DWG_BG);
+		break;
+	case 'f':
+		gfx_arc(x, y, arc->r, sa, ea,
+		    COLOR_COMP_DWG_BG, COLOR_COMP_DWG_BG, LAYER_COMP_DWG_BG);
+		break;
+	default:
+		assert(0);
+	}
+
 	gfx_arc(x, y, arc->r, sa, ea,
 	    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
-
-	assert(arc->fill == 'N');
 }
 
 
