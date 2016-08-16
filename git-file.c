@@ -264,7 +264,8 @@ static git_tree_entry *find_file(git_repository *repo, git_tree *tree,
     const char *path)
 {
 	git_tree_entry *entry;
-	char *repo_path = stralloc(git_repository_path(repo));
+	char *repo_path = stralloc(git_repository_workdir(repo));
+		/* use workdir, not path, for submodules */
 	char *slash, *canon_path;
 	int len;
 
