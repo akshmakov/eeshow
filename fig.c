@@ -237,13 +237,14 @@ static bool apply_vars(char *buf, int n_vars, const char **vars)
 
 static void *fig_init(int argc, char *const *argv)
 {
+	static char *buf = NULL;
+	static size_t n = 0;
 	const char *template = NULL;
 	const char **vars = NULL;
 	int n_vars = 0;
 	char c;
 	int arg;
 	FILE *file;
-	char buf[1000];
 	int lines_to_colors = 8;
 
 	while ((c = getopt(argc, argv, "t:")) != EOF)
@@ -272,7 +273,7 @@ static void *fig_init(int argc, char *const *argv)
 	file = fopen(template, "r");
 	if (!file)
 		diag_pfatal(template);
-	while (fgets(buf, sizeof(buf), file)) {
+	while (getline(&buf, &n, file) > 0) {
 		while (apply_vars(buf, n_vars, vars));
 		printf("%s", buf);
 		if (*buf == '#')
