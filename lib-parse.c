@@ -62,14 +62,18 @@ static bool parse_poly(struct lib_poly *poly, const char *line, int points)
 
 static bool parse_def(struct lib *lib, const char *line)
 {
-	char *s;
+	char *s, *ref;
 	char draw_num, draw_name;
 	unsigned name_offset;
 	unsigned units;
+	bool power;
 
-	if (sscanf(line, "DEF %ms %*s %*d %u %c %c %u",
-	    &s, &name_offset, &draw_num, &draw_name, &units) != 5)
+	if (sscanf(line, "DEF %ms %ms %*d %u %c %c %u",
+	    &s, &ref, &name_offset, &draw_num, &draw_name, &units) != 6)
 		return 0;
+
+	power = *ref == '#';
+	free(ref);
 
 	lib->curr_comp = alloc_type(struct comp);
 	if (*s == '~') {
@@ -85,8 +89,8 @@ static bool parse_def(struct lib *lib, const char *line)
 	lib->curr_comp->units = units;
 
 	lib->curr_comp->visible = 0;
-	lib->curr_comp->show_pin_name = draw_name == 'Y';
-	lib->curr_comp->show_pin_num = draw_num == 'Y';
+	lib->curr_comp->show_pin_name = draw_name == 'Y' && !power;
+	lib->curr_comp->show_pin_num = draw_num == 'Y' && !power;
 	lib->curr_comp->name_offset = name_offset;
 
 	lib->curr_comp->objs = NULL;
