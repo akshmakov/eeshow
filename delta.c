@@ -303,8 +303,12 @@ bool sheet_eq(const struct sheet *a, const struct sheet *b)
 	if (!(a && b))
 		return 0;
 
-	if (a->title != b->title && strcmp(a->title, b->title))
-		return 0;
+	if (a->title != b->title) {
+		if (!a->title || !b->title)
+			return 0;
+		if (strcmp(a->title, b->title))
+			return 0;
+	}
 
 	obj_a = a->objs;
 	obj_b = b->objs;
