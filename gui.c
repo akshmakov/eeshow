@@ -777,6 +777,9 @@ static bool go_next_sheet(struct gui_ctx *ctx)
 /* ----- Event handlers ---------------------------------------------------- */
 
 
+static bool botton_1_down = 0;
+
+
 static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
     gpointer data)
 {
@@ -812,6 +815,14 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event,
 
 	switch (event->button) {
 	case 1:
+		/*
+		 * Double-click is sent as down-down-up, confusing the AoI
+		 * logic that assumes each "down" to have a matching "up".
+		 */
+		if (botton_1_down)
+			return TRUE;
+		botton_1_down = 1;
+
 		if (aoi_down(ctx->aois, event->x, event->y))
 			break;
 		if (aoi_down(curr_sheet->aois,
@@ -843,6 +854,8 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event,
 
 	switch (event->button) {
 	case 1:
+		botton_1_down = 0;
+
 		if (aoi_up(ctx->aois, event->x, event->y))
 			break;
 		if (aoi_up(curr_sheet->aois,
