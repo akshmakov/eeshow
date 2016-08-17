@@ -562,6 +562,42 @@ static void drag_overlay(void *user, int dx, int dy)
 }
 
 
+static void ignore_click(void *user)
+{
+}
+
+
+static struct gui_hist *skip_history(struct gui_ctx *ctx, struct gui_hist *h)
+{
+	struct overlay_style style = overlay_style_dense;
+	unsigned n;
+
+	/* don't skip the first entry */
+	if (h == ctx->hist)
+		return h;
+
+	/* need at least two entries */
+	if (!h->identical || !h->next || !h->next->identical)
+		return h;
+
+	/* don't skip the last entry */
+	for (n = 0; h->next && h->identical; h = h->next)
+		n++;
+
+	h->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
+	    NULL, ignore_click, h);
+	overlay_draggable(h->over, drag_overlay);
+	overlay_text(h->over, "<small>%u commits without changes</small>", n);
+
+	style.width = 0;
+	style.pad = 0;
+	style.bg = RGBA(1.0, 1.0, 1.0, 0.8);
+	overlay_style(h->over, &style);
+
+	return h;
+}
+
+
 static void show_history(struct gui_ctx *ctx, enum selecting sel)
 {
 	struct gui_hist *h = ctx->hist;
@@ -571,6 +607,7 @@ static void show_history(struct gui_ctx *ctx, enum selecting sel)
 	ctx->selecting = sel;
 	overlay_remove_all(&ctx->hist_overlays);
 	for (h = ctx->hist; h; h = h->next) {
+		h = skip_history(ctx, h);
 		h->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
 		    hover_history, click_history, h);
 		overlay_draggable(h->over, drag_overlay);
