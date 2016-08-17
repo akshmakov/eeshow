@@ -40,14 +40,16 @@ void diag_perror(const char *s);
  * E.g., out of memory.
  */
 
-void __attribute__((noreturn)) fatal(const char *fmt, ...);
+void __attribute__((noreturn)) fatal(const char *fmt, ...)
+    __attribute__((format(printf, 1, 2)));
 
 /*
  * Operation has failed, but the program as a whole may still be able to
  * continue. E.g., a schematics component was not found.
  */
 
-void error(const char *fmt, ...);
+void error(const char *fmt, ...)
+    __attribute__((format(printf, 1, 2)));
 
 /*
  * A minor operation has failed or some other issue was detected. This may
@@ -55,13 +57,15 @@ void error(const char *fmt, ...);
  * operation.
  */
 
-void warning(const char *fmt, ...);
+void warning(const char *fmt, ...)
+    __attribute__((format(printf, 1, 2)));
 
 /*
  * Progress message, used mainly for debugging. "level" is the minimum
  * verbosity level required.
  */
 
-void progress(unsigned level, const char *fmt, ...);
+void progress(unsigned level, const char *fmt, ...)
+    __attribute__((format(printf, 2, 3)));
 
 #endif /* !DIAG_H */
