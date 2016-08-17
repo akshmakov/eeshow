@@ -19,6 +19,7 @@
 
 unsigned vsfmt_pango(char *buf, const char *fmt, va_list ap);
 char *vfmt_pango(const char *fmt, va_list ap);
-char *fmt_pango(const char *fmt, ...);
+char *fmt_pango(const char *fmt, ...)
+    __attribute__((format(printf, 1, 2)));
 
 #endif /* !FMT_PANGO_H */

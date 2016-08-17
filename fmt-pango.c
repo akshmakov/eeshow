@@ -102,6 +102,12 @@ unsigned vsfmt_pango(char *buf, const char *fmt, va_list ap)
 				memcpy(res, tmp, len);
 			res += len;
 			break;
+		case 'u':
+			len = asprintf(&tmp, tmp_fmt, va_arg(ap, unsigned));
+			if (buf)
+				memcpy(res, tmp, len);
+			res += len;
+			break;
 		case '%':
 			if (buf)
 				*res = '%';
