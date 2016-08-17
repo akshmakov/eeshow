@@ -1,5 +1,5 @@
 /*
- * gui-over.h - GUI: overlays
+ * gui/over.h - GUI: overlays
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -18,7 +18,7 @@
 
 #include <cairo/cairo.h>
 
-#include "gui-aoi.h"
+#include "gui/aoi.h"
 
 
 struct color {

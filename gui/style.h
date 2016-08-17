@@ -1,5 +1,5 @@
 /*
- * gui-style.h - GUI: overlay styles
+ * gui/style.h - GUI: overlay styles
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -13,7 +13,7 @@
 #ifndef GUI_STYLE_H
 #define	GUI_STYLE_H
 
-#include "gui-over.h"
+#include "gui/over.h"
 
 
 #define	NORMAL_FONT	"Helvetica 10"

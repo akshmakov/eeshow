@@ -1,5 +1,5 @@
 /*
- * gui.c - GUI for eeshow
+ * gui/gui.c - GUI for eeshow
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -38,10 +38,10 @@
 #include "delta.h"
 #include "diff.h"
 #include "dwg.h"
-#include "gui-aoi.h"
-#include "gui-style.h"
-#include "gui-over.h"
-#include "gui.h"
+#include "gui/aoi.h"
+#include "gui/style.h"
+#include "gui/over.h"
+#include "gui/gui.h"
 
 
 struct gui_ctx;

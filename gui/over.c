@@ -1,5 +1,5 @@
 /*
- * gui-over.c - GUI: overlays
+ * gui/over.c - GUI: overlays
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -32,9 +32,9 @@
 
 #include "util.h"
 #include "fmt-pango.h"
-#include "gui-aoi.h"
-#include "gui-style.h"
-#include "gui-over.h"
+#include "gui/aoi.h"
+#include "gui/style.h"
+#include "gui/over.h"
 
 
 struct overlay {

@@ -30,7 +30,7 @@
 #include "sch.h"
 #include "fmt-pango.h"
 #include "git-hist.h"
-#include "gui.h"
+#include "gui/gui.h"
 #include "main.h"
 
 

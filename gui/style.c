@@ -1,5 +1,5 @@
 /*
- * gui-style.c - GUI: overlay styles
+ * gui/style.c - GUI: overlay styles
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -10,7 +10,7 @@
  * (at your option) any later version.
  */
 
-#include "gui-style.h"
+#include "gui/style.h"
 
 
 #define	OVER_BORDER	8

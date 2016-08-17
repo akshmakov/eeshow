@@ -1,5 +1,5 @@
 /*
- * gui-aoi.h - GUI: areas of interest
+ * gui/aoi.h - GUI: areas of interest
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger

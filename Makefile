@@ -12,12 +12,13 @@
 
 NAME = eeshow
 OBJS = main.o sch-parse.o sch-render.o lib-parse.o lib-render.o \
-       gui.o gui-over.o gui-style.o gui-aoi.o fmt-pango.o \
+       gui/gui.o gui/over.o gui/style.o gui/aoi.o fmt-pango.o \
        file.o git-util.o git-file.o git-hist.o delta.o \
        style.o fig.o record.o cro.o diff.o gfx.o dwg.o text.o misc.o diag.o
 
 CFLAGS = -g  -Wall -Wextra -Wno-unused-parameter -Wshadow \
 	 -Wmissing-prototypes -Wmissing-declarations \
+	 -I. \
 	 `pkg-config --cflags cairo` \
 	 `pkg-config --cflags libgit2` \
 	 `pkg-config --cflags gtk+-3.0`

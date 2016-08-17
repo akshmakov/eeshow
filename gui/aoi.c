@@ -1,5 +1,5 @@
 /*
- * gui-aoi.c - GUI: areas of interest
+ * gui/aoi.c - GUI: areas of interest
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -22,7 +22,7 @@
 #include <assert.h>
 
 #include "util.h"
-#include "gui-aoi.h"
+#include "gui/aoi.h"
 
 
 #define	DRAG_RADIUS	5

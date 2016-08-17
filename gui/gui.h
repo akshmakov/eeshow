@@ -1,5 +1,5 @@
 /*
- * gui.h - GUI for eeshow
+ * gui/gui.h - GUI for eeshow
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -10,8 +10,8 @@
  * (at your option) any later version.
  */
 
-#ifndef GUI_H
-#define	GUI_H
+#ifndef GUI_GUI_H
+#define	GUI_GUI_H
 
 #include <stdbool.h>
 
@@ -22,4 +22,4 @@
 
 int gui(unsigned n_args, char **args, bool recurse, int limit);
 
-#endif /* !GUI_H */
+#endif /* !GUI_GUI_H */
