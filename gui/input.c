@@ -42,7 +42,7 @@ static struct input {
 } *sp = NULL;
 
 static int curr_x, curr_y;		/* last mouse position */
-static int clicked_x, clicked_y;	/* button down position */
+static double clicked_x, clicked_y;	/* button down position */
 
 
 /* ----- Debugging tools --------------------------------------------------- */
