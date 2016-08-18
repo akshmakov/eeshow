@@ -780,12 +780,11 @@ static bool sheet_click(void *user, int x, int y)
 
 	canvas_coord(ctx, x, y, &ex, &ey);
 
-	if (aoi_down(ctx->aois, x, y))
-		return aoi_up(ctx->aois, x, y);
-	if (aoi_down(curr_sheet->aois,
+	if (aoi_click(ctx->aois, x, y))
+		return 1;
+	if (aoi_click(curr_sheet->aois,
 	    ex + curr_sheet->xmin, ey + curr_sheet->ymin))
-		return aoi_up(curr_sheet->aois,
-		    ex + curr_sheet->xmin, ey + curr_sheet->ymin);
+		return 1;
 
 	if (ctx->showing_history)
 		hide_history(ctx);
@@ -803,11 +802,6 @@ static bool sheet_hover_update(void *user, int x, int y)
 
 	canvas_coord(ctx, x, y, &ex, &ey);
 
-	if (aoi_move(ctx->aois, x, y))
-		return 1;
-	if (aoi_move(curr_sheet->aois,
-            ex + curr_sheet->xmin, ey + curr_sheet->ymin))
-		return 1;
 	if (aoi_hover(ctx->aois, x, y))
 		return 1;
 	return aoi_hover(curr_sheet->aois,
