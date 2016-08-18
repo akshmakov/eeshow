@@ -34,6 +34,7 @@ static struct input {
 		input_clicking,
 		input_ignoring,	/* click rejected by moving the cursor */
 		input_hovering,
+		input_hovering_down, /* mouse button is pressed */
 		input_dragging,
 	} state;
 
@@ -58,6 +59,8 @@ static const char *state(void)
 		return "IGNORING";
 	case input_hovering:
 		return "HOVERING";
+	case input_hovering_down:
+		return "HOVERING_DOWN";
 	case input_dragging:
 		return "DRAGGING";
 	default:
@@ -67,6 +70,22 @@ static const char *state(void)
 
 
 /* ----- Mouse button ------------------------------------------------------ */
+
+
+static bool begin_drag(const GdkEventMotion *event)
+{
+	const struct input *old_sp = sp;
+
+	if (hypot(event->x - clicked_x, event->y - clicked_y) < DRAG_RADIUS)
+		return 0;
+	if (sp->ops->drag_begin &&
+	    sp->ops->drag_begin(sp->user, clicked_x, clicked_y))
+		sp->state = input_dragging;
+	else
+		sp->state = input_ignoring;
+	assert(sp == old_sp);
+	return 1;
+}
 
 
 static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
@@ -90,18 +109,17 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
 		assert(sp == old_sp);
 		break;
 	case input_clicking:
-		if (hypot(event->x - clicked_x, event->y - clicked_y) <
-		    DRAG_RADIUS)
-			break;
-		if (sp->ops->drag_begin &&
-		    sp->ops->drag_begin(sp->user, clicked_x, clicked_y))
-			sp->state = input_dragging;
-		else
-			sp->state = input_ignoring;
-		assert(sp == old_sp);
+		begin_drag(event);
 		break;
 	case input_ignoring:
 		break;
+	case input_hovering_down:
+		if (begin_drag(event)) {
+			if (sp->ops->hover_end)
+				sp->ops->hover_end(sp->user);
+			break;
+		}
+		/* fall through */
 	case input_hovering:
 		if (!sp->ops->hover_update)
 			break;
@@ -109,7 +127,8 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
 		/* Caution: hover_update may switch input layers */
 		if (!sp->ops->hover_update(sp->user, event->x, event->y) &&
 		    sp == old_sp) {
-			sp->state = input_idle;
+			sp->state = sp->state == input_hovering ? input_idle :
+			    input_clicking;
 			if (sp->ops->hover_end)
 				sp->ops->hover_end(sp->user);
 		}
@@ -131,8 +150,6 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
 static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event,
     gpointer data)
 {
-	const struct input *old_sp = sp;
-
 	if (event->button != 1)
 		return TRUE;
 
@@ -147,16 +164,13 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event,
 	case input_clicking:
 	case input_ignoring:
 	case input_dragging:
+	case input_hovering_down:
 		/* ignore double-click */
 		break;
 	case input_hovering:
-		if (sp->ops->hover_click &&
-		    sp->ops->hover_click(sp->user, event->x, event->y) &&
-		    sp == old_sp) {
-			sp->state = input_ignoring;
-			if (sp->ops->hover_end)
-				sp->ops->hover_end(sp->user);
-		}
+		sp->state = input_hovering_down;
+		clicked_x = event->x;
+		clicked_y = event->y;
 		break;
 	default:
 		abort();
@@ -169,6 +183,8 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event,
 static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event,
     gpointer data)
 {
+	const struct input *old_sp = sp;
+
 	if (event->button != 1)
 		return TRUE;
 
@@ -192,6 +208,15 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event,
 			sp->ops->drag_end(sp->user);
 		break;
 	case input_hovering:
+		break;
+	case input_hovering_down:
+		if (sp->ops->hover_click &&
+		    sp->ops->hover_click(sp->user, event->x, event->y) &&
+		    sp == old_sp) {
+			sp->state = input_ignoring;
+			if (sp->ops->hover_end)
+				sp->ops->hover_end(sp->user);
+		}
 		break;
 	default:
 		abort();
@@ -264,6 +289,8 @@ static void cleanup(void)
 	default:
 		;
 	}
+
+	sp->state = input_idle;
 }
 
 
