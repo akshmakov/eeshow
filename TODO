@@ -42,7 +42,6 @@ GUI:
 - fonts grow beyond their bounding boxes when zooming in
 - dragging can be slow. maybe reusing old content and only redrawing new
   will help ?
-- glabels: on hover, show clickable list of sheets where else label is used
 - highlight nets ?
 - we use find_corresponding_sheet way too often. Consider changing curr_sheet
   to new_sheet and old_sheet.
@@ -62,3 +61,11 @@ GUI/history
 GUI/sheets:
 - need a way to change new/old sheet association, in case automatic selection
   fails (reserved hotkeys: Left/Right)
+
+GUI/glabels:
+- draw list of destinations in nicer style
+- indicate current sheet (just for reference) among destinations
+- maybe indicate how many times label is used on each sheet
+- maybe indicate how it is used
+- highlight occurrences of label on current sheet
+- also highlight after jumping
