@@ -147,7 +147,8 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event,
 
 	switch (sp->state) {
 	case input_normal:
-		abort();
+		/* hover_click changed the input configuration */
+		break;
 	case input_clicking:
 		sp->state = input_normal;
 		if (sp->ops->click)

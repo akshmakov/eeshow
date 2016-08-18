@@ -390,6 +390,8 @@ static void do_revision_overlays(struct gui_ctx *ctx);
 
 static void hide_history(struct gui_ctx *ctx)
 {
+	input_pop();
+
 	ctx->showing_history = 0;
 	do_revision_overlays(ctx);
 	redraw(ctx);
@@ -515,16 +517,6 @@ static void click_history(void *user)
 }
 
 
-static void drag_overlay(void *user, int dx, int dy)
-{
-	const struct gui_hist *h = user;
-	struct gui_ctx *ctx = h->ctx;
-
-	ctx->hist_y_offset += dy;
-	redraw(ctx);
-}
-
-
 static void ignore_click(void *user)
 {
 }
@@ -549,7 +541,6 @@ static struct gui_hist *skip_history(struct gui_ctx *ctx, struct gui_hist *h)
 
 	h->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
 	    NULL, ignore_click, h);
-	overlay_draggable(h->over, drag_overlay);
 	overlay_text(h->over, "<small>%u commits without changes</small>", n);
 
 	style.width = 0;
@@ -561,9 +552,14 @@ static struct gui_hist *skip_history(struct gui_ctx *ctx, struct gui_hist *h)
 }
 
 
+static const struct input_ops history_input_ops;
+
+
 static void show_history(struct gui_ctx *ctx, enum selecting sel)
 {
 	struct gui_hist *h = ctx->hist;
+
+	input_push(&history_input_ops, ctx);
 
 	ctx->showing_history = 1;
 	ctx->hist_y_offset = 0;
@@ -573,7 +569,6 @@ static void show_history(struct gui_ctx *ctx, enum selecting sel)
 		h = skip_history(ctx, h);
 		h->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
 		    hover_history, click_history, h);
-		overlay_draggable(h->over, drag_overlay);
 		hover_history(h, 0);
 		set_history_style(h, 0);
 	}
@@ -897,7 +892,7 @@ static void sheet_key(void *user, int x, int y, int keyval)
 }
 
 
-static const struct input_ops input_sheet_ops = {
+static const struct input_ops sheet_input_ops = {
 	.click		= sheet_click,
 	.hover_begin	= sheet_hover_update,
 	.hover_update	= sheet_hover_update,
@@ -906,6 +901,34 @@ static const struct input_ops input_sheet_ops = {
 	.scroll		= sheet_scroll,
 	.drag_begin	= input_accept,
 	.drag_move	= sheet_drag_move,
+	.key		= sheet_key,
+};
+
+
+/* ----- Input: history ---------------------------------------------------- */
+
+
+static void history_drag_move(void *user, int dx, int dy)
+{
+	struct gui_ctx *ctx = user;
+
+	ctx->hist_y_offset += dy;
+	redraw(ctx);
+}
+
+
+/* @@@ under construction */
+
+
+static const struct input_ops history_input_ops = {
+	.click		= sheet_click,
+	.hover_begin	= sheet_hover_update,
+	.hover_update	= sheet_hover_update,
+	.hover_click	= sheet_click,
+	.hover_end	= sheet_hover_end,
+	.scroll		= sheet_scroll,
+	.drag_begin	= input_accept,
+	.drag_move	= history_drag_move,
 	.key		= sheet_key,
 };
 
@@ -1451,7 +1474,7 @@ int gui(unsigned n_args, char **args, bool recurse, int limit)
 	go_to_sheet(&ctx, ctx.new_hist->sheets);
 	gtk_widget_show_all(window);
 
-	input_push(&input_sheet_ops, &ctx);
+	input_push(&sheet_input_ops, &ctx);
 
 	/* for performance testing, use -N-depth */
 	if (limit >= 0)
