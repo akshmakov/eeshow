@@ -57,7 +57,7 @@ void redraw(const struct gui_ctx *ctx)
 }
 
 
-static struct gui_sheet *find_corresponding_sheet(struct gui_sheet *pick_from,
+struct gui_sheet *find_corresponding_sheet(struct gui_sheet *pick_from,
      struct gui_sheet *ref_in, const struct gui_sheet *ref)
 {
 	struct gui_sheet *sheet, *plan_b;
@@ -144,7 +144,7 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 }
 
 
-static void render_sheet(struct gui_sheet *sheet)
+void render_sheet(struct gui_sheet *sheet)
 {
 	char *argv[] = { "gui", NULL };
 
@@ -158,11 +158,7 @@ static void render_sheet(struct gui_sheet *sheet)
 }
 
 
-/* @@@ not nice to have this so far out */
-static void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet);
-
-
-static void render_delta(struct gui_ctx *ctx)
+void render_delta(struct gui_ctx *ctx)
 {
 #if 0
 	/* @@@ needs updating for curr/last vs. new/old */
@@ -203,20 +199,6 @@ static void render_delta(struct gui_ctx *ctx)
 /* ----- Tools ------------------------------------------------------------- */
 
 
-static void canvas_coord(const struct gui_ctx *ctx,
-    int ex, int ey, int *x, int *y)
-{
-	GtkAllocation alloc;
-	int sx, sy;
-
-	gtk_widget_get_allocation(ctx->da, &alloc);
-	sx = ex - alloc.width / 2;
-	sy = ey - alloc.height / 2;
-	*x = (sx << ctx->zoom) + ctx->x;
-	*y = (sy << ctx->zoom) + ctx->y;
-}
-
-
 void eeschema_coord(const struct gui_ctx *ctx, int x, int y, int *rx, int *ry)
 {
 	GtkAllocation alloc;
@@ -227,86 +209,10 @@ void eeschema_coord(const struct gui_ctx *ctx, int x, int y, int *rx, int *ry)
 }
 
 
-/* ----- Zoom -------------------------------------------------------------- */
-
-
-
-static void zoom_in(struct gui_ctx *ctx, int x, int y)
-{
-	if (ctx->zoom == 0)
-		return;
-	ctx->zoom--;
-	ctx->x = (ctx->x + x) / 2;
-	ctx->y = (ctx->y + y) / 2;
-	redraw(ctx);
-}
-
-
-static void zoom_out(struct gui_ctx *ctx, int x, int y)
-{
-	if (ctx->curr_sheet->w >> ctx->zoom <= 16)
-		return;
-	ctx->zoom++;
-	ctx->x = 2 * ctx->x - x;
-	ctx->y = 2 * ctx->y - y;
-	redraw(ctx);
-}
-
-
-static void curr_sheet_size(struct gui_ctx *ctx, int *w, int *h)
-{
-	const struct gui_sheet *sheet = ctx->curr_sheet;
-	int ax1, ay1, bx1, by1;
-
-	if (!ctx->old_hist) {
-		*w = sheet->w;
-		*h = sheet->h;
-	} else {
-		const struct gui_sheet *old =
-		    find_corresponding_sheet(ctx->old_hist->sheets,
-		    ctx->new_hist->sheets, sheet);
-
-		/*
-		 * We're only interested in differences here, so no need for
-		 * the usual "-1" in x1 = x0 + w - 1
-		 */
-		ax1 = sheet->xmin + sheet->w;
-		ay1 = sheet->ymin + sheet->h;
-		bx1 = old->xmin + old->w;
-		by1 = old->ymin + old->h;
-		*w = (ax1 > bx1 ? ax1 : bx1) -
-		    (sheet->xmin < old->xmin ? sheet->xmin : old->xmin);
-		*h = (ay1 > by1 ? ay1 : by1) -
-		    (sheet->ymin < old->ymin ? sheet->ymin : old->ymin);
-	}
-}
-
-
-static void zoom_to_extents(struct gui_ctx *ctx)
-{
-	GtkAllocation alloc;
-	int w, h;
-
-	curr_sheet_size(ctx, &w, &h);
-	ctx->x = w / 2;
-	ctx->y = h / 2;
-
-	gtk_widget_get_allocation(ctx->da, &alloc);
-	ctx->zoom = 0;
-	while (w >> ctx->zoom > alloc.width || h >> ctx->zoom > alloc.height)
-		ctx->zoom++;
-
-	redraw(ctx);
-}
-
-
 /* ----- Revision history -------------------------------------------------- */
 
 
-static void do_revision_overlays(struct gui_ctx *ctx);
-
-
-static void hide_history(struct gui_ctx *ctx)
+void hide_history(struct gui_ctx *ctx)
 {
 	input_pop();
 
@@ -473,7 +379,7 @@ static struct gui_hist *skip_history(struct gui_ctx *ctx, struct gui_hist *h)
 static const struct input_ops history_input_ops;
 
 
-static void show_history(struct gui_ctx *ctx, enum selecting sel)
+void show_history(struct gui_ctx *ctx, enum selecting sel)
 {
 	struct gui_hist *h = ctx->hist;
 
@@ -492,336 +398,6 @@ static void show_history(struct gui_ctx *ctx, enum selecting sel)
 	}
 	redraw(ctx);
 }
-
-
-static void show_history_cb(void *user)
-{
-	struct gui_hist *h = user;
-	struct gui_ctx *ctx = h->ctx;
-	enum selecting sel = sel_only;
-
-	if (ctx->old_hist)
-		sel = h == ctx->new_hist ? sel_new : sel_old;
-	show_history(ctx, sel);
-}
-
-
-/* ----- Navigate sheets --------------------------------------------------- */
-
-
-/* @@@ find a better place for this forward declaration */
-static void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet);
-
-
-static void close_subsheet(void *user)
-{
-	struct gui_sheet *sheet = user;
-	struct gui_ctx *ctx = sheet->ctx;
-
-	go_to_sheet(ctx, sheet);
-}
-
-
-static bool hover_sheet(void *user, bool on)
-{
-	struct gui_sheet *sheet = user;
-	struct gui_ctx *ctx = sheet->ctx;
-	const char *title = sheet->sch->title;
-
-	if (!title)
-		title = "(unnamed)";
-	if (on) {
-		const struct gui_sheet *s;
-		int n = 0, this = -1;
-
-		for (s = ctx->new_hist->sheets; s; s = s->next) {
-			n++;
-			if (s == sheet)
-				this = n;
-		}
-		overlay_text(sheet->over, "<b>%s</b>\n<big>%d / %d</big>",
-		    title, this, n);
-	} else {
-		overlay_text(sheet->over, "<b>%s</b>", title);
-	}
-	redraw(ctx);
-	return 1;
-}
-
-
-static bool show_history_details(void *user, bool on)
-{
-	struct gui_hist *h = user;
-	struct gui_ctx *ctx = h->ctx;
-	char *s;
-
-	if (on) {
-		s = vcs_git_long_for_pango(h->vcs_hist, fmt_pango);
-		overlay_text_raw(h->over, s);
-		free(s);
-	} else {
-		overlay_text(h->over, "%.40s", vcs_git_summary(h->vcs_hist));
-	}
-	redraw(ctx);
-	return 1;
-}
-
-
-static void revision_overlays_diff(struct gui_ctx *ctx)
-{
-	struct gui_hist *new = ctx->new_hist;
-	struct gui_hist *old = ctx->old_hist;
-
-	new->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
-	    show_history_details, show_history_cb, new);
-	overlay_style(new->over, &overlay_style_diff_new);
-	show_history_details(new, 0);
-
-	old->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
-	    show_history_details, show_history_cb, old);
-	overlay_style(old->over, &overlay_style_diff_old);
-	show_history_details(old, 0);
-}
-
-
-static void do_revision_overlays(struct gui_ctx *ctx)
-{
-	overlay_remove_all(&ctx->hist_overlays);
-
-	if (ctx->old_hist) {
-		revision_overlays_diff(ctx);
-	} else {
-		ctx->new_hist->over = overlay_add(&ctx->hist_overlays,
-		    &ctx->aois, show_history_details, show_history_cb,
-		    ctx->new_hist);
-		overlay_style(ctx->new_hist->over, &overlay_style_default);
-		show_history_details(ctx->new_hist, 0);
-	}
-}
-
-
-static struct gui_sheet *find_parent_sheet(struct gui_sheet *sheets,
-    const struct gui_sheet *ref)
-{
-	struct gui_sheet *parent;
-	const struct sch_obj *obj;
-
-	for (parent = sheets; parent; parent = parent->next)
-		for (obj = parent->sch->objs; obj; obj = obj->next)
-			if (obj->type == sch_obj_sheet &&
-			    obj->u.sheet.sheet == ref->sch)
-				return parent;
-	return NULL;
-}
-
-
-static void sheet_selector_recurse(struct gui_ctx *ctx, struct gui_sheet *sheet)
-{
-	struct gui_sheet *parent;
-
-	parent = find_parent_sheet(ctx->new_hist->sheets, sheet);
-	if (parent)
-		sheet_selector_recurse(ctx, parent);
-	sheet->over = overlay_add(&ctx->sheet_overlays, &ctx->aois,
-	    hover_sheet, close_subsheet, sheet);
-	hover_sheet(sheet, 0);
-}
-
-
-static void do_sheet_overlays(struct gui_ctx *ctx)
-{
-	overlay_remove_all(&ctx->sheet_overlays);
-	sheet_selector_recurse(ctx, ctx->curr_sheet);
-}
-
-
-void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
-{
-	aoi_dehover();
-	overlay_remove_all(&ctx->pop_overlays);
-	if (!sheet->rendered) {
-		render_sheet(sheet);
-		mark_aois(ctx, sheet);
-	}
-	ctx->curr_sheet = sheet;
-	if (ctx->old_hist)
-		render_delta(ctx);
-	if (ctx->vcs_hist)
-		do_revision_overlays(ctx);
-	do_sheet_overlays(ctx);
-	zoom_to_extents(ctx);
-}
-
-
-static bool go_up_sheet(struct gui_ctx *ctx)
-{
-	struct gui_sheet *parent;
-
-	parent = find_parent_sheet(ctx->new_hist->sheets, ctx->curr_sheet);
-	if (!parent)
-		return 0;
-	go_to_sheet(ctx, parent);
-	return 1;
-}
-
-
-static bool go_prev_sheet(struct gui_ctx *ctx)
-{
-	struct gui_sheet *sheet;
-
-	for (sheet = ctx->new_hist->sheets; sheet; sheet = sheet->next)
-		if (sheet->next && sheet->next == ctx->curr_sheet) {
-			go_to_sheet(ctx, sheet);
-			return 1;
-		}
-	return 0;
-}
-
-
-static bool go_next_sheet(struct gui_ctx *ctx)
-{
-	if (!ctx->curr_sheet->next)
-		return 0;
-	go_to_sheet(ctx, ctx->curr_sheet->next);
-	return 1;
-}
-
-
-/* ----- Input: sheet ------------------------------------------------------ */
-
-
-static bool sheet_click(void *user, int x, int y)
-{
-	struct gui_ctx *ctx = user;
-	const struct gui_sheet *curr_sheet = ctx->curr_sheet;
-	int ex, ey;
-
-	canvas_coord(ctx, x, y, &ex, &ey);
-
-	if (aoi_click(ctx->aois, x, y))
-		return 1;
-	if (aoi_click(curr_sheet->aois,
-	    ex + curr_sheet->xmin, ey + curr_sheet->ymin))
-		return 1;
-
-	if (ctx->showing_history)
-		hide_history(ctx);
-	overlay_remove_all(&ctx->pop_overlays);
-	redraw(ctx);
-	return 1;
-}
-
-
-static bool sheet_hover_update(void *user, int x, int y)
-{
-	struct gui_ctx *ctx = user;
-	const struct gui_sheet *curr_sheet = ctx->curr_sheet;
-	int ex, ey;
-
-	canvas_coord(ctx, x, y, &ex, &ey);
-
-	if (aoi_hover(ctx->aois, x, y))
-		return 1;
-	return aoi_hover(curr_sheet->aois,
-	    ex + curr_sheet->xmin, ey + curr_sheet->ymin);
-}
-
-
-static void sheet_hover_end(void *user)
-{
-}
-
-
-static bool sheet_drag_begin(void *user, int x, int y)
-{
-	dehover_glabel(user);
-	return 1;
-}
-
-
-static void sheet_drag_move(void *user, int dx, int dy)
-{
-	struct gui_ctx *ctx = user;
-
-	ctx->x -= dx << ctx->zoom;
-	ctx->y -= dy << ctx->zoom;
-	redraw(ctx);
-}
-
-
-static void sheet_scroll(void *user, int x, int y, int dy)
-{
-	struct gui_ctx *ctx = user;
-	int ex, ey;
-
-	canvas_coord(ctx, x, y, &ex, &ey);
-	if (dy < 0)
-		zoom_in(ctx, ex, ey);
-	else
-		zoom_out(ctx, ex, ey);
-}
-
-
-static void sheet_key(void *user, int x, int y, int keyval)
-{
-	struct gui_ctx *ctx = user;
-	struct gui_sheet *sheet = ctx->curr_sheet;
-	int ex, ey;
-
-	canvas_coord(ctx, x, y, &ex, &ey);
-
-	switch (keyval) {
-	case '+':
-	case '=':
-		zoom_in(ctx, x, y);
-		break;
-	case '-':
-		zoom_out(ctx, x, y);
-		break;
-	case '*':
-		zoom_to_extents(ctx);
-		break;
-	case GDK_KEY_Home:
-		if (sheet != ctx->new_hist->sheets)
-			go_to_sheet(ctx, ctx->new_hist->sheets);
-		break;
-	case GDK_KEY_BackSpace:
-	case GDK_KEY_Delete:
-		go_up_sheet(ctx);
-		break;
-	case GDK_KEY_Page_Up:
-	case GDK_KEY_KP_Page_Up:
-		go_prev_sheet(ctx);
-		break;
-	case GDK_KEY_Page_Down:
-	case GDK_KEY_KP_Page_Down:
-		go_next_sheet(ctx);
-		break;
-	case GDK_KEY_Up:
-	case GDK_KEY_KP_Up:
-		show_history(ctx, sel_new);
-		break;
-	case GDK_KEY_Down:
-	case GDK_KEY_KP_Down:
-		show_history(ctx, sel_old);
-		break;
-	case GDK_KEY_q:
-		gtk_main_quit();
-	}
-}
-
-
-static const struct input_ops sheet_input_ops = {
-	.click		= sheet_click,
-	.hover_begin	= sheet_hover_update,
-	.hover_update	= sheet_hover_update,
-	.hover_click	= sheet_click,
-	.hover_end	= sheet_hover_end,
-	.scroll		= sheet_scroll,
-	.drag_begin	= sheet_drag_begin,
-	.drag_move	= sheet_drag_move,
-	.key		= sheet_key,
-};
 
 
 /* ----- Input: history ---------------------------------------------------- */
@@ -844,24 +420,10 @@ static const struct input_ops history_input_ops = {
 	.hover_begin	= sheet_hover_update,
 	.hover_update	= sheet_hover_update,
 	.hover_click	= sheet_click,
-	.hover_end	= sheet_hover_end,
-	.scroll		= sheet_scroll,
 	.drag_begin	= input_accept,
 	.drag_move	= history_drag_move,
 	.key		= sheet_key,
 };
-
-
-/* ----- Event handlers ---------------------------------------------------- */
-
-
-static void size_allocate_event(GtkWidget *widget, GdkRectangle *allocation,
-    gpointer data)
-{
-	struct gui_ctx *ctx = data;
-
-	zoom_to_extents(ctx);
-}
 
 
 /* ----- AoI callbacks ----------------------------------------------------- */
@@ -915,7 +477,7 @@ static void add_sheet_aoi(struct gui_ctx *ctx, struct gui_sheet *parent,
 }
 
 
-static void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet)
+void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet)
 {
 	const struct sch_obj *obj;
 
@@ -1197,18 +759,16 @@ int gui(unsigned n_args, char **args, bool recurse, int limit)
 
 	g_signal_connect(G_OBJECT(ctx.da), "draw",
 	    G_CALLBACK(on_draw_event), &ctx);
-	g_signal_connect(G_OBJECT(ctx.da), "size_allocate",
-	    G_CALLBACK(size_allocate_event), &ctx);
 
 	g_signal_connect(window, "destroy",
 	    G_CALLBACK(gtk_main_quit), NULL);
+
+	sheet_setup(&ctx);
 
 //	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 
 	go_to_sheet(&ctx, ctx.new_hist->sheets);
 	gtk_widget_show_all(window);
-
-	input_push(&sheet_input_ops, &ctx);
 
 	/* for performance testing, use -N-depth */
 	if (limit >= 0)
