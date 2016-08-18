@@ -265,6 +265,7 @@ void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
 {
 	aoi_dehover();
 	overlay_remove_all(&ctx->pop_overlays);
+	overlay_remove_all(&ctx->pop_underlays);
 	if (!sheet->rendered) {
 		render_sheet(sheet);
 		mark_aois(ctx, sheet);
@@ -331,6 +332,7 @@ static bool sheet_click(void *user, int x, int y)
 		return 1;
 
 	overlay_remove_all(&ctx->pop_overlays);
+	overlay_remove_all(&ctx->pop_underlays);
 	redraw(ctx);
 	return 1;
 }
