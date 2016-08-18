@@ -14,9 +14,6 @@
 #ifndef KICAD_DWG_H
 #define	KICAD_DWG_H
 
-#include "fig.h"
-
-
 enum dwg_shape {
 	dwg_unspec,	// UnSpc
 	dwg_in,		// Input
