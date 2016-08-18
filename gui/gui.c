@@ -43,6 +43,7 @@
 #include "gui/aoi.h"
 #include "gui/style.h"
 #include "gui/over.h"
+#include "gui/input.h"
 #include "gui/gui.h"
 
 
@@ -84,14 +85,8 @@ struct gui_hist {
 struct gui_ctx {
 	GtkWidget *da;
 
-	int curr_x;		/* last on-screen mouse position */
-	int curr_y;
-
 	unsigned zoom;		/* scale by 1.0 / (1 << zoom) */
 	int x, y;		/* center, in eeschema coordinates */
-
-	bool panning;
-	int pan_x, pan_y;
 
 	struct gui_hist *hist;	/* revision history; NULL if none */
 	struct hist *vcs_hist;	/* underlying VCS data; NULL if none */
@@ -304,40 +299,6 @@ static void eeschema_coord(const struct gui_ctx *ctx,
 	gtk_widget_get_allocation(ctx->da, &alloc);
 	*rx = ((x - ctx->x) >> ctx->zoom) + alloc.width / 2;
 	*ry = ((y - ctx->y) >> ctx->zoom) + alloc.height / 2;
-}
-
-
-/* ----- Panning ----------------------------------------------------------- */
-
-
-static void pan_begin(struct gui_ctx *ctx, int x, int y)
-{
-	if (ctx->panning)
-		return;
-	ctx->panning = 1;
-	ctx->pan_x = x;
-	ctx->pan_y = y;
-}
-
-
-static void pan_update(struct gui_ctx *ctx, int x, int y)
-{
-	if (!ctx->panning)
-		return;
-
-	ctx->x -= (x - ctx->pan_x) << ctx->zoom;
-	ctx->y -= (y - ctx->pan_y) << ctx->zoom;
-	ctx->pan_x = x;
-	ctx->pan_y = y;
-
-	redraw(ctx);
-}
-
-
-static void pan_end(struct gui_ctx *ctx, int x, int y)
-{
-	pan_update(ctx, x, y);
-	ctx->panning = 0;
 }
 
 
@@ -813,114 +774,89 @@ static bool go_next_sheet(struct gui_ctx *ctx)
 }
 
 
-/* ----- Event handlers ---------------------------------------------------- */
+/* ----- Input: sheet ------------------------------------------------------ */
 
 
-static bool botton_1_down = 0;
-
-
-static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
-    gpointer data)
+static bool sheet_click(void *user, int x, int y)
 {
-	struct gui_ctx *ctx = data;
+	struct gui_ctx *ctx = user;
 	const struct gui_sheet *curr_sheet = ctx->curr_sheet;
-	int x, y;
+	int ex, ey;
 
-	ctx->curr_x = event->x;
-	ctx->curr_y = event->y;
+	canvas_coord(ctx, x, y, &ex, &ey);
 
-	canvas_coord(ctx, event->x, event->y, &x, &y);
+	if (aoi_down(ctx->aois, x, y))
+		return aoi_up(ctx->aois, x, y);
+	if (aoi_down(curr_sheet->aois,
+	    ex + curr_sheet->xmin, ey + curr_sheet->ymin))
+		return aoi_up(curr_sheet->aois,
+		    ex + curr_sheet->xmin, ey + curr_sheet->ymin);
 
-	aoi_move(ctx->aois, event->x, event->y) ||
-	    aoi_move(curr_sheet->aois,
-            x + curr_sheet->xmin, y + curr_sheet->ymin) ||
-	    aoi_hover(ctx->aois, event->x, event->y) ||
-	    aoi_hover(curr_sheet->aois,
-	    x + curr_sheet->xmin, y + curr_sheet->ymin);
-	pan_update(ctx, event->x, event->y);
-
-	return TRUE;
+	if (ctx->showing_history)
+		hide_history(ctx);
+	overlay_remove_all(&ctx->pop_overlays);
+	redraw(ctx);
+	return 1;
 }
 
 
-static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event,
-    gpointer data)
+static bool sheet_hover_update(void *user, int x, int y)
 {
-	struct gui_ctx *ctx = data;
+	struct gui_ctx *ctx = user;
 	const struct gui_sheet *curr_sheet = ctx->curr_sheet;
-	int x, y;
+	int ex, ey;
 
-	canvas_coord(ctx, event->x, event->y, &x, &y);
+	canvas_coord(ctx, x, y, &ex, &ey);
 
-	switch (event->button) {
-	case 1:
-		/*
-		 * Double-click is sent as down-down-up, confusing the AoI
-		 * logic that assumes each "down" to have a matching "up".
-		 */
-		if (botton_1_down)
-			return TRUE;
-		botton_1_down = 1;
-
-		if (aoi_down(ctx->aois, event->x, event->y))
-			break;
-		if (aoi_down(curr_sheet->aois,
-		    x + curr_sheet->xmin, y + curr_sheet->ymin))
-			break;
-		if (ctx->showing_history)
-			hide_history(ctx);
-		overlay_remove_all(&ctx->pop_overlays);
-		redraw(ctx);
-		break;
-	case 2:
-		pan_begin(ctx, event->x, event->y);
-		break;
-	case 3:
-		break;
-	}
-	return TRUE;
+	if (aoi_move(ctx->aois, x, y))
+		return 1;
+	if (aoi_move(curr_sheet->aois,
+            ex + curr_sheet->xmin, ey + curr_sheet->ymin))
+		return 1;
+	if (aoi_hover(ctx->aois, x, y))
+		return 1;
+	return aoi_hover(curr_sheet->aois,
+	    ex + curr_sheet->xmin, ey + curr_sheet->ymin);
 }
 
 
-static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event,
-    gpointer data)
+static void sheet_hover_end(void *user)
 {
-	struct gui_ctx *ctx = data;
-	const struct gui_sheet *curr_sheet = ctx->curr_sheet;
-	int x, y;
-
-	canvas_coord(ctx, event->x, event->y, &x, &y);
-
-	switch (event->button) {
-	case 1:
-		botton_1_down = 0;
-
-		if (aoi_up(ctx->aois, event->x, event->y))
-			break;
-		if (aoi_up(curr_sheet->aois,
-		    x + curr_sheet->xmin, y + curr_sheet->ymin))
-			break;
-		break;
-	case 2:
-		pan_end(ctx, event->x, event->y);
-		break;
-	case 3:
-		break;
-	}
-	return TRUE;
 }
 
 
-static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
-    gpointer data)
+static void sheet_drag_move(void *user, int dx, int dy)
 {
-	struct gui_ctx *ctx = data;
+	struct gui_ctx *ctx = user;
+
+	ctx->x -= dx << ctx->zoom;
+	ctx->y -= dy << ctx->zoom;
+	redraw(ctx);
+}
+
+
+static void sheet_scroll(void *user, int x, int y, int dy)
+{
+	struct gui_ctx *ctx = user;
+	int ex, ey;
+
+	canvas_coord(ctx, x, y, &ex, &ey);
+	if (dy < 0)
+		zoom_in(ctx, ex, ey);
+	else
+		zoom_out(ctx, ex, ey);
+}
+
+
+static void sheet_key(void *user, int x, int y, int keyval)
+{
+	struct gui_ctx *ctx = user;
 	struct gui_sheet *sheet = ctx->curr_sheet;
-	int x, y;
+	int ex, ey;
 
-	canvas_coord(ctx, ctx->curr_x, ctx->curr_y, &x, &y);
+	canvas_coord(ctx, x, y, &ex, &ey);
 
-	switch (event->keyval) {
+	switch (keyval) {
 	case '+':
 	case '=':
 		zoom_in(ctx, x, y);
@@ -958,29 +894,23 @@ static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
 	case GDK_KEY_q:
 		gtk_main_quit();
 	}
-	return TRUE;
 }
 
 
-static gboolean scroll_event(GtkWidget *widget, GdkEventScroll *event,
-    gpointer data)
-{
-	struct gui_ctx *ctx = data;
-	int x, y;
+static const struct input_ops input_sheet_ops = {
+	.click		= sheet_click,
+	.hover_begin	= sheet_hover_update,
+	.hover_update	= sheet_hover_update,
+	.hover_click	= sheet_click,
+	.hover_end	= sheet_hover_end,
+	.scroll		= sheet_scroll,
+	.drag_begin	= input_accept,
+	.drag_move	= sheet_drag_move,
+	.key		= sheet_key,
+};
 
-	canvas_coord(ctx, event->x, event->y, &x, &y);
-	switch (event->direction) {
-	case GDK_SCROLL_UP:
-		zoom_in(ctx, x, y);
-		break;
-	case GDK_SCROLL_DOWN:
-		zoom_out(ctx, x, y);
-		break;
-	default:
-		/* ignore */;
-	}
-	return TRUE;
-}
+
+/* ----- Event handlers ---------------------------------------------------- */
 
 
 static void size_allocate_event(GtkWidget *widget, GdkRectangle *allocation,
@@ -1472,7 +1402,6 @@ int gui(unsigned n_args, char **args, bool recurse, int limit)
 	GtkWidget *window;
 	struct gui_ctx ctx = {
 		.zoom		= 4,	/* scale by 1 / 16 */
-		.panning	= 0,
 		.hist		= NULL,
 		.vcs_hist	= NULL,
 		.showing_history= 0,
@@ -1492,14 +1421,10 @@ int gui(unsigned n_args, char **args, bool recurse, int limit)
 	gtk_window_set_default_size(GTK_WINDOW(window), 640, 480);
 	gtk_window_set_title(GTK_WINDOW(window), "eeshow");
 
-	gtk_widget_set_can_focus(ctx.da, TRUE);
-
 	gtk_widget_set_events(ctx.da,
-	    GDK_EXPOSE | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK |
-	    GDK_KEY_PRESS_MASK |
-	    GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK |
-	    GDK_SCROLL_MASK |
-	    GDK_POINTER_MOTION_MASK);
+	    GDK_EXPOSE | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK);
+
+	input_setup(ctx.da);
 
 	gtk_widget_show_all(window);
 
@@ -1515,16 +1440,6 @@ int gui(unsigned n_args, char **args, bool recurse, int limit)
 
 	g_signal_connect(G_OBJECT(ctx.da), "draw",
 	    G_CALLBACK(on_draw_event), &ctx);
-	g_signal_connect(G_OBJECT(ctx.da), "motion_notify_event",
-	    G_CALLBACK(motion_notify_event), &ctx);
-	g_signal_connect(G_OBJECT(ctx.da), "button_press_event",
-	    G_CALLBACK(button_press_event), &ctx);
-	g_signal_connect(G_OBJECT(ctx.da), "button_release_event",
-	    G_CALLBACK(button_release_event), &ctx);
-	g_signal_connect(G_OBJECT(ctx.da), "scroll_event",
-	    G_CALLBACK(scroll_event), &ctx);
-	g_signal_connect(G_OBJECT(ctx.da), "key_press_event",
-	    G_CALLBACK(key_press_event), &ctx);
 	g_signal_connect(G_OBJECT(ctx.da), "size_allocate",
 	    G_CALLBACK(size_allocate_event), &ctx);
 
@@ -1535,6 +1450,8 @@ int gui(unsigned n_args, char **args, bool recurse, int limit)
 
 	go_to_sheet(&ctx, ctx.new_hist->sheets);
 	gtk_widget_show_all(window);
+
+	input_push(&input_sheet_ops, &ctx);
 
 	/* for performance testing, use -N-depth */
 	if (limit >= 0)

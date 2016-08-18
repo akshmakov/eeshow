@@ -153,12 +153,13 @@ eeshow `sed -n '/pcbnew/q;/^LibName[0-9]*=/{s///;s/$/.lib/p;};d' anelok.pro` \
 Mouse function in GUI mode
 --------------------------
 
+Eeshow uses only the left mouse button and the scroll wheel.
+
 Hover			show additional details on revisions, sheets, global
 			labels
-Left-click		jump to sheet (on sub-sheet, sheet stack, global
+Click			jump to sheet (on sub-sheet, sheet stack, global
 			label hover box), open history, select revision
-Left-click and drag	scroll history
-Middle-click and drag	pan sheet
+Click and drag		pan sheet, scroll history
 Scroll wheel		zoom in or out
 
 
