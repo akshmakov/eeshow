@@ -1,5 +1,5 @@
 /*
- * dwg.c - Complex drawing functions
+ * kicad/dwg.c - Complex drawing functions for KiCad items
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -22,7 +22,7 @@
 #include "style.h"
 #include "text.h"
 #include "gfx.h"
-#include "dwg.h"
+#include "kicad/dwg.h"
 
 
 /* ----- Helper functions -------------------------------------------------- */

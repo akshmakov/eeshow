@@ -1,5 +1,5 @@
 /*
- * sch-parse.c - Parse Eeschema .sch file
+ * kicad/sch-parse.c - Parse Eeschema .sch file
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -21,10 +21,10 @@
 
 #include "util.h"
 #include "diag.h"
-#include "dwg.h"
+#include "kicad/dwg.h"
 #include "file/file.h"
-#include "lib.h"
-#include "sch.h"
+#include "kicad/lib.h"
+#include "kicad/sch.h"
 
 
 /* ----- (Global) Labels --------------------------------------------------- */

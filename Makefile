@@ -11,11 +11,13 @@
 #
 
 NAME = eeshow
-OBJS = main.o sch-parse.o sch-render.o lib-parse.o lib-render.o \
+OBJS = main.o \
+       kicad/sch-parse.o kicad/sch-render.o kicad/lib-parse.o \
+       kicad/lib-render.o kicad/dwg.o \
        gui/gui.o gui/over.o gui/style.o gui/aoi.o gui/fmt-pango.o \
        file/file.o file/git-util.o file/git-file.o file/git-hist.o \
        delta.o \
-       style.o fig.o record.o cro.o diff.o gfx.o dwg.o text.o misc.o diag.o
+       style.o fig.o record.o cro.o diff.o gfx.o text.o misc.o diag.o
 
 CFLAGS = -g  -Wall -Wextra -Wno-unused-parameter -Wshadow \
 	 -Wmissing-prototypes -Wmissing-declarations \

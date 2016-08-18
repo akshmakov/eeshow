@@ -1,5 +1,5 @@
 /*
- * lib.h - Parse Eeschema .lib file
+ * kicad/lib.h - Parse Eeschema .lib file
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -11,8 +11,8 @@
  */
 
 
-#ifndef LIB_H
-#define LIB_H
+#ifndef KICAD_LIB_H
+#define KICAD_LIB_H
 
 #include <stdbool.h>
 
@@ -131,4 +131,4 @@ bool lib_parse(struct lib *lib, const char *name, const struct file *related);
 void lib_init(struct lib *lib);
 void lib_free(struct lib *lib);
 
-#endif /* !LIB_H */
+#endif /* !KICAD_LIB_H */

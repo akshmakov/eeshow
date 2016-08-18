@@ -18,8 +18,8 @@
 
 #include "util.h"
 #include "text.h"
-#include "lib.h"
-#include "sch.h"
+#include "kicad/lib.h"
+#include "kicad/sch.h"
 #include "delta.h"
 
 

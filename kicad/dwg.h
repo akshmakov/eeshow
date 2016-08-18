@@ -1,5 +1,5 @@
 /*
- * dwg.h - Complex drawing functions
+ * kicad/dwg.h - Complex drawing functions for KiCad items
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -11,8 +11,8 @@
  */
 
 
-#ifndef DWG_H
-#define	DWG_H
+#ifndef KICAD_DWG_H
+#define	KICAD_DWG_H
 
 #include "fig.h"
 
@@ -48,4 +48,4 @@ void dwg_line(int sx, int sy, int ex, int ey);
 void dwg_wire(int sx, int sy, int ex, int ey);
 void dwg_bus(int sx, int sy, int ex, int ey);
 
-#endif /* !DWG_H */
+#endif /* !KICAD_DWG_H */

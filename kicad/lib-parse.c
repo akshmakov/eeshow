@@ -1,5 +1,5 @@
 /*
- * lib.c - Parse Eeschema .lib file
+ * kicad/lib.c - Parse Eeschema .lib file
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -19,7 +19,7 @@
 #include "diag.h"
 #include "text.h"
 #include "file/file.h"
-#include "lib.h"
+#include "kicad/lib.h"
 
 
 /* ----- Text -------------------------------------------------------------- */

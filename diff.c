@@ -24,8 +24,8 @@
 #include "main.h"
 #include "cro.h"
 #include "file/file.h"
-#include "sch.h"
-#include "lib.h"
+#include "kicad/sch.h"
+#include "kicad/lib.h"
 #include "record.h"
 #include "diff.h"
 

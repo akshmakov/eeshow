@@ -1,5 +1,5 @@
 /*
- * sch-render.c - Render schematics
+ * kicad/sch-render.c - Render schematics
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -18,9 +18,9 @@
 #include "misc.h"
 #include "style.h"
 #include "gfx.h"
-#include "dwg.h"
-#include "lib.h"
-#include "sch.h"
+#include "kicad/dwg.h"
+#include "kicad/lib.h"
+#include "kicad/sch.h"
 
 
 /* ----- Rendering --------------------------------------------------------- */

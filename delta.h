@@ -14,7 +14,7 @@
 #ifndef DELTA_H
 #define DELTA_H
 
-#include "sch.h"
+#include "kicad/sch.h"
 
 
 bool sheet_eq(const struct sheet *a, const struct sheet *b);

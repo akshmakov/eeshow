@@ -1,5 +1,5 @@
 /*
- * lib.c - Render component from library
+ * kicad/lib-render.c - Render component from library
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -21,8 +21,8 @@
 #include "style.h"
 #include "gfx.h"
 #include "text.h"
-#include "sch.h"
-#include "lib.h"
+#include "kicad/sch.h"
+#include "kicad/lib.h"
 
 
 /* ----- Drawing ----------------------------------------------------------- */

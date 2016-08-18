@@ -1,5 +1,5 @@
 /*
- * sch.h - Parse Eeschema .sch file
+ * kicad/sch.h - Parse Eeschema .sch file
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -11,15 +11,15 @@
  */
 
 
-#ifndef SCH_H
-#define SCH_H
+#ifndef KICAD_SCH_H
+#define KICAD_SCH_H
 
 #include <stdbool.h>
 
 #include "dwg.h"
 #include "text.h"
 #include "file/file.h"
-#include "lib.h"
+#include "kicad/lib.h"
 
 
 enum sch_state {
@@ -135,4 +135,4 @@ bool sch_parse(struct sch_ctx *ctx, struct file *file, const struct lib *lib,
 void sch_init(struct sch_ctx *ctx, bool recurse);
 void sch_free(struct sch_ctx *ctx);
 
-#endif /* !SCH_H */
+#endif /* !KICAD_SCH_H */
