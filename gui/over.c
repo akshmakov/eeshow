@@ -101,6 +101,9 @@ fprintf(stderr, "%d + %d  %d + %d\n",
 	ink_w = ink_w > style->wmin ? ink_w : style->wmin;
 	ink_w = !style->wmax || ink_w < style->wmax ? ink_w : style->wmax;
 	w = ink_w + 2 * style->pad;
+
+	ink_h = ink_h > style->hmin ? ink_h : style->hmin;
+	ink_h = !style->hmax || ink_h < style->hmax ? ink_h : style->hmax;
 	h = ink_h + 2 * style->pad;
 
 	if (dx < 0)

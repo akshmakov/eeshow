@@ -29,6 +29,7 @@ struct color {
 struct overlay_style {
 	const char *font;
 	unsigned wmin, wmax;
+	unsigned hmin, hmax;
 	unsigned radius;
 	unsigned pad;	/* in x and y direction; adjust for radius ! */
 	unsigned skip;	/* should be list-specific */
