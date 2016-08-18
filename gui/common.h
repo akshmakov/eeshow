@@ -129,7 +129,6 @@ void show_history(struct gui_ctx *ctx, enum selecting sel);
 /* gui.c */
 
 void redraw(const struct gui_ctx *ctx);
-void eeschema_coord(const struct gui_ctx *ctx, int x, int y, int *rx, int *ry);
 struct gui_sheet *find_corresponding_sheet(struct gui_sheet *pick_from,
      struct gui_sheet *ref_in, const struct gui_sheet *ref);
 void render_sheet(struct gui_sheet *sheet);

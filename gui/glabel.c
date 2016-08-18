@@ -36,6 +36,23 @@ struct glabel_aoi_ctx {
 };
 
 
+/* ----- Tools ------------------------------------------------------------- */
+
+
+static void eeschema_coord(const struct gui_ctx *ctx,
+    int x, int y, int *rx, int *ry)
+{
+	GtkAllocation alloc;
+
+	gtk_widget_get_allocation(ctx->da, &alloc);
+	*rx = ((x - ctx->x) >> ctx->zoom) + alloc.width / 2;
+	*ry = ((y - ctx->y) >> ctx->zoom) + alloc.height / 2;
+}
+
+
+/* ----- AoIs -------------------------------------------------------------- */
+
+
 static void glabel_dest_click(void *user)
 {
 	struct gui_sheet *sheet = user;

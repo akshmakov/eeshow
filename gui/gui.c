@@ -196,19 +196,6 @@ void render_delta(struct gui_ctx *ctx)
 }
 
 
-/* ----- Tools ------------------------------------------------------------- */
-
-
-void eeschema_coord(const struct gui_ctx *ctx, int x, int y, int *rx, int *ry)
-{
-	GtkAllocation alloc;
-
-	gtk_widget_get_allocation(ctx->da, &alloc);
-	*rx = ((x - ctx->x) >> ctx->zoom) + alloc.width / 2;
-	*ry = ((y - ctx->y) >> ctx->zoom) + alloc.height / 2;
-}
-
-
 /* ----- AoI callbacks ----------------------------------------------------- */
 
 
