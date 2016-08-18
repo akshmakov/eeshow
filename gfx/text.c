@@ -1,5 +1,5 @@
 /*
- * text.c - FIG text object
+ * gfx/text.c - FIG text object
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -18,9 +18,9 @@
 
 #include "util.h"
 #include "misc.h"
-#include "style.h"
-#include "gfx.h"
-#include "text.h"
+#include "gfx/style.h"
+#include "gfx/gfx.h"
+#include "gfx/text.h"
 
 
 void text_init(struct text *txt)

@@ -1,5 +1,5 @@
 /*
- * cro.c - Cairo graphics back-end
+ * gfx/cro.c - Cairo graphics back-end
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -24,12 +24,12 @@
 
 #include "util.h"
 #include "diag.h"
-#include "style.h"
-#include "text.h"
-#include "gfx.h"
-#include "record.h"
+#include "gfx/style.h"
+#include "gfx/text.h"
+#include "gfx/gfx.h"
+#include "gfx/record.h"
 #include "main.h"
-#include "cro.h"
+#include "gfx/cro.h"
 
 
 /*

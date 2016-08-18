@@ -1,5 +1,5 @@
 /*
- * record.h - Record graphics operations by layers and replay
+ * gfx/record.h - Record graphics operations by layers and replay
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -11,10 +11,10 @@
  */
 
 
-#ifndef RECORD_H
-#define	RECORD_H
+#ifndef GFX_RECORD_H
+#define	GFX_RECORD_H
 
-#include "gfx.h"
+#include "gfx/gfx.h"
 
 
 struct record_obj;
@@ -55,4 +55,4 @@ void record_replay(const struct record *rec);
 void record_bbox(const struct record *rec, int *x, int *y, int *w, int *h);
 void record_destroy(struct record *rec);
 
-#endif /* !RECORD_H */
+#endif /* !GFX_RECORD_H */

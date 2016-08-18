@@ -1,5 +1,5 @@
 /*
- * style.c - Drawing style
+ * gfx/style.c - Drawing style
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -13,7 +13,7 @@
 #include <stdint.h>
 
 #include "util.h"
-#include "style.h"
+#include "gfx/style.h"
 
 
 uint32_t color_rgb[] = {

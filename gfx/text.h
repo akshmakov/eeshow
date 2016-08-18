@@ -1,5 +1,5 @@
 /*
- * text.h - FIG text object
+ * gfx/text.h - FIG text object
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -11,8 +11,8 @@
  */
 
 
-#ifndef TEXT_H
-#define TEXT_H
+#ifndef GFX_TEXT_H
+#define GFX_TEXT_H
 
 
 /* use constants of FIG text sub_type */
@@ -56,4 +56,4 @@ int text_rel_x(const struct text *txt, enum text_align xr, enum text_align yr,
 int text_rel_y(const struct text *txt, enum text_align xr, enum text_align yr,
     int dx, int dy);
 
-#endif /* !TEXT_H */
+#endif /* !GFX_TEXT_H */

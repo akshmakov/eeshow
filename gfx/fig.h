@@ -1,5 +1,5 @@
 /*
- * fig.h - Generate FIG output for Eeschema items
+ * gfx/fig.h - Generate FIG output for Eeschema items
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -11,12 +11,12 @@
  */
 
 
-#ifndef FIG_H
-#define	FIG_H
+#ifndef GFX_FIG_H
+#define	GFX_FIG_H
 
-#include "gfx.h"
+#include "gfx/gfx.h"
 
 
 extern const struct gfx_ops fig_ops;
 
-#endif /* !FIG_H */
+#endif /* !GFX_FIG_H */

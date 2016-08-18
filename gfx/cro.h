@@ -1,5 +1,5 @@
 /*
- * cro.h - Cairo graphics back-end
+ * gfx/cro.h - Cairo graphics back-end
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -11,14 +11,14 @@
  */
 
 
-#ifndef CRO_H
-#define	CRO_H
+#ifndef GFX_CRO_H
+#define	GFX_CRO_H
 
 #include <stdint.h>
 
 #include <cairo/cairo.h>
 
-#include "gfx.h"
+#include "gfx/gfx.h"
 
 
 struct cro_ctx;
@@ -47,4 +47,4 @@ uint32_t *cro_img(struct cro_ctx *ctx, int x0, int yo, int w, int h,
     int xe, int ye,
     float scale, cairo_t **res_cr, int *res_stride);
 
-#endif /* !CRO_H */
+#endif /* !GFX_CRO_H */

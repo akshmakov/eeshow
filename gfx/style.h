@@ -1,5 +1,5 @@
 /*
- * style.h - Drawing style
+ * gfx/style.h - Drawing style
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -10,8 +10,8 @@
  * (at your option) any later version.
  */
 
-#ifndef STYLE_H
-#define	STYLE_H
+#ifndef GFX_STYLE_H
+#define	GFX_STYLE_H
 
 #include <stdint.h>
 
@@ -100,4 +100,4 @@
 extern uint32_t color_rgb[];
 extern unsigned n_color_rgb;
 
-#endif /* !STYLE_H */
+#endif /* !GFX_STYLE_H */

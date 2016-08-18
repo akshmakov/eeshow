@@ -17,7 +17,7 @@
 #include <string.h>
 
 #include "util.h"
-#include "text.h"
+#include "gfx/text.h"
 #include "kicad/lib.h"
 #include "kicad/sch.h"
 #include "delta.h"

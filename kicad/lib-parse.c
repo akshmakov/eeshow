@@ -17,7 +17,7 @@
 
 #include "util.h"
 #include "diag.h"
-#include "text.h"
+#include "gfx/text.h"
 #include "file/file.h"
 #include "kicad/lib.h"
 

@@ -1,5 +1,5 @@
 /*
- * record.c - Record graphics operations by layers and replay
+ * gfx/record.c - Record graphics operations by layers and replay
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -16,10 +16,10 @@
 #include <math.h>
 
 #include "util.h"
-#include "style.h"
-#include "gfx.h"
-#include "text.h"
-#include "record.h"
+#include "gfx/style.h"
+#include "gfx/gfx.h"
+#include "gfx/text.h"
+#include "gfx/record.h"
 
 
 struct record_obj {

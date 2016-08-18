@@ -17,7 +17,9 @@ OBJS = main.o \
        gui/gui.o gui/over.o gui/style.o gui/aoi.o gui/fmt-pango.o \
        file/file.o file/git-util.o file/git-file.o file/git-hist.o \
        delta.o \
-       style.o fig.o record.o cro.o diff.o gfx.o text.o misc.o diag.o
+       gfx/style.o gfx/fig.o gfx/record.o gfx/cro.o gfx/diff.o gfx/gfx.o \
+       gfx/text.o \
+       misc.o diag.o
 
 CFLAGS = -g  -Wall -Wextra -Wno-unused-parameter -Wshadow \
 	 -Wmissing-prototypes -Wmissing-declarations \

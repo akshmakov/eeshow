@@ -1,5 +1,5 @@
 /*
- * gfx.h - Generate graphical output for Eeschema items
+ * gfx/gfx.h - Generate graphical output for Eeschema items
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -11,12 +11,12 @@
  */
 
 
-#ifndef GFX_H
-#define	GFX_H
+#ifndef GFX_GFX_H
+#define	GFX_GFX_H
 
 #include <stdbool.h>
 
-#include "text.h"
+#include "gfx/text.h"
 
 
 struct gfx_ops {
@@ -69,4 +69,4 @@ void gfx_new_sheet(void);
 bool gfx_multi_sheet(void);
 void gfx_end(void);
 
-#endif /* !GFX_H */
+#endif /* !GFX_GFX_H */

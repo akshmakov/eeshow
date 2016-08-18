@@ -1,5 +1,5 @@
 /*
- * fig.c - Generate FIG output for Eeschema items
+ * gfx/fig.c - Generate FIG output for Eeschema items
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -21,10 +21,10 @@
 
 #include "util.h"
 #include "diag.h"
-#include "style.h"
-#include "text.h"
+#include "gfx/style.h"
+#include "gfx/text.h"
 #include "main.h"
-#include "fig.h"
+#include "gfx/fig.h"
 
 
 /*

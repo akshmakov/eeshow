@@ -1,5 +1,5 @@
 /*
- * diff.c - Schematics difference
+ * gfx/diff.c - Schematics difference
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -22,12 +22,12 @@
 #include "util.h"
 #include "diag.h"
 #include "main.h"
-#include "cro.h"
+#include "gfx/cro.h"
 #include "file/file.h"
 #include "kicad/sch.h"
 #include "kicad/lib.h"
-#include "record.h"
-#include "diff.h"
+#include "gfx/record.h"
+#include "gfx/diff.h"
 
 
 #define	DEFAULT_FRAME_RADIUS	30

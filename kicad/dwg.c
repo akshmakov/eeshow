@@ -19,9 +19,9 @@
 
 #include "util.h"
 #include "misc.h"
-#include "style.h"
-#include "text.h"
-#include "gfx.h"
+#include "gfx/style.h"
+#include "gfx/text.h"
+#include "gfx/gfx.h"
 #include "kicad/dwg.h"
 
 

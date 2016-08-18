@@ -16,8 +16,8 @@
 
 #include <stdbool.h>
 
-#include "dwg.h"
-#include "text.h"
+#include "kicad/dwg.h"
+#include "gfx/text.h"
 #include "file/file.h"
 #include "kicad/lib.h"
 

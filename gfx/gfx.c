@@ -1,5 +1,5 @@
 /*
- * gfx.c - Generate graphical output for Eeschema items
+ * gfx/gfx.c - Generate graphical output for Eeschema items
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -13,9 +13,9 @@
 
 #include <stdbool.h>
 
-#include "style.h"
-#include "text.h"
-#include "gfx.h"
+#include "gfx/style.h"
+#include "gfx/text.h"
+#include "gfx/gfx.h"
 
 
 void *gfx_ctx;
