@@ -17,6 +17,8 @@
 #include <stdint.h>
 
 #include <cairo/cairo.h>
+#include <pango/pangocairo.h>
+
 
 #include "gui/aoi.h"
 
@@ -46,11 +48,18 @@ void overlay_draw_all_d(struct overlay *overlays, cairo_t *cr,
     unsigned x, unsigned y, int dx, int dy);
 void overlay_draw_all(struct overlay *overlays, cairo_t *cr, int x, int y);
 
+void overlay_size(const struct overlay *over, PangoContext *pango_context,
+    int *w, int *h);
+void overlay_size_all(const struct overlay *overlays,
+    PangoContext *pango_context, bool dx, bool dy, int *w, int *h);
+
 struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
     bool (*hover)(void *user, bool on), void (*click)(void *user), void *user);
+
 void overlay_text_raw(struct overlay *over, const char *s);
 void overlay_text(struct overlay *over, const char *fmt, ...);
 void overlay_style(struct overlay *over, const struct overlay_style *style);
+
 void overlay_remove(struct overlay **overlays, struct overlay *over);
 void overlay_remove_all(struct overlay **overlays);
 

@@ -222,6 +222,81 @@ void overlay_draw_all(struct overlay *overlays, cairo_t *cr, int x, int y)
 }
 
 
+/* ----- Sizing ------------------------------------------------------------ */
+
+
+void overlay_size(const struct overlay *over, PangoContext *pango_context,
+    int *w, int *h)
+{
+	const struct overlay_style *style = &over->style;
+	PangoLayout *layout;
+	PangoFontDescription *desc;
+	PangoRectangle ink_rect;
+	unsigned ink_w, ink_h;	/* effectively used text area size */
+
+	/*
+	 * Note that we need the caller to provide the Cairo context, because
+	 * the font size changes subtly even between image (which we could
+	 * create locally) and screen (which is better left to the outside
+	 * world).
+	 */
+
+	desc = pango_font_description_from_string(style->font);
+	layout = pango_layout_new(pango_context);
+	pango_layout_set_font_description(layout, desc);
+	pango_layout_set_markup(layout, over->s, -1);
+	pango_font_description_free(desc);
+
+	pango_layout_get_extents(layout, &ink_rect, NULL);
+	g_object_unref(layout);
+
+	ink_w = ink_rect.width / PANGO_SCALE;
+	ink_h = ink_rect.height / PANGO_SCALE;
+
+	ink_w = ink_w > style->wmin ? ink_w : style->wmin;
+	ink_w = !style->wmax || ink_w < style->wmax ? ink_w : style->wmax;
+
+	ink_h = ink_h > style->hmin ? ink_h : style->hmin;
+	ink_h = !style->hmax || ink_h < style->hmax ? ink_h : style->hmax;
+
+	if (w)
+		*w = ink_w + 2 * over->style.pad;
+	if (h)
+		*h = ink_h + 2 * over->style.pad;
+}
+
+
+void overlay_size_all(const struct overlay *overlays,
+    PangoContext *pango_context, bool dx, bool dy, int *w, int *h)
+{
+	const struct overlay *over;
+	int w1, h1;
+
+	if (w)
+		*w = 0;
+	if (h)
+		*h = 0;
+
+	for (over = overlays; over; over = over->next) {
+		int skip = over == overlays ? 0 : over->style.skip;
+
+		overlay_size(over, pango_context, &w1, &h1);
+		if (w) {
+			if (dx)
+				*w += w1 + skip;
+			else
+				*w = *w > w1 ? *w : w1;
+		}
+		if (h) {
+			if (dy)
+				*h += h1 + skip;
+			else
+				*h = *h > h1 ? *h : h1;
+		}
+	}
+}
+
+
 /* ----- Creation ---------------------------------------------------------- */
 
 
