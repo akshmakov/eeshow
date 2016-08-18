@@ -106,6 +106,13 @@ struct gui_ctx {
 void setup_progress_bar(struct gui_ctx *ctx, GtkWidget *window);
 void progress_update(struct gui_ctx *ctx);
 
+/* render.c */
+
+void redraw(const struct gui_ctx *ctx);
+void render_sheet(struct gui_sheet *sheet);
+void render_delta(struct gui_ctx *ctx);
+void render_setup(struct gui_ctx *ctx);
+
 /* glabel.c */
 
 void dehover_glabel(struct gui_ctx *ctx);
@@ -117,17 +124,14 @@ void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet);
 void do_revision_overlays(struct gui_ctx *ctx);
 void sheet_setup(struct gui_ctx *ctx);
 
-/* history */
+/* history.c */
 
 void show_history(struct gui_ctx *ctx, enum selecting sel);
 
 /* gui.c */
 
-void redraw(const struct gui_ctx *ctx);
 struct gui_sheet *find_corresponding_sheet(struct gui_sheet *pick_from,
      struct gui_sheet *ref_in, const struct gui_sheet *ref);
-void render_sheet(struct gui_sheet *sheet);
-void render_delta(struct gui_ctx *ctx);
 void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet);
 
 #endif /* !GUI_COMMON_H */
