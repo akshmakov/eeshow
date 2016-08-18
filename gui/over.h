@@ -50,8 +50,6 @@ struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
 void overlay_text_raw(struct overlay *over, const char *s);
 void overlay_text(struct overlay *over, const char *fmt, ...);
 void overlay_style(struct overlay *over, const struct overlay_style *style);
-void overlay_draggable(struct overlay *over,
-    void (*drag)(void *user, int dx, int dy));
 void overlay_remove(struct overlay **overlays, struct overlay *over);
 void overlay_remove_all(struct overlay **overlays);
 

@@ -44,7 +44,6 @@ struct overlay {
 	struct aoi **aois;
 	bool (*hover)(void *user, bool on);
 	void (*click)(void *user);
-	void (*drag)(void *user, int dx, int dy);
 	void *user;
 
 	struct aoi *aoi;
@@ -146,7 +145,7 @@ fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->
 	cairo_reset_clip(cr);
 	g_object_unref(layout);
 
-	if (over->hover || over->click || over->drag) {
+	if (over->hover || over->click) {
 		struct aoi aoi_cfg = {
 			.x	= x,
 			.y	= y,
@@ -154,7 +153,6 @@ fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->
 			.h	= h,
 			.hover	= over->hover,
 			.click	= over->click,
-			.drag	= over->drag,
 			.user	= over->user,
 		};
 
@@ -245,13 +243,6 @@ struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
 void overlay_style(struct overlay *over, const struct overlay_style *style)
 {
 	over->style = *style;
-}
-
-
-void overlay_draggable(struct overlay *over, 
-    void (*drag)(void *user, int dx, int dy))
-{
-	over->drag = drag;
 }
 
 
