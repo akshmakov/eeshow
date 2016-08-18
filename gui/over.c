@@ -55,7 +55,7 @@ struct overlay {
 /* ----- Drawing core ------------------------------------------------------ */
 
 
-static void rrect(cairo_t *cr, int x, int y, int w, int h, int r)
+static void rrect(cairo_t *cr, double x, double y, double w, double h, int r)
 {
 	const double deg = M_PI / 180.0;
 
@@ -78,6 +78,7 @@ static unsigned overlay_draw(struct overlay *over, cairo_t *cr,
 	unsigned ink_w, ink_h;	/* effectively used text area size */
 	unsigned w, h;		/* box size */
 	int tx, ty;		/* text start position */
+	double center;
 
 	PangoLayout *layout;
 	PangoFontDescription *desc;
@@ -114,7 +115,9 @@ fprintf(stderr, "%d + %d  %d + %d\n",
 	tx = x - ink_rect.x / PANGO_SCALE + style->pad;
 	ty = y - ink_rect.y / PANGO_SCALE + style->pad;
 
-	rrect(cr, x, y, w, h, style->radius);
+	center = style->width / 2.0;
+	rrect(cr, x - center, y - center, w + style->width, h + style->width,
+	    style->radius);
 
 	cairo_set_source_rgba(cr, bg->r, bg->g, bg->b, bg->alpha);
 	cairo_fill_preserve(cr);
