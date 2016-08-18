@@ -50,6 +50,7 @@ void usage(const char *name)
 "       %*s[-- driver_spec]\n"
 "       %s [-v ...] -C [rev:]file\n"
 "       %s [-v ...] -H path_into_repo\n"
+"       %s gdb ...\n"
 "\n"
 "  rev   git revision\n"
 "  -r    recurse into sub-sheets\n"
@@ -57,6 +58,7 @@ void usage(const char *name)
 "  -C    'cat' the file to standard output\n"
 "  -H    show history of repository on standard output\n"
 "  -N n  limit history to n revisions (unlimited if omitted or 0)\n"
+"  gdb   run eeshow under gdb\n"
 "\n"
 "No driver spec: enter GUI\n"
 "\n"
@@ -81,7 +83,7 @@ void usage(const char *name)
 "  diff [-o output.pdf] [-s scale] [file.lib ...] file.sch\n"
 "\n"
 "  see PNG\n"
-    , name, name, (int) strlen(name) + 1, "", name, name);
+    , name, name, (int) strlen(name) + 1, "", name, name, name);
 	exit(1);
 }
 
@@ -102,6 +104,19 @@ int main(int argc, char **argv)
 	int gfx_argc;
 	char **gfx_argv;
 	const struct gfx_ops **ops = ops_list;
+
+	if (argc > 1 && !strcmp(argv[1], "gdb")) {
+		char **args;
+
+		args = alloc_type_n(char *, argc + 2);
+		args[0] = "gdb";
+		args[1] = "--args";
+		args[2] = *argv;
+		memcpy(args + 3, argv + 2, sizeof(char *) * (argc - 1));
+		execvp("gdb", args);
+		perror(*argv);
+		return 1;
+	}
 
 	for (dashdash = 1; dashdash != argc; dashdash++)
 		if (!strcmp(argv[dashdash], "--")) {
