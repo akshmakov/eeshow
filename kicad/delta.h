@@ -1,5 +1,5 @@
 /*
- * delta.h - Find differences in .sch files
+ * kicad/delta.h - Find differences in .sch files
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -11,8 +11,8 @@
  */
 
 
-#ifndef DELTA_H
-#define DELTA_H
+#ifndef KICAD_DELTA_H
+#define KICAD_DELTA_H
 
 #include "kicad/sch.h"
 
@@ -23,4 +23,4 @@ void delta(const struct sheet *a, const struct sheet *b,
     struct sheet *res_a, struct sheet *res_b, struct sheet *res_ab);
 void delta_free(struct sheet *d);
 
-#endif /* !DELTA_H */
+#endif /* !KICAD_DELTA_H */

@@ -36,7 +36,7 @@
 #include "file/git-hist.h"
 #include "kicad/lib.h"
 #include "kicad/sch.h"
-#include "delta.h"
+#include "kicad/delta.h"
 #include "gfx/diff.h"
 #include "kicad/dwg.h"
 #include "gui/fmt-pango.h"

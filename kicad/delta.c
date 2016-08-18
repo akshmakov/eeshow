@@ -1,5 +1,5 @@
 /*
- * delta.c - Find differences in .sch files
+ * kicad/delta.c - Find differences in .sch files
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -20,7 +20,7 @@
 #include "gfx/text.h"
 #include "kicad/lib.h"
 #include "kicad/sch.h"
-#include "delta.h"
+#include "kicad/delta.h"
 
 
 /*
