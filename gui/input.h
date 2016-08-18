@@ -45,6 +45,8 @@ struct input_ops {
 
 bool input_accept(void *user, int x, int y);
 
+void input_update(void);
+
 void input_push(const struct input_ops *ops, void *user);
 void input_pop(void);
 void input_setup(GtkWidget *da);

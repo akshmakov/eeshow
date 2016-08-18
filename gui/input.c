@@ -69,7 +69,7 @@ static const char *state(void)
 }
 
 
-/* ----- Mouse button ------------------------------------------------------ */
+/* ----- Shared operations ------------------------------------------------- */
 
 
 static bool begin_drag(const GdkEventMotion *event)
@@ -88,11 +88,76 @@ static bool begin_drag(const GdkEventMotion *event)
 }
 
 
-static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
-    gpointer data)
+static void hover_consider(int x, int y)
 {
 	const struct input *old_sp = sp;
 
+	assert(sp->state == input_idle);
+
+	if (sp->ops->hover_begin && sp->ops->hover_begin(sp->user, x, y))
+		sp->state = input_hovering;
+	assert(sp == old_sp);
+}
+
+
+static void hover_update(int x, int y)
+{
+	const struct input *old_sp = sp;
+
+	assert(sp->state == input_hovering);
+
+	if (!sp->ops->hover_update)
+			return;
+
+	/*
+	 * Caution: hover_update may switch input layers. If this happens,
+	 * hovering was already ended when cleaning up the old input layer.
+	 */
+	if (sp->ops->hover_update(sp->user, x, y))
+		return;
+	if (sp != old_sp)
+		return;
+
+	sp->state = sp->state == input_hovering ? input_idle : input_clicking;
+	if (sp->ops->hover_end)
+		sp->ops->hover_end(sp->user);
+}
+
+
+/* ----- Indirect update --------------------------------------------------- */
+
+/*
+ * Geometry changes may require a reassessment of the hover situation. This is
+ * roughly equivalent to what we would do on a mouse movement over distance
+ * zero.
+ */
+
+void input_update(void)
+{
+	switch (sp->state) {
+	case input_idle:
+		hover_consider(curr_x, curr_y);
+		break;
+	case input_hovering:
+		hover_update(curr_x, curr_y);
+		break;
+	case input_clicking:
+	case input_ignoring:
+	case input_hovering_down:
+	case input_dragging:
+		break;
+	default:
+		abort();
+	}
+}
+
+
+/* ----- Mouse button ------------------------------------------------------ */
+
+
+static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
+    gpointer data)
+{
 	curr_x = event->x;
 	curr_y = event->y;
 
@@ -103,10 +168,7 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
 
 	switch (sp->state) {
 	case input_idle:
-		if (sp->ops->hover_begin &&
-		    sp->ops->hover_begin(sp->user, event->x, event->y))
-			sp->state = input_hovering;
-		assert(sp == old_sp);
+		hover_consider(event->x, event->y);
 		break;
 	case input_clicking:
 		begin_drag(event);
@@ -121,17 +183,7 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
 		}
 		/* fall through */
 	case input_hovering:
-		if (!sp->ops->hover_update)
-			break;
-
-		/* Caution: hover_update may switch input layers */
-		if (!sp->ops->hover_update(sp->user, event->x, event->y) &&
-		    sp == old_sp) {
-			sp->state = sp->state == input_hovering ? input_idle :
-			    input_clicking;
-			if (sp->ops->hover_end)
-				sp->ops->hover_end(sp->user);
-		}
+		hover_update(event->x, event->y);
 		break;
 	case input_dragging:
 		if (sp->ops->drag_move)
