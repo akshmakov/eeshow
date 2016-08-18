@@ -104,10 +104,10 @@ static void hover_update(int x, int y)
 {
 	const struct input *old_sp = sp;
 
-	assert(sp->state == input_hovering);
+	assert(sp->state == input_hovering || sp->state == input_hovering_down);
 
 	if (!sp->ops->hover_update)
-			return;
+		return;
 
 	/*
 	 * Caution: hover_update may switch input layers. If this happens,
@@ -118,7 +118,23 @@ static void hover_update(int x, int y)
 	if (sp != old_sp)
 		return;
 
-	sp->state = sp->state == input_hovering ? input_idle : input_clicking;
+	progress(3, "hover_update %s\n", state());
+
+	switch (sp->state) {
+	case input_idle:
+	case input_hovering:
+	case input_ignoring:
+		sp->state = input_idle;
+		break;
+	case input_clicking:
+	case input_hovering_down:
+		sp->state = input_clicking;
+		break;
+	case input_dragging:
+	default:
+		abort();
+	}
+
 	if (sp->ops->hover_end)
 		sp->ops->hover_end(sp->user);
 }
