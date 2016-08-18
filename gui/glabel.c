@@ -64,6 +64,7 @@ static void glabel_dest_click(void *user)
 void dehover_glabel(struct gui_ctx *ctx)
 {
 	overlay_remove_all(&ctx->pop_overlays);
+	overlay_remove_all(&ctx->pop_underlays);
 	redraw(ctx);
 }
 
@@ -76,10 +77,10 @@ static void add_dest_overlay(struct gui_ctx *ctx, const char *label,
 		.wmin	= 100,
 		.wmax	= 100,
 		.radius	= 0,
-		.pad	= 4,
-		.skip	= -4,
+		.pad	= 0,
+		.skip	= 4,
 		.fg	= { 0.0, 0.0, 0.0, 1.0 },
-		.bg	= { 1.0, 0.8, 0.4, 0.8 },
+		.bg	= { 0.0, 0.0, 0.0, 0.0 },
 		.frame	= { 1.0, 1.0, 1.0, 1.0 }, /* debugging */
 		.width	= 0,
 	};
@@ -97,8 +98,35 @@ static void add_dest_overlay(struct gui_ctx *ctx, const char *label,
 		    &ctx->aois, NULL, glabel_dest_click, sheet);
 		overlay_text(over, "%d %s", n, sheet->sch->title);
 		overlay_style(over, &style);
-		return;
+		break;
 	}
+}
+
+
+static void add_dest_frame(struct gui_ctx *ctx)
+{
+	int w, h;
+
+	overlay_size_all(ctx->pop_overlays,
+	    gtk_widget_get_pango_context(ctx->da), 0, 1, &w, &h);
+
+	struct overlay_style style = {
+		.font	= BOLD_FONT,
+		.wmin	= w,
+		.hmin	= h,
+		.radius	= 0,
+		.pad	= GLABEL_STACK_PADDING,
+		.skip	= 0,
+		.fg	= { 0.0, 0.0, 0.0, 1.0 },
+		.bg	= { 0.9, 0.9, 0.3, 0.8 },
+		.frame	= { 0.0, 0.0, 0.0, 1.0 }, /* debugging */
+		.width	= 1,
+	};
+	struct overlay *over;
+
+	over = overlay_add(&ctx->pop_underlays, NULL, NULL, NULL, NULL);
+	overlay_text_raw(over, "");
+	overlay_style(over, &style);
 }
 
 
@@ -121,8 +149,10 @@ static bool hover_glabel(void *user, bool on)
 
 	aoi_dehover();
 	overlay_remove_all(&ctx->pop_overlays);
+	overlay_remove_all(&ctx->pop_underlays);
 	for (sheet = ctx->new_hist->sheets; sheet; sheet = sheet->next)
 		add_dest_overlay(ctx, aoi_ctx->obj->u.text.s, sheet, ++n);
+	add_dest_frame(ctx);
 
 	eeschema_coord(ctx,
 	    bbox->x - curr_sheet->xmin, bbox->y - curr_sheet->ymin,

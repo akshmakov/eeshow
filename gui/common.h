@@ -101,6 +101,8 @@ struct gui_ctx {
 };
 
 
+#define	GLABEL_STACK_PADDING	5
+
 
 /* progress.c */
 
