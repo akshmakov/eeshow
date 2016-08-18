@@ -52,6 +52,9 @@ struct overlay {
 };
 
 
+/* ----- Drawing core ------------------------------------------------------ */
+
+
 static void rrect(cairo_t *cr, int x, int y, int w, int h, int r)
 {
 	const double deg = M_PI / 180.0;
@@ -166,6 +169,9 @@ fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->
 }
 
 
+/* ----- Drawing interfaces ------------------------------------------------ */
+
+
 void overlay_draw_all_d(struct overlay *overlays, cairo_t *cr,
     unsigned x, unsigned y, int dx, int dy)
 {
@@ -213,6 +219,9 @@ void overlay_draw_all(struct overlay *overlays, cairo_t *cr, int x, int y)
 }
 
 
+/* ----- Creation ---------------------------------------------------------- */
+
+
 struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
     bool (*hover)(void *user, bool on), void (*click)(void *user), void *user)
 {
@@ -240,6 +249,9 @@ struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
 }
 
 
+/* ----- Configuration ----------------------------------------------------- */
+
+
 void overlay_style(struct overlay *over, const struct overlay_style *style)
 {
 	over->style = *style;
@@ -261,6 +273,9 @@ void overlay_text(struct overlay *over, const char *fmt, ...)
 	overlay_text_raw(over, vfmt_pango(fmt, ap));
 	va_end(ap);
 }
+
+
+/* ----- Removal ----------------------------------------------------------- */
 
 
 static void overlay_free(struct overlay *over)
