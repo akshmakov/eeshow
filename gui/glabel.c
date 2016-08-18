@@ -36,6 +36,9 @@ struct glabel_aoi_ctx {
 };
 
 
+#define	GLABEL_W	100
+
+
 /* ----- Tools ------------------------------------------------------------- */
 
 
@@ -69,16 +72,38 @@ void dehover_glabel(struct gui_ctx *ctx)
 }
 
 
+static void add_dest_header(struct gui_ctx *ctx, const char *label)
+{
+	struct overlay_style style = {
+		.font	= BOLD_FONT,
+		.wmin	= GLABEL_W,
+		.wmax	= GLABEL_W,
+		.radius	= 0,
+		.pad	= 2,
+		.skip	= 2,
+		.fg	= { 0.0, 0.0, 0.0, 1.0 },
+		.bg	= { 0.8, 0.8, 1.0, 0.6 },
+		.frame	= { 1.0, 1.0, 1.0, 1.0 }, /* debugging */
+		.width	= 0,
+	};
+	struct overlay *over;
+
+	over = overlay_add(&ctx->pop_overlays, NULL, NULL, NULL, NULL);
+	overlay_text(over, "%s", label);
+	overlay_style(over, &style);
+}
+
+
 static void add_dest_overlay(struct gui_ctx *ctx, const char *label,
     struct gui_sheet *sheet, unsigned n)
 {
 	struct overlay_style style = {
 		.font	= BOLD_FONT,
-		.wmin	= 100,
-		.wmax	= 100,
+		.wmin	= GLABEL_W,
+		.wmax	= GLABEL_W,
 		.radius	= 0,
-		.pad	= 0,
-		.skip	= 4,
+		.pad	= 2,
+		.skip	= 0,
 		.fg	= { 0.0, 0.0, 0.0, 1.0 },
 		.bg	= { 0.0, 0.0, 0.0, 0.0 },
 		.frame	= { 1.0, 1.0, 1.0, 1.0 }, /* debugging */
@@ -151,6 +176,8 @@ static bool hover_glabel(void *user, bool on)
 	aoi_dehover();
 	overlay_remove_all(&ctx->pop_overlays);
 	overlay_remove_all(&ctx->pop_underlays);
+
+	add_dest_header(ctx, aoi_ctx->obj->u.text.s);
 	for (sheet = ctx->new_hist->sheets; sheet; sheet = sheet->next)
 		add_dest_overlay(ctx, aoi_ctx->obj->u.text.s, sheet, ++n);
 	add_dest_frame(ctx);
