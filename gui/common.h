@@ -113,17 +113,12 @@ void add_glabel_aoi(struct gui_sheet *sheet, const struct sch_obj *obj);
 
 /* sheet.c */
 
-bool sheet_click(void *user, int x, int y);
-bool sheet_hover_update(void *user, int x, int y);
-void sheet_key(void *user, int x, int y, int keyval);
-
 void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet);
 void do_revision_overlays(struct gui_ctx *ctx);
 void sheet_setup(struct gui_ctx *ctx);
 
 /* history */
 
-void hide_history(struct gui_ctx *ctx);
 void show_history(struct gui_ctx *ctx, enum selecting sel);
 
 /* gui.c */

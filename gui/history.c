@@ -26,7 +26,7 @@
 #include "gui/common.h"
 
 
-void hide_history(struct gui_ctx *ctx)
+static void hide_history(struct gui_ctx *ctx)
 {
 	input_pop();
 
@@ -217,6 +217,25 @@ void show_history(struct gui_ctx *ctx, enum selecting sel)
 /* ----- Input ------------------------------------------------------------- */
 
 
+static bool history_click(void *user, int x, int y)
+{
+	struct gui_ctx *ctx = user;
+
+	if (aoi_click(ctx->aois, x, y))
+		return 1;
+	hide_history(ctx);
+	return 1;
+}
+
+
+static bool history_hover_update(void *user, int x, int y)
+{
+	struct gui_ctx *ctx = user;
+
+	return aoi_hover(ctx->aois, x, y);
+}
+
+
 static void history_drag_move(void *user, int dx, int dy)
 {
 	struct gui_ctx *ctx = user;
@@ -226,15 +245,21 @@ static void history_drag_move(void *user, int dx, int dy)
 }
 
 
-/* @@@ under construction */
+static void history_key(void *user, int x, int y, int keyval)
+{
+	switch (keyval) {
+	case GDK_KEY_q:
+		gtk_main_quit();
+	}
+}
 
 
 static const struct input_ops history_input_ops = {
-	.click		= sheet_click,
-	.hover_begin	= sheet_hover_update,
-	.hover_update	= sheet_hover_update,
-	.hover_click	= sheet_click,
+	.click		= history_click,
+	.hover_begin	= history_hover_update,
+	.hover_update	= history_hover_update,
+	.hover_click	= history_click,
 	.drag_begin	= input_accept,
 	.drag_move	= history_drag_move,
-	.key		= sheet_key,
+	.key		= history_key,
 };

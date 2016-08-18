@@ -308,7 +308,7 @@ static bool go_next_sheet(struct gui_ctx *ctx)
 /* ----- Input ------------------------------------------------------------- */
 
 
-bool sheet_click(void *user, int x, int y)
+static bool sheet_click(void *user, int x, int y)
 {
 	struct gui_ctx *ctx = user;
 	const struct gui_sheet *curr_sheet = ctx->curr_sheet;
@@ -322,15 +322,13 @@ bool sheet_click(void *user, int x, int y)
 	    ex + curr_sheet->xmin, ey + curr_sheet->ymin))
 		return 1;
 
-	if (ctx->showing_history)
-		hide_history(ctx);
 	overlay_remove_all(&ctx->pop_overlays);
 	redraw(ctx);
 	return 1;
 }
 
 
-bool sheet_hover_update(void *user, int x, int y)
+static bool sheet_hover_update(void *user, int x, int y)
 {
 	struct gui_ctx *ctx = user;
 	const struct gui_sheet *curr_sheet = ctx->curr_sheet;
@@ -375,7 +373,7 @@ static void sheet_scroll(void *user, int x, int y, int dy)
 }
 
 
-void sheet_key(void *user, int x, int y, int keyval)
+static void sheet_key(void *user, int x, int y, int keyval)
 {
 	struct gui_ctx *ctx = user;
 	struct gui_sheet *sheet = ctx->curr_sheet;
