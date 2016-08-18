@@ -386,7 +386,7 @@ void overlay_remove_all(struct overlay **overlays)
 
 	while (*overlays) {
 		next = (*overlays)->next;
-		overlay_free(*overlays);
+		overlay_remove(overlays, *overlays);
 		*overlays = next;
 	}
 }
