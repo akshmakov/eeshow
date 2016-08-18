@@ -383,6 +383,7 @@ static void sheet_scroll(void *user, int x, int y, int dy)
 			return;
 	}
 	dehover_glabel(ctx);
+	input_update();
 }
 
 
