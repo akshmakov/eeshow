@@ -1,5 +1,5 @@
 /*
- * util.h - Common utility functions
+ * misc/util.h - Common utility functions
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 Werner Almesberger
@@ -11,8 +11,8 @@
  */
 
 
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef MISC_UTIL_H
+#define MISC_UTIL_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,4 +50,4 @@
 #define	unsupported(s) \
 	fprintf(stderr, __FILE__ ":%d: unsupported: " s "\n", __LINE__)
 
-#endif /* !UTIL_H */
+#endif /* !MISC_UTIL_H */

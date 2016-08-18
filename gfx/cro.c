@@ -22,8 +22,8 @@
 #include <cairo/cairo.h>
 #include <cairo/cairo-pdf.h>
 
-#include "util.h"
-#include "diag.h"
+#include "misc/util.h"
+#include "misc/diag.h"
 #include "gfx/style.h"
 #include "gfx/text.h"
 #include "gfx/gfx.h"

@@ -19,8 +19,8 @@
 #include <math.h>
 #include <assert.h>
 
-#include "util.h"
-#include "diag.h"
+#include "misc/util.h"
+#include "misc/diag.h"
 #include "gfx/style.h"
 #include "gfx/text.h"
 #include "main.h"

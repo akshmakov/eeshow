@@ -19,8 +19,8 @@
 
 #include <gtk/gtk.h>
 
-#include "util.h"
-#include "diag.h"
+#include "misc/util.h"
+#include "misc/diag.h"
 #include "gfx/fig.h"
 #include "gfx/cro.h"
 #include "gfx/diff.h"

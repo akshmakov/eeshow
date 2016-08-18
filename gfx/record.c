@@ -15,7 +15,7 @@
 #include <limits.h>
 #include <math.h>
 
-#include "util.h"
+#include "misc/util.h"
 #include "gfx/style.h"
 #include "gfx/gfx.h"
 #include "gfx/text.h"

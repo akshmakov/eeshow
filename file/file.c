@@ -16,8 +16,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "util.h"
-#include "diag.h"
+#include "misc/util.h"
+#include "misc/diag.h"
 #include "file/git-file.h"
 #include "file/file.h"
 

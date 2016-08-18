@@ -30,7 +30,7 @@
 #include <cairo/cairo.h>
 #include <pango/pangocairo.h>
 
-#include "util.h"
+#include "misc/util.h"
 #include "gui/fmt-pango.h"
 #include "gui/aoi.h"
 #include "gui/style.h"

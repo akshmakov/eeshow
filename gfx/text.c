@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "util.h"
+#include "misc/util.h"
 #include "gfx/misc.h"
 #include "gfx/style.h"
 #include "gfx/gfx.h"

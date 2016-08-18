@@ -15,8 +15,8 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "util.h"
-#include "diag.h"
+#include "misc/util.h"
+#include "misc/diag.h"
 #include "gfx/text.h"
 #include "file/file.h"
 #include "kicad/lib.h"

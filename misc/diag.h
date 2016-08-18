@@ -1,5 +1,5 @@
 /*
- * diag.h - Diagnostics
+ * misc/diag.h - Diagnostics
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -10,8 +10,8 @@
  * (at your option) any later version.
  */
 
-#ifndef DIAG_H
-#define	DIAG_H
+#ifndef MISC_DIAG_H
+#define	MISC_DIAG_H
 
 /*
  * 0: no progress indications
@@ -68,4 +68,4 @@ void warning(const char *fmt, ...)
 void progress(unsigned level, const char *fmt, ...)
     __attribute__((format(printf, 2, 3)));
 
-#endif /* !DIAG_H */
+#endif /* !MISC_DIAG_H */

@@ -28,8 +28,8 @@
 #include <cairo/cairo.h>
 #include <gtk/gtk.h>
 
-#include "util.h"
-#include "diag.h"
+#include "misc/util.h"
+#include "misc/diag.h"
 #include "gfx/style.h"
 #include "gfx/cro.h"
 #include "gfx/gfx.h"

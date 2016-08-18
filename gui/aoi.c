@@ -21,7 +21,7 @@
 #include <math.h>
 #include <assert.h>
 
-#include "util.h"
+#include "misc/util.h"
 #include "gui/aoi.h"
 
 

@@ -19,8 +19,8 @@
 #include <string.h>
 #include <assert.h>
 
-#include "util.h"
-#include "diag.h"
+#include "misc/util.h"
+#include "misc/diag.h"
 #include "kicad/dwg.h"
 #include "file/file.h"
 #include "kicad/lib.h"

@@ -1,5 +1,5 @@
 /*
- * diag.h - Diagnostics
+ * misc/diag.h - Diagnostics
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -18,7 +18,7 @@
 #include <errno.h>
 
 
-#include "diag.h"
+#include "misc/diag.h"
 
 
 unsigned verbose = 0;

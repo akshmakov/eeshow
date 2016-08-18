@@ -18,8 +18,8 @@
 #include <ctype.h>
 #include <alloca.h>
 
-#include "util.h"
-#include "diag.h"
+#include "misc/util.h"
+#include "misc/diag.h"
 #include "gui/fmt-pango.h"
 
 

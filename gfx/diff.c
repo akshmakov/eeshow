@@ -19,8 +19,8 @@
 
 #include <cairo/cairo.h>
 
-#include "util.h"
-#include "diag.h"
+#include "misc/util.h"
+#include "misc/diag.h"
 #include "main.h"
 #include "gfx/cro.h"
 #include "file/file.h"

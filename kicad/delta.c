@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "util.h"
+#include "misc/util.h"
 #include "gfx/text.h"
 #include "kicad/lib.h"
 #include "kicad/sch.h"

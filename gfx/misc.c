@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "diag.h"
+#include "misc/diag.h"
 #include "gfx/misc.h"
 
 

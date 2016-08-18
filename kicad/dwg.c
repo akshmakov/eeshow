@@ -17,7 +17,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "util.h"
+#include "misc/util.h"
 #include "gfx/misc.h"
 #include "gfx/style.h"
 #include "gfx/text.h"
