@@ -17,20 +17,16 @@
  * https://developer.gnome.org/gtk3/stable/gtk-migrating-2-to-3.html
  */
 
-#define	_GNU_SOURCE	/* for asprintf */
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
-#include <math.h>
 
 #include <cairo/cairo.h>
 #include <gtk/gtk.h>
 
 #include "misc/util.h"
 #include "misc/diag.h"
-#include "gfx/style.h"
 #include "gfx/cro.h"
 #include "gfx/gfx.h"
 #include "file/git-hist.h"
@@ -38,10 +34,7 @@
 #include "kicad/sch.h"
 #include "kicad/delta.h"
 #include "gfx/diff.h"
-#include "kicad/dwg.h"
-#include "gui/fmt-pango.h"
 #include "gui/aoi.h"
-#include "gui/style.h"
 #include "gui/over.h"
 #include "gui/input.h"
 #include "gui/common.h"
@@ -196,7 +189,7 @@ void render_delta(struct gui_ctx *ctx)
 }
 
 
-/* ----- AoI callbacks ----------------------------------------------------- */
+/* ----- AoIs -------------------------------------------------------------- */
 
 
 struct sheet_aoi_ctx {
@@ -223,9 +216,6 @@ static void select_subsheet(void *user)
 }
 
 
-/* ----- Initialization ---------------------------------------------------- */
-
-
 static void add_sheet_aoi(struct gui_ctx *ctx, struct gui_sheet *parent,
     const struct sch_obj *obj)
 {
@@ -245,6 +235,9 @@ static void add_sheet_aoi(struct gui_ctx *ctx, struct gui_sheet *parent,
 
 	aoi_add(&parent->aois, &aoi);
 }
+
+
+/* ----- Load revisions ---------------------------------------------------- */
 
 
 void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet)
@@ -445,6 +438,27 @@ static void add_hist(void *user, struct hist *h)
 }
 
 
+static void get_revisions(struct gui_ctx *ctx,
+    int n_args, char **args, bool recurse, int limit)
+{
+	struct add_hist_ctx add_hist_ctx = {
+		.ctx		= ctx,
+		.n_args		= n_args,
+		.args		= args,
+		.recurse	= recurse,
+		.limit		= limit ? limit < 0 ? -limit : limit : -1,
+	};
+
+	if (ctx->vcs_hist)
+		hist_iterate(ctx->vcs_hist, add_hist, &add_hist_ctx);
+	else
+		add_hist(&add_hist_ctx, NULL);
+}
+
+
+/* ----- Retrieve and count history ---------------------------------------- */
+
+
 static void count_history(void *user, struct hist *h)
 {
 	struct gui_ctx *ctx = user;
@@ -468,22 +482,7 @@ static void get_history(struct gui_ctx *ctx, const char *sch_name, int limit)
 }
 
 
-static void get_revisions(struct gui_ctx *ctx,
-    int n_args, char **args, bool recurse, int limit)
-{
-	struct add_hist_ctx add_hist_ctx = {
-		.ctx		= ctx,
-		.n_args		= n_args,
-		.args		= args,
-		.recurse	= recurse,
-		.limit		= limit ? limit < 0 ? -limit : limit : -1,
-	};
-
-	if (ctx->vcs_hist)
-		hist_iterate(ctx->vcs_hist, add_hist, &add_hist_ctx);
-	else
-		add_hist(&add_hist_ctx, NULL);
-}
+/* ----- Initialization ---------------------------------------------------- */
 
 
 int gui(unsigned n_args, char **args, bool recurse, int limit)
