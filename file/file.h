@@ -1,5 +1,5 @@
 /*
- * file.h - Open and read a file
+ * file/file.h - Open and read a file
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -10,8 +10,8 @@
  * (at your option) any later version.
  */
 
-#ifndef FILE_H
-#define	FILE_H
+#ifndef FILE_FILE_H
+#define	FILE_FILE_H
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -42,4 +42,4 @@ bool file_read(struct file *file,
     void *user);
 void file_close(struct file *file);
 
-#endif /* !FILE_H */
+#endif /* !FILE_FILE_H */

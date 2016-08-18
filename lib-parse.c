@@ -18,7 +18,7 @@
 #include "util.h"
 #include "diag.h"
 #include "text.h"
-#include "file.h"
+#include "file/file.h"
 #include "lib.h"
 
 

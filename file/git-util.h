@@ -1,5 +1,5 @@
 /*
- * git-util.h - Git utility functions
+ * file/git-util.h - Git utility functions
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -10,8 +10,8 @@
  * (at your option) any later version.
  */
 
-#ifndef GIT_UTIL_H
-#define	GIT_UTIL_H
+#ifndef FILE_GIT_UTIL_H
+#define	FILE_GIT_UTIL_H
 
 #include <stdbool.h>
 
@@ -21,4 +21,4 @@
 bool git_repo_is_dirty(git_repository *repo);
 void git_init_once(void);
 
-#endif /* !GIT_UTIL_H */
+#endif /* !FILE_GIT_UTIL_H */

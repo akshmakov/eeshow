@@ -22,7 +22,7 @@
 #include "util.h"
 #include "diag.h"
 #include "dwg.h"
-#include "file.h"
+#include "file/file.h"
 #include "lib.h"
 #include "sch.h"
 

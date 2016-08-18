@@ -1,5 +1,5 @@
 /*
- * file.c - Open and read a file
+ * file/file.c - Open and read a file
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -18,8 +18,8 @@
 
 #include "util.h"
 #include "diag.h"
-#include "git-file.h"
-#include "file.h"
+#include "file/git-file.h"
+#include "file/file.h"
 
 
 void *file_oid(const struct file *file)

@@ -18,7 +18,7 @@
 
 #include "dwg.h"
 #include "text.h"
-#include "file.h"
+#include "file/file.h"
 #include "lib.h"
 
 

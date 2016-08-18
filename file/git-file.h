@@ -1,5 +1,5 @@
 /*
- * git-file.h - Open and read a file from git version control system
+ * file/git-file.h - Open and read a file from git version control system
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -10,8 +10,8 @@
  * (at your option) any later version.
  */
 
-#ifndef GIT_FILE_H
-#define	GIT_FILE_H
+#ifndef FILE_GIT_FILE_H
+#define	FILE_GIT_FILE_H
 
 #include <stdbool.h>
 
@@ -42,4 +42,4 @@ bool vcs_git_read(void *ctx, struct file *file,
     void *user);
 void vcs_git_close(void *ctx);
 
-#endif /* !GIT_FILE_H */
+#endif /* !FILE_GIT_FILE_H */

@@ -1,5 +1,5 @@
 /*
- * git-hist.h - Retrieve revision history from GIT repo
+ * file/git-hist.h - Retrieve revision history from GIT repo
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -10,8 +10,8 @@
  * (at your option) any later version.
  */
 
-#ifndef GIT_HIST_H
-#define	GIT_HIST_H
+#ifndef FILE_GIT_HIST_H
+#define	FILE_GIT_HIST_H
 
 #include <stdbool.h>
 
@@ -41,4 +41,4 @@ void hist_iterate(struct hist *h,
     void (*fn)(void *user, struct hist *h), void *user);
 void dump_hist(struct hist *h);
 
-#endif /* !GIT_HIST_H */
+#endif /* !FILE_GIT_HIST_H */

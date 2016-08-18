@@ -1,5 +1,5 @@
 /*
- * git-util.c - Git utility functions
+ * file/git-util.c - Git utility functions
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -15,7 +15,7 @@
 
 #include <git2.h>
 
-#include "git-util.h"
+#include "file/git-util.h"
 
 
 /*

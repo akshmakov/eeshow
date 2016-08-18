@@ -1,5 +1,5 @@
 /*
- * git-file.c - Open and read a file from git version control system
+ * file/git-file.c - Open and read a file from git version control system
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -22,9 +22,9 @@
 
 #include "util.h"
 #include "diag.h"
-#include "file.h"
-#include "git-util.h"
-#include "git-file.h"
+#include "file/file.h"
+#include "file/git-util.h"
+#include "file/git-file.h"
 
 
 struct vcs_git {

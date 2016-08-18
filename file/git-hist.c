@@ -1,5 +1,5 @@
 /*
- * git-hist.c - Retrieve revision history from GIT repo
+ * file/git-hist.c - Retrieve revision history from GIT repo
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -18,9 +18,9 @@
 
 #include "util.h"
 #include "diag.h"
-#include "git-util.h"
-#include "git-file.h"
-#include "git-hist.h"
+#include "file/git-util.h"
+#include "file/git-file.h"
+#include "file/git-hist.h"
 
 
 /*

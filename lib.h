@@ -16,7 +16,7 @@
 
 #include <stdbool.h>
 
-#include "file.h"
+#include "file/file.h"
 
 
 enum lib_state {

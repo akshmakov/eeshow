@@ -23,7 +23,7 @@
 #include "diag.h"
 #include "main.h"
 #include "cro.h"
-#include "file.h"
+#include "file/file.h"
 #include "sch.h"
 #include "lib.h"
 #include "record.h"

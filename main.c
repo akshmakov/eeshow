@@ -25,11 +25,11 @@
 #include "cro.h"
 #include "diff.h"
 #include "gfx.h"
-#include "file.h"
+#include "file/file.h"
 #include "lib.h"
 #include "sch.h"
 #include "gui/fmt-pango.h"
-#include "git-hist.h"
+#include "file/git-hist.h"
 #include "gui/gui.h"
 #include "main.h"
 

@@ -33,7 +33,7 @@
 #include "style.h"
 #include "cro.h"
 #include "gfx.h"
-#include "git-hist.h"
+#include "file/git-hist.h"
 #include "sch.h"
 #include "delta.h"
 #include "diff.h"
