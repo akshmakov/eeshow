@@ -47,25 +47,27 @@ static void canvas_coord(const struct gui_ctx *ctx,
 /* ----- Zoom -------------------------------------------------------------- */
 
 
-static void zoom_in(struct gui_ctx *ctx, int x, int y)
+static bool zoom_in(struct gui_ctx *ctx, int x, int y)
 {
 	if (ctx->zoom == 0)
-		return;
+		return 0;
 	ctx->zoom--;
 	ctx->x = (ctx->x + x) / 2;
 	ctx->y = (ctx->y + y) / 2;
 	redraw(ctx);
+	return 1;
 }
 
 
-static void zoom_out(struct gui_ctx *ctx, int x, int y)
+static bool zoom_out(struct gui_ctx *ctx, int x, int y)
 {
 	if (ctx->curr_sheet->w >> ctx->zoom <= 16)
-		return;
+		return 0;
 	ctx->zoom++;
 	ctx->x = 2 * ctx->x - x;
 	ctx->y = 2 * ctx->y - y;
 	redraw(ctx);
+	return 1;
 }
 
 
@@ -371,11 +373,16 @@ static void sheet_scroll(void *user, int x, int y, int dy)
 	struct gui_ctx *ctx = user;
 	int ex, ey;
 
+
 	canvas_coord(ctx, x, y, &ex, &ey);
-	if (dy < 0)
-		zoom_in(ctx, ex, ey);
-	else
-		zoom_out(ctx, ex, ey);
+	if (dy < 0) {
+		if (!zoom_in(ctx, ex, ey))
+			return;
+	} else {
+		if (!zoom_out(ctx, ex, ey))
+			return;
+	}
+	dehover_glabel(ctx);
 }
 
 
