@@ -38,6 +38,7 @@
 #include "delta.h"
 #include "diff.h"
 #include "dwg.h"
+#include "gui/fmt-pango.h"
 #include "gui/aoi.h"
 #include "gui/style.h"
 #include "gui/over.h"
@@ -489,7 +490,7 @@ static bool hover_history(void *user, bool on)
 	char *s;
 
 	if (on) {
-		s = vcs_git_long_for_pango(h->vcs_hist);
+		s = vcs_git_long_for_pango(h->vcs_hist, fmt_pango);
 		overlay_text_raw(h->over, s);
 		free(s);
 	} else {
@@ -680,7 +681,7 @@ static bool show_history_details(void *user, bool on)
 	char *s;
 
 	if (on) {
-		s = vcs_git_long_for_pango(h->vcs_hist);
+		s = vcs_git_long_for_pango(h->vcs_hist, fmt_pango);
 		overlay_text_raw(h->over, s);
 		free(s);
 	} else {

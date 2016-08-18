@@ -28,7 +28,7 @@
 #include "file.h"
 #include "lib.h"
 #include "sch.h"
-#include "fmt-pango.h"
+#include "gui/fmt-pango.h"
 #include "git-hist.h"
 #include "gui/gui.h"
 #include "main.h"

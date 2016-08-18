@@ -1,5 +1,5 @@
 /*
- * fmt-pango.h - Format strings for Pango markup
+ * gui/fmt-pango.h - Format strings for Pango markup
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -11,8 +11,8 @@
  */
 
 
-#ifndef FMT_PANGO_H
-#define FMT_PANGO_H
+#ifndef GUI_FMT_PANGO_H
+#define GUI_FMT_PANGO_H
 
 #include <stdarg.h>
 
@@ -22,4 +22,4 @@ char *vfmt_pango(const char *fmt, va_list ap);
 char *fmt_pango(const char *fmt, ...)
     __attribute__((format(printf, 1, 2)));
 
-#endif /* !FMT_PANGO_H */
+#endif /* !GUI_FMT_PANGO_H */

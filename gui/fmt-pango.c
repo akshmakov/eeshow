@@ -1,5 +1,5 @@
 /*
- * fmt-pango.c - Format strings for Pango markup
+ * gui/fmt-pango.c - Format strings for Pango markup
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -20,7 +20,7 @@
 
 #include "util.h"
 #include "diag.h"
-#include "fmt-pango.h"
+#include "gui/fmt-pango.h"
 
 
 unsigned vsfmt_pango(char *buf, const char *fmt, va_list ap)

@@ -18,7 +18,6 @@
 
 #include "util.h"
 #include "diag.h"
-#include "fmt-pango.h"	/* for vcs_long_for_pango */
 #include "git-util.h"
 #include "git-file.h"
 #include "git-hist.h"
@@ -211,7 +210,8 @@ const char *vcs_git_summary(struct hist *h)
  * the very specific constraints imposed by the markup format of Pango. 
  */
 
-char *vcs_git_long_for_pango(struct hist *h)
+char *vcs_git_long_for_pango(struct hist *h,
+    char *(*formatter)(const char *fmt, ...))
 {
 	const git_error *e;
 	git_buf buf = { 0 };
@@ -225,7 +225,7 @@ char *vcs_git_long_for_pango(struct hist *h)
 		goto fail;
 	commit_time = git_commit_time(h->commit);
 	sig = git_commit_committer(h->commit);
-	s = fmt_pango("<b>%s</b> %s%s &lt;%s&gt;<small>\n%s</small>",
+	s = formatter("<b>%s</b> %s%s &lt;%s&gt;<small>\n%s</small>",
 	    buf.ptr, ctime(&commit_time), sig->name, sig->email,
 	    git_commit_summary(h->commit));
 	git_buf_free(&buf);
