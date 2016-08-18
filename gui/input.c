@@ -265,7 +265,7 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event,
 		if (sp->ops->hover_click &&
 		    sp->ops->hover_click(sp->user, event->x, event->y) &&
 		    sp == old_sp) {
-			sp->state = input_ignoring;
+			sp->state = input_idle;
 			if (sp->ops->hover_end)
 				sp->ops->hover_end(sp->user);
 		}
