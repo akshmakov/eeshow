@@ -101,9 +101,20 @@ struct gui_ctx {
 
 
 
-void redraw(const struct gui_ctx *ctx);
+/* progress.c */
 
 void setup_progress_bar(struct gui_ctx *ctx, GtkWidget *window);
 void progress_update(struct gui_ctx *ctx);
+
+/* glabel.c */
+
+void dehover_glabel(struct gui_ctx *ctx);
+void add_glabel_aoi(struct gui_sheet *sheet, const struct sch_obj *obj);
+
+/* gui.c */
+
+void redraw(const struct gui_ctx *ctx);
+void eeschema_coord(const struct gui_ctx *ctx, int x, int y, int *rx, int *ry);
+void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet);
 
 #endif /* !GUI_COMMON_H */
