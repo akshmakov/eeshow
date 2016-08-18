@@ -107,7 +107,7 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
 			break;
 
 		/* Caution: hover_update may switch input layers */
-		if (sp->ops->hover_update(sp->user, event->x, event->y) &&
+		if (!sp->ops->hover_update(sp->user, event->x, event->y) &&
 		    sp == old_sp) {
 			sp->state = input_idle;
 			if (sp->ops->hover_end)
