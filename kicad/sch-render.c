@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "misc.h"
+#include "gfx/misc.h"
 #include "gfx/style.h"
 #include "gfx/gfx.h"
 #include "kicad/dwg.h"

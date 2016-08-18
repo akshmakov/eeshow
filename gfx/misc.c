@@ -1,5 +1,5 @@
 /*
- * misc.c - Helper functions for geometry and attributes
+ * gfx/misc.c - Helper functions for geometry and attributes
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 Werner Almesberger
@@ -17,7 +17,7 @@
 #include <assert.h>
 
 #include "diag.h"
-#include "misc.h"
+#include "gfx/misc.h"
 
 
 static bool eq(const int m[6], int xx, int xy, int yx, int yy)

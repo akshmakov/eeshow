@@ -17,7 +17,7 @@
 #include <string.h>
 
 #include "util.h"
-#include "misc.h"
+#include "gfx/misc.h"
 #include "gfx/style.h"
 #include "gfx/gfx.h"
 #include "gfx/text.h"

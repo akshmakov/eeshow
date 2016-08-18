@@ -1,5 +1,5 @@
 /*
- * misc.h - Helper functions for geometry and attributes
+ * gfx/misc.h - Helper functions for geometry and attributes
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 Werner Almesberger
@@ -11,8 +11,8 @@
  */
 
 
-#ifndef MISC_H
-#define MISC_H
+#ifndef GFX_MISC_H
+#define GFX_MISC_H
 
 #include <stdbool.h>
 
@@ -48,4 +48,4 @@ int angle_add(int a, int b);
 int rx(int x, int y, int rot);
 int ry(int x, int y, int rot);
 
-#endif /* !MISC_H */
+#endif /* !GFX_MISC_H */
