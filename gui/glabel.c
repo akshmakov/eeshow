@@ -19,6 +19,7 @@
 #include "misc/util.h"
 #include "kicad/dwg.h"
 #include "gui/style.h"
+#include "gui/input.h"
 #include "gui/aoi.h"
 #include "gui/over.h"
 #include "gui/common.h"
@@ -129,6 +130,16 @@ static void add_dest_overlay(struct gui_ctx *ctx, const char *label,
 }
 
 
+static bool pop_hover(void *user, bool on)
+{
+	struct gui_ctx *ctx = user;
+
+	if (!on)
+		dehover_glabel(ctx);
+	return 1;
+}
+
+
 static void add_dest_frame(struct gui_ctx *ctx)
 {
 	int w, h;
@@ -150,7 +161,8 @@ static void add_dest_frame(struct gui_ctx *ctx)
 	};
 	struct overlay *over;
 
-	over = overlay_add(&ctx->pop_underlays, NULL, NULL, NULL, NULL);
+	over = overlay_add(&ctx->pop_underlays, &ctx->aois,
+	    pop_hover, NULL, ctx);
 	overlay_text_raw(over, "");
 	overlay_style(over, &style);
 }
@@ -167,6 +179,8 @@ static bool hover_glabel(void *user, bool on)
 		dehover_glabel(ctx);
 		return 1;
 	}
+	if (ctx->pop_underlays)
+		return 0;
 
 	GtkAllocation alloc;
 	int sx, sy, ex, ey, mx, my;
@@ -196,6 +210,7 @@ static bool hover_glabel(void *user, bool on)
 	ctx->pop_y = my < alloc.height / 2 ?
 	    sy - CHEAT : -(alloc.height - ey) + CHEAT;
 
+	input_update();
 	redraw(ctx);
 	return 0;
 }
