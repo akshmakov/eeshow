@@ -99,4 +99,11 @@ struct gui_ctx {
 	unsigned progress_scale;/* right-shift by this value */
 };
 
+
+
+void redraw(const struct gui_ctx *ctx);
+
+void setup_progress_bar(struct gui_ctx *ctx, GtkWidget *window);
+void progress_update(struct gui_ctx *ctx);
+
 #endif /* !GUI_COMMON_H */
