@@ -814,6 +814,16 @@ static void sheet_hover_end(void *user)
 }
 
 
+static void dehover_glabel(struct gui_ctx *ctx);
+
+
+static bool sheet_drag_begin(void *user, int x, int y)
+{
+	dehover_glabel(user);
+	return 1;
+}
+
+
 static void sheet_drag_move(void *user, int dx, int dy)
 {
 	struct gui_ctx *ctx = user;
@@ -893,7 +903,7 @@ static const struct input_ops sheet_input_ops = {
 	.hover_click	= sheet_click,
 	.hover_end	= sheet_hover_end,
 	.scroll		= sheet_scroll,
-	.drag_begin	= input_accept,
+	.drag_begin	= sheet_drag_begin,
 	.drag_move	= sheet_drag_move,
 	.key		= sheet_key,
 };
@@ -986,6 +996,13 @@ static void glabel_dest_click(void *user)
 }
 
 
+static void dehover_glabel(struct gui_ctx *ctx)
+{
+	overlay_remove_all(&ctx->pop_overlays);
+	redraw(ctx);
+}
+
+
 static bool hover_glabel(void *user, bool on)
 {
 	struct glabel_aoi_ctx *aoi_ctx = user;
@@ -994,8 +1011,7 @@ static bool hover_glabel(void *user, bool on)
 	const struct dwg_bbox *bbox = &aoi_ctx->bbox;
 
 	if (!on) {
-		overlay_remove(&ctx->pop_overlays, aoi_ctx->over);
-		redraw(ctx);
+		dehover_glabel(ctx);
 		return 1;
 	}
 
