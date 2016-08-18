@@ -18,6 +18,7 @@
 #include <gtk/gtk.h>
 
 #include "misc/util.h"
+#include "misc/diag.h"
 #include "gui/input.h"
 
 
@@ -29,7 +30,7 @@ static struct input {
 	void *user;
 
 	enum state {
-		input_normal,
+		input_idle,
 		input_clicking,
 		input_ignoring,	/* click rejected by moving the cursor */
 		input_hovering,
@@ -41,6 +42,28 @@ static struct input {
 
 static int curr_x, curr_y;		/* last mouse position */
 static int clicked_x, clicked_y;	/* button down position */
+
+
+/* ----- Debugging tools --------------------------------------------------- */
+
+
+static const char *state(void)
+{
+	switch (sp->state) {
+	case input_idle:
+		return "IDLE";
+	case input_clicking:
+		return "CLICKING";
+	case input_ignoring:
+		return "IGNORING";
+	case input_hovering:
+		return "HOVERING";
+	case input_dragging:
+		return "DRAGGING";
+	default:
+		abort();
+	}
+}
 
 
 /* ----- Mouse button ------------------------------------------------------ */
@@ -57,8 +80,10 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
 	if (!sp)
 		return TRUE;
 
+	progress(3, "motion %s\n", state());
+
 	switch (sp->state) {
-	case input_normal:
+	case input_idle:
 		if (sp->ops->hover_begin &&
 		    sp->ops->hover_begin(sp->user, event->x, event->y))
 			sp->state = input_hovering;
@@ -84,7 +109,7 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
 		/* Caution: hover_update may switch input layers */
 		if (sp->ops->hover_update(sp->user, event->x, event->y) &&
 		    sp == old_sp) {
-			sp->state = input_normal;
+			sp->state = input_idle;
 			if (sp->ops->hover_end)
 				sp->ops->hover_end(sp->user);
 		}
@@ -111,8 +136,10 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event,
 	if (event->button != 1)
 		return TRUE;
 
+	progress(3, "press %s\n", state());
+
 	switch (sp->state) {
-	case input_normal:
+	case input_idle:
 		sp->state = input_clicking;
 		clicked_x = event->x;
 		clicked_y = event->y;
@@ -145,20 +172,22 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event,
 	if (event->button != 1)
 		return TRUE;
 
+	progress(3, "release %s\n", state());
+
 	switch (sp->state) {
-	case input_normal:
+	case input_idle:
 		/* hover_click changed the input configuration */
 		break;
 	case input_clicking:
-		sp->state = input_normal;
+		sp->state = input_idle;
 		if (sp->ops->click)
 			sp->ops->click(sp->user, clicked_x, clicked_y);
 		break;
 	case input_ignoring:
-		sp->state = input_normal;
+		sp->state = input_idle;
 		break;
 	case input_dragging:
-		sp->state = input_normal;
+		sp->state = input_idle;
 		if (sp->ops->drag_end)
 			sp->ops->drag_end(sp->user);
 		break;
@@ -247,7 +276,7 @@ void input_push(const struct input_ops *ops, void *user)
 	new = alloc_type(struct input);
 	new->ops = ops;
 	new->user = user;
-	new->state = input_normal;
+	new->state = input_idle;
 	new->next = sp;
 	sp = new;
 }
