@@ -46,6 +46,7 @@
 #define	swap(a, b) \
     ({ typeof(a) _tmp = (a); a = (b); b = _tmp; })
 
+#define	sign1(x)	((x) < 0 ? -1 : 1)
 
 #define	unsupported(s) \
 	fprintf(stderr, __FILE__ ":%d: unsupported: " s "\n", __LINE__)
