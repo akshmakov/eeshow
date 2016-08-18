@@ -190,30 +190,6 @@ static struct gui_hist *skip_history(struct gui_ctx *ctx, struct gui_hist *h)
 }
 
 
-static const struct input_ops history_input_ops;
-
-
-void show_history(struct gui_ctx *ctx, enum selecting sel)
-{
-	struct gui_hist *h = ctx->hist;
-
-	input_push(&history_input_ops, ctx);
-
-	ctx->showing_history = 1;
-	ctx->hist_y_offset = 0;
-	ctx->selecting = sel;
-	overlay_remove_all(&ctx->hist_overlays);
-	for (h = ctx->hist; h; h = h->next) {
-		h = skip_history(ctx, h);
-		h->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
-		    hover_history, click_history, h);
-		hover_history(h, 0);
-		set_history_style(h, 0);
-	}
-	redraw(ctx);
-}
-
-
 /* ----- Input ------------------------------------------------------------- */
 
 
@@ -263,3 +239,27 @@ static const struct input_ops history_input_ops = {
 	.drag_move	= history_drag_move,
 	.key		= history_key,
 };
+
+
+/* ----- Invocation -------------------------------------------------------- */
+
+
+void show_history(struct gui_ctx *ctx, enum selecting sel)
+{
+	struct gui_hist *h = ctx->hist;
+
+	input_push(&history_input_ops, ctx);
+
+	ctx->showing_history = 1;
+	ctx->hist_y_offset = 0;
+	ctx->selecting = sel;
+	overlay_remove_all(&ctx->hist_overlays);
+	for (h = ctx->hist; h; h = h->next) {
+		h = skip_history(ctx, h);
+		h->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
+		    hover_history, click_history, h);
+		hover_history(h, 0);
+		set_history_style(h, 0);
+	}
+	redraw(ctx);
+}
