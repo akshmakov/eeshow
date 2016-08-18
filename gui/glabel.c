@@ -68,6 +68,40 @@ void dehover_glabel(struct gui_ctx *ctx)
 }
 
 
+static void add_dest_overlay(struct gui_ctx *ctx, const char *label,
+    struct gui_sheet *sheet, unsigned n)
+{
+	struct overlay_style style = {
+		.font	= BOLD_FONT,
+		.wmin	= 100,
+		.wmax	= 100,
+		.radius	= 0,
+		.pad	= 4,
+		.skip	= -4,
+		.fg	= { 0.0, 0.0, 0.0, 1.0 },
+		.bg	= { 1.0, 0.8, 0.4, 0.8 },
+		.frame	= { 1.0, 1.0, 1.0, 1.0 }, /* debugging */
+		.width	= 0,
+	};
+	const struct sch_obj *obj;
+	struct overlay *over;
+
+	if (sheet == ctx->curr_sheet)
+			return;
+	for (obj = sheet->sch->objs; obj; obj = obj->next) {
+		if (obj->type != sch_obj_glabel)
+			continue;
+		if (strcmp(obj->u.text.s, label))
+			continue;
+		over = overlay_add(&ctx->pop_overlays,
+		    &ctx->aois, NULL, glabel_dest_click, sheet);
+		overlay_text(over, "%d %s", n, sheet->sch->title);
+		overlay_style(over, &style);
+		return;
+	}
+}
+
+
 static bool hover_glabel(void *user, bool on)
 {
 	struct glabel_aoi_ctx *aoi_ctx = user;
@@ -81,42 +115,14 @@ static bool hover_glabel(void *user, bool on)
 	}
 
 	GtkAllocation alloc;
-	struct overlay_style style = {
-		.font	= BOLD_FONT,
-		.wmin	= 100,
-		.wmax	= 100,
-		.radius	= 0,
-		.pad	= 4,
-		.skip	= -4,
-		.fg	= { 0.0, 0.0, 0.0, 1.0 },
-		.bg	= { 1.0, 0.8, 0.4, 0.8 },
-		.frame	= { 1.0, 1.0, 1.0, 1.0 }, /* debugging */
-		.width	= 0,
-	};
 	int sx, sy, ex, ey, mx, my;
 	unsigned n = 0;
 	struct gui_sheet *sheet;
-	const struct sch_obj *obj;
-	struct overlay *over;
 
 	aoi_dehover();
 	overlay_remove_all(&ctx->pop_overlays);
-	for (sheet = ctx->new_hist->sheets; sheet; sheet = sheet->next) {
-		n++;
-		if (sheet == curr_sheet)
-			continue;
-		for (obj = sheet->sch->objs; obj; obj = obj->next) {
-			if (obj->type != sch_obj_glabel)
-				continue;
-			if (strcmp(obj->u.text.s, aoi_ctx->obj->u.text.s))
-				continue;
-			over = overlay_add(&ctx->pop_overlays,
-			    &ctx->aois, NULL, glabel_dest_click, sheet);
-			overlay_text(over, "%d %s", n, sheet->sch->title);
-			overlay_style(over, &style);
-			break;
-		}
-	}
+	for (sheet = ctx->new_hist->sheets; sheet; sheet = sheet->next)
+		add_dest_overlay(ctx, aoi_ctx->obj->u.text.s, sheet, ++n);
 
 	eeschema_coord(ctx,
 	    bbox->x - curr_sheet->xmin, bbox->y - curr_sheet->ymin,
