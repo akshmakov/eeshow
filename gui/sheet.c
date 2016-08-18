@@ -116,43 +116,7 @@ static void zoom_to_extents(struct gui_ctx *ctx)
 }
 
 
-/* ----- Navigate sheets --------------------------------------------------- */
-
-
-static void close_subsheet(void *user)
-{
-	struct gui_sheet *sheet = user;
-	struct gui_ctx *ctx = sheet->ctx;
-
-	go_to_sheet(ctx, sheet);
-}
-
-
-static bool hover_sheet(void *user, bool on)
-{
-	struct gui_sheet *sheet = user;
-	struct gui_ctx *ctx = sheet->ctx;
-	const char *title = sheet->sch->title;
-
-	if (!title)
-		title = "(unnamed)";
-	if (on) {
-		const struct gui_sheet *s;
-		int n = 0, this = -1;
-
-		for (s = ctx->new_hist->sheets; s; s = s->next) {
-			n++;
-			if (s == sheet)
-				this = n;
-		}
-		overlay_text(sheet->over, "<b>%s</b>\n<big>%d / %d</big>",
-		    title, this, n);
-	} else {
-		overlay_text(sheet->over, "<b>%s</b>", title);
-	}
-	redraw(ctx);
-	return 1;
-}
+/* ----- Revision selection overlays --------------------------------------- */
 
 
 static bool show_history_details(void *user, bool on)
@@ -218,6 +182,45 @@ void do_revision_overlays(struct gui_ctx *ctx)
 }
 
 
+/* ----- Sheet selection overlays ------------------------------------------ */
+
+
+static void close_subsheet(void *user)
+{
+	struct gui_sheet *sheet = user;
+	struct gui_ctx *ctx = sheet->ctx;
+
+	go_to_sheet(ctx, sheet);
+}
+
+
+static bool hover_sheet(void *user, bool on)
+{
+	struct gui_sheet *sheet = user;
+	struct gui_ctx *ctx = sheet->ctx;
+	const char *title = sheet->sch->title;
+
+	if (!title)
+		title = "(unnamed)";
+	if (on) {
+		const struct gui_sheet *s;
+		int n = 0, this = -1;
+
+		for (s = ctx->new_hist->sheets; s; s = s->next) {
+			n++;
+			if (s == sheet)
+				this = n;
+		}
+		overlay_text(sheet->over, "<b>%s</b>\n<big>%d / %d</big>",
+		    title, this, n);
+	} else {
+		overlay_text(sheet->over, "<b>%s</b>", title);
+	}
+	redraw(ctx);
+	return 1;
+}
+
+
 static struct gui_sheet *find_parent_sheet(struct gui_sheet *sheets,
     const struct gui_sheet *ref)
 {
@@ -251,6 +254,9 @@ static void do_sheet_overlays(struct gui_ctx *ctx)
 	overlay_remove_all(&ctx->sheet_overlays);
 	sheet_selector_recurse(ctx, ctx->curr_sheet);
 }
+
+
+/* ----- Navigate sheets --------------------------------------------------- */
 
 
 void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet)
