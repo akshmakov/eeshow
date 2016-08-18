@@ -88,7 +88,8 @@ static void add_dest_overlay(struct gui_ctx *ctx, const char *label,
 	struct overlay *over;
 
 	if (sheet == ctx->curr_sheet)
-			return;
+		style.fg = RGBA(0.5, 0.5, 0.5, 1.0);
+
 	for (obj = sheet->sch->objs; obj; obj = obj->next) {
 		if (obj->type != sch_obj_glabel)
 			continue;
