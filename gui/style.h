@@ -27,6 +27,10 @@
 #define	BG_OLD		1.0, 0.8, 0.8, 0.8
 
 
+#define RGBA(r, g, b, a)	((struct color) { (r), (g), (b), (a) })
+#define COLOR(color)		RGBA(color)
+
+
 extern struct overlay_style overlay_style_default;
 extern struct overlay_style overlay_style_dense;
 extern struct overlay_style overlay_style_diff_new;

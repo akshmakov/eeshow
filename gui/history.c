@@ -36,10 +36,6 @@ static void hide_history(struct gui_ctx *ctx)
 }
 
 
-#define	RGBA(r, g, b, a)	((struct color) { (r), (g), (b), (a) })
-#define	COLOR(color)		RGBA(color)
-
-
 static void set_history_style(struct gui_hist *h, bool current)
 {
 	struct gui_ctx *ctx = h->ctx;
