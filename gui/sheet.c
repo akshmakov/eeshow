@@ -368,6 +368,12 @@ static void sheet_drag_move(void *user, int dx, int dy)
 }
 
 
+static void sheet_drag_end(void *user)
+{
+	input_update();
+}
+
+
 static void sheet_scroll(void *user, int x, int y, int dy)
 {
 	struct gui_ctx *ctx = user;
@@ -444,6 +450,7 @@ static const struct input_ops sheet_input_ops = {
 	.scroll		= sheet_scroll,
 	.drag_begin	= sheet_drag_begin,
 	.drag_move	= sheet_drag_move,
+	.drag_end	= sheet_drag_end,
 	.key		= sheet_key,
 };
 
