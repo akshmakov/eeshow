@@ -28,12 +28,12 @@ CFLAGS = -g  -Wall -Wextra -Wno-unused-parameter -Wshadow \
 	 `pkg-config --cflags cairo` \
 	 `pkg-config --cflags libgit2` \
 	 `pkg-config --cflags gtk+-3.0` \
-	 `pkg-config --cflags webkit2gtk-3.0`
+	 `pkg-config --cflags webkit2gtk-4.0`
 LDLIBS = -lm \
 	 `pkg-config --libs cairo` \
 	 `pkg-config --libs libgit2` \
 	 `pkg-config --libs gtk+-3.0` \
-	 `pkg-config --libs webkit2gtk-3.0`
+	 `pkg-config --libs webkit2gtk-4.0`
 
 include ../common/Makefile.c-common
 

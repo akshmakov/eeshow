@@ -25,7 +25,7 @@ Prerequisites
 libcairo2-dev
 libgit2-dev
 libgtk-3-dev
-ibwebkit2gtk-3.0-dev
+ibwebkit2gtk-4.0-dev
 
 
 Development status
