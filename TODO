@@ -63,9 +63,8 @@ GUI/sheets:
   fails (reserved hotkeys: Left/Right)
 
 GUI/glabels:
-- draw list of destinations in nicer style
-- indicate current sheet (just for reference) among destinations
 - maybe indicate how many times label is used on each sheet
 - maybe indicate how it is used
 - highlight occurrences of label on current sheet
 - also highlight after jumping
+- there can be "hanging" pop-ups, see comment in gui/glabel.c:hover_glabel

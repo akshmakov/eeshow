@@ -242,6 +242,30 @@ static bool hover_glabel(void *user, bool on)
 		ctx->pop_dy = -1;
 	}
 
+	/*
+	 * @@@ The idea is to get input to trigger hovering over the pop-up.
+	 * However, this doesn't work because the overlay has not been drawn
+	 * yet and therefore has not created its AoI. We therefore only get a
+	 * chance to begin hovering at the next motion update, which may
+	 * already be outside the pop-up.
+	 *
+	 * Probably the only way to fix this is by making overlay_add do the
+	 * layout calculation and create the AoI immediately.
+	 *
+	 * Another problem occurs as deep zoom levels, when the label is larger
+	 * than the pop-up. Then we can trigger pop-up creation from a location
+	 * that will be outside the pop-up.
+	 *
+	 * We could fix this by aligning the pop-up with the mouse position
+	 * instead the box, either in general, or in this specific case. Not
+	 * sure if it's worth the trouble, though.
+	 *
+	 * Both issues result in a "hanging" pop-up because AoI (and input)
+	 * don't even know we're hovering. The pop-up can be cleared by
+	 * - hovering into it,
+	 * - hovering over some other glabel, or
+	 * - clicking.
+	 */
 	input_update();
 	redraw(ctx);
 	return 0;
