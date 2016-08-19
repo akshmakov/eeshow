@@ -43,7 +43,7 @@ void redraw(const struct gui_ctx *ctx)
 }
 
 
-/* ----- Rendering --------------------------------------------------------- */
+/* ----- Draw to screen ---------------------------------------------------- */
 
 
 static void hack(const struct gui_ctx *ctx, cairo_t *cr)
@@ -98,6 +98,9 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 }
 
 
+/* ----- Pre-rendering ----------------------------------------------------- */
+
+
 void render_sheet(struct gui_sheet *sheet)
 {
 	char *argv[] = { "gui", NULL };
@@ -148,6 +151,9 @@ void render_delta(struct gui_ctx *ctx)
 		mark_aois(ctx, b);
 	}
 }
+
+
+/* ----- Setup ------------------------------------------------------------- */
 
 
 void render_setup(struct gui_ctx *ctx)
