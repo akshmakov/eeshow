@@ -50,13 +50,19 @@ void aoi_update(struct aoi *aoi, const struct aoi *cfg)
 }
 
 
+static bool in_aoi(const struct aoi *aoi, int x, int y)
+{
+	return x >= aoi->x && x < aoi->x + aoi->w &&
+	    y >= aoi->y && y < aoi->y + aoi->h;
+}
+
+
 static const struct aoi *find_aoi(const struct aoi *aois, int x, int y)
 {
 	const struct aoi *aoi;
 
 	for (aoi = aois; aoi; aoi = aoi->next)
-		if (x >= aoi->x && x < aoi->x + aoi->w &&
-		    y >= aoi->y && y < aoi->y + aoi->h)
+		if (in_aoi(aoi, x, y))
 			break;
 	return aoi;
 }
@@ -83,7 +89,7 @@ bool aoi_hover(const struct aoi *aois, int x, int y)
 }
 
 
-static bool need_dehover(const struct aoi *aois)
+static bool need_dehover(const struct aoi *aois, int x, int y)
 {
 	const struct aoi *aoi;
 
@@ -92,7 +98,7 @@ static bool need_dehover(const struct aoi *aois)
 	if (hovering->click)
 		return 0;
 	for (aoi = aois; aoi; aoi = aoi->next)
-		if (aoi->related == hovering && aoi->click)
+		if (aoi->related == hovering && aoi->click && in_aoi(aoi, x, y))
 			return 0;
 	return 1;
 }
@@ -102,7 +108,7 @@ bool aoi_click(const struct aoi *aois, int x, int y)
 {
 	const struct aoi *aoi;
 
-	if (need_dehover(aois))
+	if (need_dehover(aois, x, y))
 		aoi_dehover();
 
 	aoi = find_aoi(aois, x, y);
