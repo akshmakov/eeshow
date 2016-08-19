@@ -25,6 +25,7 @@ Prerequisites
 libcairo2-dev
 libgit2-dev
 libgtk-3-dev
+ibwebkit2gtk-3.0-dev
 
 
 Development status
@@ -43,7 +44,6 @@ many limitations, especially in the following areas:
 - there may be bugs
 
 More details on pending items can be found in the file TODO.
-
 
 
 Non-interactive rendering
@@ -175,6 +175,7 @@ PgUp			go to the previous sheet in sequence
 PgDn			go to the next sheet in sequence
 Up or Down		invoke the revision history (WIP)
 Tab			toggle between old and new revision
+? or H			show/hide help window
 D			when comparing revisions, show difference (default)
 N			show newer sheet
 O			show older sheet

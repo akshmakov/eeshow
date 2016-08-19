@@ -24,6 +24,7 @@
 #include "gui/aoi.h"
 #include "gui/over.h"
 #include "gui/input.h"
+#include "gui/help.h"
 #include "gui/common.h"
 
 
@@ -513,6 +514,11 @@ static void sheet_key(void *user, int x, int y, int keyval)
 	case GDK_KEY_d:
 		ctx->diff_mode = diff_delta;
 		redraw(ctx);
+		break;
+
+	case GDK_KEY_h:
+	case GDK_KEY_question:
+		help();
 		break;
 
 	case GDK_KEY_q:

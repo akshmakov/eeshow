@@ -16,6 +16,7 @@ OBJS = main.o \
        kicad/lib-render.o kicad/dwg.o kicad/delta.o \
        gui/gui.o gui/over.o gui/style.o gui/aoi.o gui/fmt-pango.o gui/input.o \
        gui/progress.o gui/glabel.o gui/sheet.o gui/history.o gui/render.o \
+       gui/help.o \
        file/file.o file/git-util.o file/git-file.o file/git-hist.o \
        gfx/style.o gfx/fig.o gfx/record.o gfx/cro.o gfx/diff.o gfx/gfx.o \
        gfx/text.o gfx/misc.o \
@@ -26,11 +27,13 @@ CFLAGS = -g  -Wall -Wextra -Wno-unused-parameter -Wshadow \
 	 -I. \
 	 `pkg-config --cflags cairo` \
 	 `pkg-config --cflags libgit2` \
-	 `pkg-config --cflags gtk+-3.0`
+	 `pkg-config --cflags gtk+-3.0` \
+	 `pkg-config --cflags webkit2gtk-3.0`
 LDLIBS = -lm \
 	 `pkg-config --libs cairo` \
 	 `pkg-config --libs libgit2` \
-	 `pkg-config --libs gtk+-3.0`
+	 `pkg-config --libs gtk+-3.0` \
+	 `pkg-config --libs webkit2gtk-3.0`
 
 include ../common/Makefile.c-common
 
@@ -40,6 +43,14 @@ all::		$(NAME)
 
 $(NAME):	$(OBJS)
 		$(CC) -o $(NAME) $(OBJS) $(LDLIBS)
+
+help.inc:	help.html
+		$(BUILD) sed 's/.*/"&"/' $< >$@ || { rm -f $@; exit 1; }
+
+gui/help.c:	help.inc
+
+clean::
+		rm -f help.inc
 
 #----- Test sheet -------------------------------------------------------------
 
