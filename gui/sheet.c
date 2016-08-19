@@ -145,9 +145,29 @@ static void show_history_cb(void *user)
 	struct gui_ctx *ctx = h->ctx;
 	enum selecting sel = sel_only;
 
-	if (ctx->old_hist)
+	if (ctx->old_hist) {
+		if (h == ctx->new_hist && ctx->diff_mode != diff_new) {
+			ctx->diff_mode = diff_new;
+			redraw(ctx);
+			return;
+		}
+		if (h == ctx->old_hist && ctx->diff_mode != diff_old) {
+			ctx->diff_mode = diff_old;
+			redraw(ctx);
+			return;
+		}
 		sel = h == ctx->new_hist ? sel_new : sel_old;
+	}
 	show_history(ctx, sel);
+}
+
+
+static void show_diff_cb(void *user)
+{
+	struct gui_ctx *ctx = user;
+
+	ctx->diff_mode = diff_delta;
+	redraw(ctx);
 }
 
 
@@ -155,11 +175,17 @@ static void revision_overlays_diff(struct gui_ctx *ctx)
 {
 	struct gui_hist *new = ctx->new_hist;
 	struct gui_hist *old = ctx->old_hist;
+	struct overlay *over;
 
 	new->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
 	    show_history_details, show_history_cb, new);
 	overlay_style(new->over, &overlay_style_diff_new);
 	show_history_details(new, 0);
+
+	over = overlay_add(&ctx->hist_overlays, &ctx->aois,
+	    NULL, show_diff_cb, ctx);
+	overlay_style(over, &overlay_style_default);
+	overlay_text(over, "&#916;");
 
 	old->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
 	    show_history_details, show_history_cb, old);
