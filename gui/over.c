@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <assert.h>
 
 #include <cairo/cairo.h>
 #include <pango/pangocairo.h>
@@ -47,6 +48,7 @@ struct overlay {
 	void *user;
 
 	struct aoi *aoi;
+	const struct overlay *related;
 
 	struct overlay *next, *prev;
 };
@@ -167,8 +169,13 @@ fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->
 
 		if (over->aoi)
 			aoi_update(over->aoi, &aoi_cfg);
-		else
+		else {
 			over->aoi = aoi_add(over->aois, &aoi_cfg);
+			if (over->related) {
+				assert(over->related->aoi);
+				aoi_set_related(over->aoi, over->related->aoi);
+			}
+		}
 	}
 
 	return h;
@@ -318,6 +325,7 @@ struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
 	over->click = click;
 	over->user = user;
 	over->aoi = NULL;
+	over->related = NULL;
 
 	prev = NULL;
 	for (anchor = overlays; *anchor; anchor = &(*anchor)->next)
@@ -353,6 +361,31 @@ void overlay_text(struct overlay *over, const char *fmt, ...)
 	va_start(ap, fmt);
 	overlay_text_raw(over, vfmt_pango(fmt, ap));
 	va_end(ap);
+}
+
+
+/* ----- Nesting ----------------------------------------------------------- */
+
+
+void overlay_set_related(struct overlay *over, struct overlay *related)
+{
+	/*
+	 * Relatedness is a property that only matters to AoIs, but we have to
+	 * defer propagating it because we only know our AoI after drawing the
+	 * overlay.
+	 */
+
+	assert(!over->related);
+	over->related = related;
+}
+
+
+void overlay_set_related_all(struct overlay *overlays, struct overlay *related)
+{
+	struct overlay *over;
+
+	for (over = overlays; over; over = over->next)
+		overlay_set_related(over, related);
 }
 
 
