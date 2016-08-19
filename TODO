@@ -47,7 +47,6 @@ GUI:
   to new_sheet and old_sheet.
 
 GUI/history
-- use Tab to rapidly toggle between old/new sheet
 - should have quick way to show diff of a single commit
 - in history, set font to non-bold if showing details
 - add scrolling to history, for hot-keys

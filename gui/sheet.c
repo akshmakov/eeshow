@@ -177,6 +177,12 @@ static void show_diff_cb(void *user)
 }
 
 
+static void toggle_old_new(struct gui_ctx *ctx)
+{
+	set_diff_mode(ctx, ctx->diff_mode == diff_new ? diff_old : diff_new);
+}
+
+
 static void revision_overlays_diff(struct gui_ctx *ctx)
 {
 	struct gui_hist *new = ctx->new_hist;
@@ -490,6 +496,10 @@ static void sheet_key(void *user, int x, int y, int keyval)
 	case GDK_KEY_Down:
 	case GDK_KEY_KP_Down:
 		show_history(ctx, sel_old);
+		break;
+	case GDK_KEY_Tab:
+	case GDK_KEY_KP_Tab:
+		toggle_old_new(ctx);
 		break;
 
 	case GDK_KEY_n:
