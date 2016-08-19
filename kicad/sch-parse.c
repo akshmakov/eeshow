@@ -101,7 +101,7 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 	struct text *txt;
 	char *s;
 	const char *p;
-	int pos, len;
+	int pos = 0, len;
 
 	field = alloc_type(struct comp_field);
 	txt = &field->txt;
@@ -114,7 +114,7 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 		return 1;
 	}
 
-	if (sscanf(line, "F %d \"%n", &n, &pos) != 1)
+	if (sscanf(line, "F %d \"%n", &n, &pos) != 1 || !pos)
 		return 0;
 	for (p = line + pos; *p && *p != '"'; p++)
 		if (*p == '\\' && p[1])
