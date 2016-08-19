@@ -31,6 +31,7 @@
 #include "gui/fmt-pango.h"
 #include "file/git-hist.h"
 #include "gui/gui.h"
+#include "version.h"
 #include "main.h"
 
 
@@ -50,6 +51,7 @@ void usage(const char *name)
 "       %*s[-- driver_spec]\n"
 "       %s [-v ...] -C [rev:]file\n"
 "       %s [-v ...] -H path_into_repo\n"
+"       %s -V\n"
 "       %s gdb ...\n"
 "\n"
 "  rev   git revision\n"
@@ -58,6 +60,7 @@ void usage(const char *name)
 "  -C    'cat' the file to standard output\n"
 "  -H    show history of repository on standard output\n"
 "  -N n  limit history to n revisions (unlimited if omitted or 0)\n"
+"  -V    print revision (version) number and exit\n"
 "  gdb   run eeshow under gdb\n"
 "\n"
 "No driver spec: enter GUI\n"
@@ -83,7 +86,7 @@ void usage(const char *name)
 "  diff [-o output.pdf] [-s scale] [file.lib ...] file.sch\n"
 "\n"
 "  see PNG\n"
-    , name, name, (int) strlen(name) + 1, "", name, name, name);
+    , name, name, (int) strlen(name) + 1, "", name, name, name, name);
 	exit(1);
 }
 
@@ -127,7 +130,7 @@ int main(int argc, char **argv)
 	if (!have_dashdash)
 		gtk_init(&argc, &argv);
 
-	while ((c = getopt(dashdash, argv, "rvC:F:H:N:")) != EOF)
+	while ((c = getopt(dashdash, argv, "rvC:F:H:N:V")) != EOF)
 		switch (c) {
 		case 'r':
 			recurse = 1;
@@ -147,6 +150,9 @@ int main(int argc, char **argv)
 		case 'N':
 			limit = atoi(optarg);
 			break;
+		case 'V':
+			fprintf(stderr, "%s\n", version);
+			return 1;
 		default:
 			usage(*argv);
 		}

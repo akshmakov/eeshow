@@ -11,7 +11,7 @@
 #
 
 NAME = eeshow
-OBJS = main.o \
+OBJS = main.o version.o \
        kicad/sch-parse.o kicad/sch-render.o kicad/lib-parse.o \
        kicad/lib-render.o kicad/dwg.o kicad/delta.o \
        gui/gui.o gui/over.o gui/style.o gui/aoi.o gui/fmt-pango.o gui/input.o \
@@ -33,6 +33,10 @@ LDLIBS = -lm \
 	 `pkg-config --libs libgit2` \
 	 `pkg-config --libs gtk+-3.0`
 
+GIT_VERSION = $(shell git log -1 --format='%h' -s .)
+GIT_STATUS = $(shell [ -z "`git status -s -uno`" ] || echo +)
+CFLAGS += -DVERSION='"$(GIT_VERSION)$(GIT_STATUS)"'
+
 ifneq ($(USE_WEBKIT),)
 	CFLAGS += -DUSE_WEBKIT `pkg-config --cflags webkit2gtk-4.0`
 	LDLIBS += `pkg-config --libs webkit2gtk-4.0`
@@ -44,10 +48,12 @@ endif
 include ../common/Makefile.c-common
 
 .PHONY:		test neo900 sch test testref png pngref pdf diff view newref
+.PHONY:		version.c
 
 all::		$(NAME)
 
 $(NAME):	$(OBJS)
+		$(MAKE) version.o
 		$(CC) -o $(NAME) $(OBJS) $(LDLIBS)
 
 help.inc:	$(HELP_TEXT) Makefile
