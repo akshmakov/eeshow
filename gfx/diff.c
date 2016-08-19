@@ -242,23 +242,30 @@ static void differences(struct diff *diff, uint32_t *a, const uint32_t *b)
 }
 
 
-static void show_areas(struct diff *diff, uint32_t *a)
+static void complement_box(struct diff *diff, uint32_t *a,
+    int xa, int ya, int xb, int yb, uint32_t color)
 {
-	const struct area *area;
 	uint32_t *p;
 	int x, y;
 
+	for (y = ya; y != yb; y++) {
+		if (y < 0 || y >= diff->h)
+			continue;
+		p = a + y * (diff->stride >> 2);
+		for (x = xa; x != xb; x++)
+			if (x >= 0 && x < diff->w && (p[x] & MASK) == MASK)
+				p[x] = color;
+	}
+}
+
+
+static void show_areas(struct diff *diff, uint32_t *a)
+{
+	const struct area *area;
+
 	for (area = diff->areas; area; area = area->next)
-		for (y = area->ya; y != area->yb; y++) {
-			if (y < 0 || y >= diff->h)
-				continue;
-			p = a + y * (diff->stride >> 2);
-			for (x = area->xa; x != area->xb; x++) {
-				if (x >= 0 && x < diff->w &&
-				    (p[x] & MASK) == MASK)
-					p[x] = AREA_FILL;
-			}
-		}
+		complement_box(diff, a, area->xa, area->ya, area->xb, area->yb,
+		    AREA_FILL);
 }
 
 
