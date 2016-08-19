@@ -85,12 +85,25 @@ static void select_subsheet(void *user)
 
 	if (!obj->u.sheet.sheet)
 		return;
-	for (sheet = ctx->new_hist->sheets; sheet; sheet = sheet->next)
-		if (sheet->sch == obj->u.sheet.sheet) {
-			go_to_sheet(ctx, sheet);
-			return;
-		}
+
+	if (!ctx->old_hist || ctx->diff_mode != diff_old) {
+		for (sheet = ctx->new_hist->sheets; sheet; sheet = sheet->next)
+			if (sheet->sch == obj->u.sheet.sheet) {
+				go_to_sheet(ctx, sheet);
+				return;
+			}
+		abort();
+	}
+
+	for (sheet = ctx->old_hist->sheets; sheet; sheet = sheet->next)
+		if (sheet->sch == obj->u.sheet.sheet)
+			goto found;
 	abort();
+
+found:
+	sheet = find_corresponding_sheet(ctx->new_hist->sheets,
+                    ctx->old_hist->sheets, sheet);
+	go_to_sheet(ctx, sheet);
 }
 
 

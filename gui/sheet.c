@@ -367,6 +367,10 @@ static bool sheet_click(void *user, int x, int y)
 
 	canvas_coord(ctx, x, y, &ex, &ey);
 
+	if (ctx->old_hist && ctx->diff_mode == diff_old)
+		curr_sheet = find_corresponding_sheet(ctx->old_hist->sheets,
+		    ctx->new_hist->sheets, ctx->curr_sheet);
+
 	if (aoi_click(ctx->aois, x, y))
 		return 1;
 	if (aoi_click(curr_sheet->aois,
@@ -387,6 +391,10 @@ static bool sheet_hover_update(void *user, int x, int y)
 	int ex, ey;
 
 	canvas_coord(ctx, x, y, &ex, &ey);
+
+	if (ctx->old_hist && ctx->diff_mode == diff_old)
+		curr_sheet = find_corresponding_sheet(ctx->old_hist->sheets,
+		    ctx->new_hist->sheets, ctx->curr_sheet);
 
 	if (aoi_hover(ctx->aois, x, y))
 		return 1;
