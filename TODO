@@ -64,4 +64,8 @@ GUI/glabels:
 - maybe indicate how many times label is used on each sheet
 - maybe indicate how it is used
 - there can be "hanging" pop-ups, see comment in gui/glabel.c:hover_glabel
-- should there be a way to remove glabel highlighing ?
+- should there be a way to remove glabel highlighting ?
+- comparing Neo900 fbc3a95 and 6a9f71a, sheet 2 has large offset differences,
+  causing hover to have displaced AoIs in diff_old, and both AoIs and overlays
+  are wrong in diff_new. Offset differences also defeat rapid switching between
+  old and new as a means to spot differences.
