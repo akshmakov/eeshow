@@ -27,13 +27,19 @@ CFLAGS = -g  -Wall -Wextra -Wno-unused-parameter -Wshadow \
 	 -I. \
 	 `pkg-config --cflags cairo` \
 	 `pkg-config --cflags libgit2` \
-	 `pkg-config --cflags gtk+-3.0` \
-	 `pkg-config --cflags webkit2gtk-4.0`
+	 `pkg-config --cflags gtk+-3.0`
 LDLIBS = -lm \
 	 `pkg-config --libs cairo` \
 	 `pkg-config --libs libgit2` \
-	 `pkg-config --libs gtk+-3.0` \
-	 `pkg-config --libs webkit2gtk-4.0`
+	 `pkg-config --libs gtk+-3.0`
+
+ifneq ($(USE_WEBKIT),)
+	CFLAGS += -DUSE_WEBKIT `pkg-config --cflags webkit2gtk-4.0`
+	LDLIBS += `pkg-config --libs webkit2gtk-4.0`
+	HELP_TEXT = help.html
+else
+	HELP_TEXT = help.txt
+endif
 
 include ../common/Makefile.c-common
 
@@ -44,8 +50,9 @@ all::		$(NAME)
 $(NAME):	$(OBJS)
 		$(CC) -o $(NAME) $(OBJS) $(LDLIBS)
 
-help.inc:	help.html
-		$(BUILD) sed 's/.*/"&"/' $< >$@ || { rm -f $@; exit 1; }
+help.inc:	$(HELP_TEXT) Makefile
+		$(BUILD) sed 's/"/\\"/g;s/.*/"&\\n"/' $< >$@ || \
+		    { rm -f $@; exit 1; }
 
 gui/help.c:	help.inc
 

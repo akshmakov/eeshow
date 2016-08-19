@@ -13,7 +13,10 @@
 #include <stdbool.h>
 
 #include <gtk/gtk.h>
+
+#ifdef USE_WEBKIT
 #include <webkit2/webkit2.h>
+#endif
 
 #include "gui/help.h"
 
@@ -29,25 +32,81 @@ static void destroy_help(GtkWidget *object, gpointer user_data)
 }
 
 
-static void new_help_window(void)
+static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
+    gpointer data)
+{
+	switch (event->keyval) {
+	case GDK_KEY_h:
+	case GDK_KEY_question:
+	case GDK_KEY_q:
+		gtk_widget_hide(window);
+		visible = 0;
+		break;
+	}
+	return TRUE;
+}
+
+
+#ifdef USE_WEBKIT
+
+static GtkWidget *help_content(void)
 {
 	GtkWidget *view;
 	WebKitSettings *settings;
 
-	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	view = webkit_web_view_new();
 
 	settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(view));
 	webkit_settings_set_default_font_size(settings, 10);
 
-	gtk_container_add(GTK_CONTAINER(window), view);
-	gtk_window_set_default_size(GTK_WINDOW(window), 480, 360);
-	gtk_widget_show_all(window);
-
 	webkit_web_view_load_html(WEBKIT_WEB_VIEW(view),
 #include "../help.inc"
 	, NULL);
 
+	return view;
+}
+
+#else /* USE_WEBKIT */
+
+static GtkWidget *help_content(void)
+{
+	GtkWidget *scroll, *label;
+
+	scroll = gtk_scrolled_window_new(NULL, NULL);
+	label = gtk_label_new(NULL);
+
+	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll),
+            GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+
+	gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
+	gtk_label_set_markup(GTK_LABEL(label),
+#include "../help.inc"
+	    );
+
+	gtk_container_add(GTK_CONTAINER(scroll), label);
+
+	return scroll;
+}
+
+#endif /* !USE_WEBKIT */
+
+
+static void new_help_window(void)
+{
+	GtkWidget *content;
+
+	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	content = help_content();
+
+	gtk_container_add(GTK_CONTAINER(window), content);
+	gtk_window_set_default_size(GTK_WINDOW(window), 480, 360);
+	gtk_widget_show_all(window);
+
+	gtk_widget_set_can_focus(content, TRUE);
+	gtk_widget_add_events(content, GDK_KEY_PRESS_MASK);
+
+	g_signal_connect(G_OBJECT(content), "key_press_event",
+	    G_CALLBACK(key_press_event), NULL);
 	g_signal_connect(window, "destroy", G_CALLBACK(destroy_help), NULL);
 
 	gtk_widget_show_all(window);
