@@ -309,7 +309,7 @@ static void merge_coord(int pos_a, int pos_b, int dim_a, int dim_b,
 		*pos_res = pos_a;
 		dim_b += pos_b - pos_a;
 	} else {
-		*pos_res = pos_a;
+		*pos_res = pos_b;
 		dim_a += pos_a - pos_b;
 	}
 	*res_dim = dim_a > dim_b ? dim_a : dim_b;
