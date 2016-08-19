@@ -105,7 +105,7 @@ static void click_history(void *user)
 {
 	struct gui_hist *h = user;
 	struct gui_ctx *ctx = h->ctx;
-	struct gui_sheet *sheet;
+	struct gui_sheet *sheet, *old_sheet;
 
 	hide_history(ctx);
 
@@ -113,6 +113,9 @@ static void click_history(void *user)
 		return;
 
 	sheet = find_corresponding_sheet(h->sheets,
+	    ctx->new_hist->sheets, ctx->curr_sheet);
+	old_sheet = find_corresponding_sheet(
+	    ctx->old_hist ? ctx->old_hist->sheets : ctx->new_hist->sheets,
 	    ctx->new_hist->sheets, ctx->curr_sheet);
 
 	switch (ctx->selecting) {
@@ -134,10 +137,12 @@ static void click_history(void *user)
 
 	if (ctx->new_hist->age > ctx->old_hist->age) {
 		swap(ctx->new_hist, ctx->old_hist);
-		if (ctx->selecting == sel_old)
+		if (ctx->selecting == sel_old) {
 			go_to_sheet(ctx, sheet);
-		else
+		} else {
+			go_to_sheet(ctx, old_sheet);
 			render_delta(ctx);
+		}
 	} else {
 		if (ctx->selecting != sel_old)
 			go_to_sheet(ctx, sheet);
