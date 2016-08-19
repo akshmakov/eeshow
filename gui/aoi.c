@@ -57,17 +57,6 @@ static bool in_aoi(const struct aoi *aoi, int x, int y)
 }
 
 
-static const struct aoi *find_aoi(const struct aoi *aois, int x, int y)
-{
-	const struct aoi *aoi;
-
-	for (aoi = aois; aoi; aoi = aoi->next)
-		if (in_aoi(aoi, x, y))
-			break;
-	return aoi;
-}
-
-
 bool aoi_hover(const struct aoi *aois, int x, int y)
 {
 	const struct aoi *aoi;
@@ -79,11 +68,12 @@ bool aoi_hover(const struct aoi *aois, int x, int y)
 		hovering = NULL;
 	}
 
-	aoi = find_aoi(aois, x, y);
-	if (aoi && aoi->hover && aoi->hover(aoi->user, 1)) {
-		hovering = aoi;
-		return 1;
-	}
+	for (aoi = aois; aoi; aoi = aoi->next)
+		if (aoi->hover && in_aoi(aoi, x, y) &&
+		    aoi->hover(aoi->user, 1)) {
+			hovering = aoi;
+			return 1;
+		}
 	return 0;
 }
 
@@ -110,11 +100,12 @@ bool aoi_click(const struct aoi *aois, int x, int y)
 	if (need_dehover(aois, x, y))
 		aoi_dehover();
 
-	aoi = find_aoi(aois, x, y);
-	if (!aoi || !aoi->click)
-		return 0;
-	aoi->click(aoi->user);
-	return 1;
+	for (aoi = aois; aoi; aoi = aoi->next)
+		if (aoi->click && in_aoi(aoi, x, y)) {
+			aoi->click(aoi->user);
+			return 1;
+		}
+	return 0;
 }
 
 
