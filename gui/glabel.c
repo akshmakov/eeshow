@@ -123,7 +123,8 @@ static void add_dest_overlay(struct gui_ctx *ctx, const char *label,
 			continue;
 		over = overlay_add(&ctx->pop_overlays,
 		    &ctx->aois, NULL, glabel_dest_click, sheet);
-		overlay_text(over, "%d %s", n, sheet->sch->title);
+		overlay_text(over, "%d %s", n,
+		    sheet->sch->title ? sheet->sch->title : "(unnamed)");
 		overlay_style(over, &style);
 		break;
 	}
