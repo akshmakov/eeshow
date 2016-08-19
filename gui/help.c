@@ -25,10 +25,16 @@ static bool visible;
 static void new_help_window(void)
 {
 	GtkWidget *view;
+	WebKitSettings *settings;
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	view = webkit_web_view_new();
+
+	settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(view));
+	webkit_settings_set_default_font_size(settings, 10);
+
 	gtk_container_add(GTK_CONTAINER(window), view);
+	gtk_window_set_default_size(GTK_WINDOW(window), 480, 360);
 	gtk_widget_show_all(window);
 
 	webkit_web_view_load_html(WEBKIT_WEB_VIEW(view),
