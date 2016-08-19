@@ -77,7 +77,11 @@ void git_init_once(void)
 	static bool initialized = 0;
 
 	if (!initialized) {
+#if LIBGIT2_VER_MAJOR == 0 && LIBGIT2_VER_MINOR < 22
+		git_threads_init();
+#else
 		git_libgit2_init();
+#endif
 		initialized = 1;
 	}
 }
