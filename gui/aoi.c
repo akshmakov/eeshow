@@ -73,8 +73,7 @@ bool aoi_hover(const struct aoi *aois, int x, int y)
 	const struct aoi *aoi;
 
 	if (hovering) {
-		if (x >= hovering->x && x < hovering->x + hovering->w &&
-		    y >= hovering->y && y < hovering->y + hovering->h)
+		if (in_aoi(hovering, x, y))
 			return 1;
 		hovering->hover(hovering->user, 0);
 		hovering = NULL;
@@ -124,6 +123,7 @@ void aoi_set_related(struct aoi *aoi, const struct aoi *related)
 	assert(!aoi->related);
 	aoi->related = related;
 }
+
 
 void aoi_remove(struct aoi **aois, const struct aoi *aoi)
 {
