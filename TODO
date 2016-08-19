@@ -45,8 +45,6 @@ GUI:
 - highlight nets ?
 - we use find_corresponding_sheet way too often. Consider changing curr_sheet
   to new_sheet and old_sheet.
-- help screen: maybe render with Pango markup in new window (toggle window
-  creation / destruction with h/?), using Gtk to scrolling and such.
 - introduce location string, as command-line argument, e.g.,
   [top-sheet/]rev-old,rev-new[,x,y[,zoom]]
 - set/use location string via clipboard
