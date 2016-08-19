@@ -84,6 +84,7 @@ struct gui_ctx {
 	int pop_x, pop_y;
 	int pop_dx, pop_dy;
 	const void *pop_origin;	/* item that created this pop-up */
+	const char *glabel;	/* currenly highlighted glabel, or NULL */
 
 	struct aoi *aois;	/* areas of interest; in canvas coord  */
 

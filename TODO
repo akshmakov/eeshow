@@ -65,6 +65,5 @@ GUI/sheets:
 GUI/glabels:
 - maybe indicate how many times label is used on each sheet
 - maybe indicate how it is used
-- highlight occurrences of label on current sheet
-- also highlight after jumping
 - there can be "hanging" pop-ups, see comment in gui/glabel.c:hover_glabel
+- should there be a way to remove glabel highlighing ?

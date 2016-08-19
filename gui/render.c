@@ -12,6 +12,7 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include <cairo/cairo.h>
 #include <gtk/gtk.h>
@@ -33,6 +34,8 @@
 #define	SHEET_OVERLAYS_X	-10
 #define	SHEET_OVERLAYS_Y	10
 
+#define GLABEL_HIGHLIGHT_PAD	6
+
 
 /* ----- Helper functions -------------------------------------------------- */
 
@@ -40,6 +43,59 @@
 void redraw(const struct gui_ctx *ctx)
 {
 	gtk_widget_queue_draw(ctx->da);
+}
+
+
+/* ----- Highlight glabel -------------------------------------------------- */
+
+
+/*
+ * cd, cx, cy are simplified versions of what cro.c uses. Since we don't
+ * support glabel highlighting in diff mode, we don't need the xe and ye offset
+ * components.
+ */
+
+static inline int cd(int x, float scale)
+{
+	return x * scale;
+}
+
+static inline int cx(int x, int xo, float scale)
+{
+	return xo + x * scale;
+}
+
+
+static inline int cy(int y, int yo, float scale)
+{
+	return yo + y * scale;
+}
+
+
+static void highlight_glabel(const struct gui_ctx *ctx, cairo_t *cr,
+    int x, int y, float f)
+{
+	const struct sch_obj *obj;
+
+	if (!ctx->glabel)
+		return;
+
+	for (obj = ctx->curr_sheet->sch->objs; obj; obj = obj->next) {
+		const struct dwg_bbox *bbox = &obj->u.text.bbox;
+
+		if (obj->type != sch_obj_glabel)
+			continue;
+		if (strcmp(obj->u.text.s, ctx->glabel))
+			continue;
+
+		cairo_rectangle(cr,
+		    cx(bbox->x, x, f) - GLABEL_HIGHLIGHT_PAD,
+		    cy(bbox->y, y, f) - GLABEL_HIGHLIGHT_PAD,
+		    cd(bbox->w, f) + 2 * GLABEL_HIGHLIGHT_PAD,
+		    cd(bbox->h, f) + 2 * GLABEL_HIGHLIGHT_PAD);
+		cairo_set_source_rgb(cr, 1, 0.8, 1);
+		cairo_fill(cr);
+	}
 }
 
 
@@ -72,6 +128,7 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 
 	cro_canvas_prepare(cr);
 	if (!ctx->old_hist) {
+		highlight_glabel(ctx, cr, x, y, f);
 		cro_canvas_draw(sheet->gfx_ctx, cr, x, y, f);
 	} else {
 #if 0

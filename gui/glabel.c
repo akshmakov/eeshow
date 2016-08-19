@@ -201,12 +201,12 @@ static bool hover_glabel(void *user, bool on)
 		dehover_glabel(ctx);
 	}
 
-
 	GtkAllocation alloc;
 	int sx, sy, ex, ey, mx, my;
 	unsigned n = 0;
 	struct gui_sheet *sheet;
 
+	ctx->glabel = aoi_ctx->obj->u.text.s;
 	ctx->pop_origin = aoi_ctx;
 
 	aoi_dehover();

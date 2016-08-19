@@ -375,6 +375,8 @@ int gui(unsigned n_args, char **args, bool recurse, int limit)
 		.hist_overlays	= NULL,
 		.pop_overlays	= NULL,
 		.pop_underlays	= NULL,
+		.pop_origin	= NULL,
+		.glabel		= NULL,
 		.aois		= NULL,
 		.old_hist	= NULL,
 		.hist_y_offset 	= 0,
