@@ -22,6 +22,13 @@ static GtkWidget *window = NULL;
 static bool visible;
 
 
+static void destroy_help(GtkWidget *object, gpointer user_data)
+{
+	gtk_widget_destroy(window);
+	window = NULL;
+}
+
+
 static void new_help_window(void)
 {
 	GtkWidget *view;
@@ -41,8 +48,7 @@ static void new_help_window(void)
 #include "../help.inc"
 	, NULL);
 
-	g_signal_connect(window, "destroy",
-	    G_CALLBACK(gtk_main_quit), NULL);
+	g_signal_connect(window, "destroy", G_CALLBACK(destroy_help), NULL);
 
 	gtk_widget_show_all(window);
 }
