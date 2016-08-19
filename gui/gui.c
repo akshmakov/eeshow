@@ -316,6 +316,7 @@ static void add_hist(void *user, struct hist *h)
 	hist = alloc_type(struct gui_hist);
 	hist->ctx = ctx;
 	hist->vcs_hist = h;
+	hist->libs_open = 0;
 	hist->identical = 0;
 	sch = parse_files(hist, ahc->n_args, ahc->args, ahc->recurse, prev);
 	hist->sheets = sch ? get_sheets(ctx, sch) : NULL;
