@@ -220,10 +220,20 @@ static bool hover_glabel(void *user, bool on)
 	gtk_widget_get_allocation(ctx->da, &alloc);
 	mx = (sx + ex) / 2;
 	my = (sy + ey) / 2;
-	ctx->pop_x = mx < alloc.width / 2 ?
-	    sx - CHEAT : -(alloc.width - ex) + CHEAT;
-	ctx->pop_y = my < alloc.height / 2 ?
-	    sy - CHEAT : -(alloc.height - ey) + CHEAT;
+	if (mx < alloc.width / 2) {
+		ctx->pop_x = sx - CHEAT;
+		ctx->pop_dx = 1;
+	} else {
+		ctx->pop_x = ex + CHEAT;
+		ctx->pop_dx = -1;
+	}
+	if (my < alloc.height / 2) {
+		ctx->pop_y = sy - CHEAT;
+		ctx->pop_dy = 1;
+	} else {
+		ctx->pop_y = ey + CHEAT;
+		ctx->pop_dy = -1;
+	}
 
 	input_update();
 	redraw(ctx);

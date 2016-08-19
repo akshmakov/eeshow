@@ -89,10 +89,12 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	    VCS_OVERLAYS_X,
 	    VCS_OVERLAYS_Y + (ctx->showing_history ? ctx->hist_y_offset : 0),
 	    0, 1);
-	overlay_draw_all(ctx->pop_underlays, cr, ctx->pop_x, ctx->pop_y);
-	overlay_draw_all(ctx->pop_overlays, cr,
-	    ctx->pop_x + sign1(ctx->pop_x) * GLABEL_STACK_PADDING,
-	    ctx->pop_y + sign1(ctx->pop_y) * GLABEL_STACK_PADDING);
+	overlay_draw_all_d(ctx->pop_underlays, cr, ctx->pop_x, ctx->pop_y,
+	    ctx->pop_dx, ctx->pop_dy);
+	overlay_draw_all_d(ctx->pop_overlays, cr,
+	    ctx->pop_x + ctx->pop_dx * GLABEL_STACK_PADDING,
+	    ctx->pop_y + ctx->pop_dy * GLABEL_STACK_PADDING,
+	    ctx->pop_dx, ctx->pop_dy);
 
 	return FALSE;
 }
