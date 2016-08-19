@@ -130,6 +130,8 @@ static void click_history(void *user)
 		abort();
 	}
 
+	ctx->diff_mode = diff_delta;
+
 	if (ctx->new_hist->age > ctx->old_hist->age) {
 		swap(ctx->new_hist, ctx->old_hist);
 		if (ctx->selecting == sel_old)

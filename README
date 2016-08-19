@@ -174,4 +174,7 @@ Delete or Backspace	go to the next higher sheet in hierarchy
 PgUp			go to the previous sheet in sequence
 PgDn			go to the next sheet in sequence
 Up or Down		invoke the revision history (WIP)
+D			when comparing revisions, show difference (default)
+N			show newer sheet
+O			show older sheet
 Q			quit the viewer

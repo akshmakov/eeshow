@@ -414,6 +414,7 @@ static void sheet_key(void *user, int x, int y, int keyval)
 	case '*':
 		zoom_to_extents(ctx);
 		break;
+
 	case GDK_KEY_Home:
 		if (sheet != ctx->new_hist->sheets)
 			go_to_sheet(ctx, ctx->new_hist->sheets);
@@ -438,6 +439,20 @@ static void sheet_key(void *user, int x, int y, int keyval)
 	case GDK_KEY_KP_Down:
 		show_history(ctx, sel_old);
 		break;
+
+	case GDK_KEY_n:
+		ctx->diff_mode = diff_new;
+		redraw(ctx);
+		break;
+	case GDK_KEY_o:
+		ctx->diff_mode = diff_old;
+		redraw(ctx);
+		break;
+	case GDK_KEY_d:
+		ctx->diff_mode = diff_delta;
+		redraw(ctx);
+		break;
+
 	case GDK_KEY_q:
 		gtk_main_quit();
 	}

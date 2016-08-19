@@ -72,15 +72,15 @@ static inline int cy(int y, int yo, float scale)
 }
 
 
-static void highlight_glabel(const struct gui_ctx *ctx, cairo_t *cr,
-    int x, int y, float f)
+static void highlight_glabel(const struct gui_ctx *ctx,
+    const struct gui_sheet *sheet,  cairo_t *cr, int x, int y, float f)
 {
 	const struct sch_obj *obj;
 
 	if (!ctx->glabel)
 		return;
 
-	for (obj = ctx->curr_sheet->sch->objs; obj; obj = obj->next) {
+	for (obj = sheet->sch->objs; obj; obj = obj->next) {
 		const struct dwg_bbox *bbox = &obj->u.text.bbox;
 
 		if (obj->type != sch_obj_glabel)
@@ -127,8 +127,13 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	y = -(sheet->ymin + ctx->y) * f + alloc.height / 2;
 
 	cro_canvas_prepare(cr);
-	if (!ctx->old_hist) {
-		highlight_glabel(ctx, cr, x, y, f);
+	if (!ctx->old_hist || ctx->diff_mode == diff_new) {
+		highlight_glabel(ctx, sheet, cr, x, y, f);
+		cro_canvas_draw(sheet->gfx_ctx, cr, x, y, f);
+	} else if (ctx->diff_mode == diff_old) {
+		sheet = find_corresponding_sheet(ctx->old_hist->sheets,
+		    ctx->new_hist->sheets, ctx->curr_sheet);
+		highlight_glabel(ctx, sheet, cr, x, y, f);
 		cro_canvas_draw(sheet->gfx_ctx, cr, x, y, f);
 	} else {
 #if 0

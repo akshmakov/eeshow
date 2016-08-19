@@ -94,8 +94,14 @@ struct gui_ctx {
 
 	struct gui_sheet *curr_sheet;
 				/* current sheet, always on new_hist */
+
+	enum {
+		diff_new,	/* show only new sheet */
+		diff_old,	/* show only old sheet */
+		diff_delta,	/* show delta */
+	} diff_mode;
 	struct gui_hist *new_hist;
-	struct gui_hist *old_hist;	/* NULL if not comparing */
+	struct gui_hist *old_hist; /* NULL if not comparing */
 
 	int hist_y_offset;	/* history list y offset */
 
