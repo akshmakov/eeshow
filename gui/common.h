@@ -78,10 +78,13 @@ struct gui_ctx {
 
 	struct overlay *sheet_overlays;
 	struct overlay *hist_overlays;
+
 	struct overlay *pop_overlays; /* pop-up dialogs */
 	struct overlay *pop_underlays;
 	int pop_x, pop_y;
 	int pop_dx, pop_dy;
+	const void *pop_origin;	/* item that created this pop-up */
+
 	struct aoi *aois;	/* areas of interest; in canvas coord  */
 
 	struct gui_sheet delta_a;

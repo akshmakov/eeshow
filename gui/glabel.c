@@ -69,6 +69,7 @@ void dehover_glabel(struct gui_ctx *ctx)
 {
 	overlay_remove_all(&ctx->pop_overlays);
 	overlay_remove_all(&ctx->pop_underlays);
+	ctx->pop_origin = NULL;
 	redraw(ctx);
 }
 
@@ -194,13 +195,19 @@ static bool hover_glabel(void *user, bool on)
 		dehover_glabel(ctx);
 		return 1;
 	}
-	if (ctx->pop_underlays)
-		return 0;
+	if (ctx->pop_underlays) {
+		if (ctx->pop_origin == aoi_ctx)
+			return 0;
+		dehover_glabel(ctx);
+	}
+
 
 	GtkAllocation alloc;
 	int sx, sy, ex, ey, mx, my;
 	unsigned n = 0;
 	struct gui_sheet *sheet;
+
+	ctx->pop_origin = aoi_ctx;
 
 	aoi_dehover();
 	overlay_remove_all(&ctx->pop_overlays);
