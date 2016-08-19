@@ -83,11 +83,27 @@ bool aoi_hover(const struct aoi *aois, int x, int y)
 }
 
 
+static bool need_dehover(const struct aoi *aois)
+{
+	const struct aoi *aoi;
+
+	if (!hovering)
+		return 0;
+	if (hovering->click)
+		return 0;
+	for (aoi = aois; aoi; aoi = aoi->next)
+		if (aoi->related == hovering && aoi->click)
+			return 0;
+	return 1;
+}
+
+
 bool aoi_click(const struct aoi *aois, int x, int y)
 {
 	const struct aoi *aoi;
 
-	aoi_dehover();
+	if (need_dehover(aois))
+		aoi_dehover();
 
 	aoi = find_aoi(aois, x, y);
 	if (!aoi || !aoi->click)
@@ -96,6 +112,12 @@ bool aoi_click(const struct aoi *aois, int x, int y)
 	return 1;
 }
 
+
+void aoi_set_related(struct aoi *aoi, const struct aoi *related)
+{
+	assert(!aoi->related);
+	aoi->related = related;
+}
 
 void aoi_remove(struct aoi **aois, const struct aoi *aoi)
 {
