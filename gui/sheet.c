@@ -139,6 +139,14 @@ static bool show_history_details(void *user, bool on)
 }
 
 
+static void set_diff_mode(struct gui_ctx *ctx, enum diff_mode mode)
+{
+	ctx->diff_mode = mode;
+	do_revision_overlays(ctx);
+	redraw(ctx);
+}
+
+
 static void show_history_cb(void *user)
 {
 	struct gui_hist *h = user;
@@ -147,13 +155,11 @@ static void show_history_cb(void *user)
 
 	if (ctx->old_hist) {
 		if (h == ctx->new_hist && ctx->diff_mode != diff_new) {
-			ctx->diff_mode = diff_new;
-			redraw(ctx);
+			set_diff_mode(ctx, diff_new);
 			return;
 		}
 		if (h == ctx->old_hist && ctx->diff_mode != diff_old) {
-			ctx->diff_mode = diff_old;
-			redraw(ctx);
+			set_diff_mode(ctx, diff_old);
 			return;
 		}
 		sel = h == ctx->new_hist ? sel_new : sel_old;
@@ -166,8 +172,8 @@ static void show_diff_cb(void *user)
 {
 	struct gui_ctx *ctx = user;
 
-	ctx->diff_mode = diff_delta;
-	redraw(ctx);
+	set_diff_mode(ctx,
+	    ctx->diff_mode == diff_delta ? diff_new : diff_delta);
 }
 
 
@@ -176,20 +182,30 @@ static void revision_overlays_diff(struct gui_ctx *ctx)
 	struct gui_hist *new = ctx->new_hist;
 	struct gui_hist *old = ctx->old_hist;
 	struct overlay *over;
+	struct overlay_style style;
 
 	new->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
 	    show_history_details, show_history_cb, new);
-	overlay_style(new->over, &overlay_style_diff_new);
+	style = overlay_style_diff_new;
+	if (ctx->diff_mode == diff_new)
+		style.frame = RGBA(0, 0, 0, 1);
+	overlay_style(new->over, &style);
 	show_history_details(new, 0);
 
 	over = overlay_add(&ctx->hist_overlays, &ctx->aois,
 	    NULL, show_diff_cb, ctx);
-	overlay_style(over, &overlay_style_default);
+	style = overlay_style_default;
+	if (ctx->diff_mode == diff_delta)
+		style.frame = RGBA(0, 0, 0, 1);
+	overlay_style(over, &style);
 	overlay_text(over, "&#916;");
 
 	old->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
 	    show_history_details, show_history_cb, old);
-	overlay_style(old->over, &overlay_style_diff_old);
+	style = overlay_style_diff_old;
+	if (ctx->diff_mode == diff_old)
+		style.frame = RGBA(0, 0, 0, 1);
+	overlay_style(old->over, &style);
 	show_history_details(old, 0);
 }
 

@@ -95,7 +95,7 @@ struct gui_ctx {
 	struct gui_sheet *curr_sheet;
 				/* current sheet, always on new_hist */
 
-	enum {
+	enum diff_mode {
 		diff_new,	/* show only new sheet */
 		diff_old,	/* show only old sheet */
 		diff_delta,	/* show delta */
