@@ -165,6 +165,20 @@ static void add_dest_frame(struct gui_ctx *ctx)
 	    pop_hover, NULL, ctx);
 	overlay_text_raw(over, "");
 	overlay_style(over, &style);
+
+	/*
+	 * This makes it all work. When we receive a click while hovering, it
+	 * goes to the hovering overlay if that overlay accepts clicks.
+	 * However, if the overlay accepting the click is different, we first
+	 * de-hover.
+	 *
+	 * Now, in the case of the frame overlay, dehovering would destroy the
+	 * destination overlays right before trying to deliver the click.
+	 *
+	 * We solve this by declaring the frame overlay to be "related" to the
+	 * destination overlays. This suppresses dehovering.
+	 */
+	overlay_set_related_all(ctx->pop_overlays, over);
 }
 
 
