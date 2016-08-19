@@ -416,11 +416,13 @@ static void sheet_key(void *user, int x, int y, int keyval)
 		break;
 
 	case GDK_KEY_Home:
+	case GDK_KEY_KP_Home:
 		if (sheet != ctx->new_hist->sheets)
 			go_to_sheet(ctx, ctx->new_hist->sheets);
 		break;
 	case GDK_KEY_BackSpace:
 	case GDK_KEY_Delete:
+	case GDK_KEY_KP_Delete:
 		go_up_sheet(ctx);
 		break;
 	case GDK_KEY_Page_Up:
