@@ -173,8 +173,11 @@ static void show_diff_cb(void *user)
 {
 	struct gui_ctx *ctx = user;
 
-	set_diff_mode(ctx,
-	    ctx->diff_mode == diff_delta ? diff_new : diff_delta);
+	if (ctx->old_hist)
+		set_diff_mode(ctx,
+		    ctx->diff_mode == diff_delta ? diff_new : diff_delta);
+	else
+		show_history(ctx, sel_split);
 }
 
 
@@ -184,11 +187,25 @@ static void toggle_old_new(struct gui_ctx *ctx)
 }
 
 
+static void add_delta(struct gui_ctx *ctx)
+{
+	struct overlay *over;
+	struct overlay_style style;
+
+	over = overlay_add(&ctx->hist_overlays, &ctx->aois,
+	    NULL, show_diff_cb, ctx);
+	style = overlay_style_default;
+	if (ctx->old_hist && ctx->diff_mode == diff_delta)
+		style.frame = RGBA(0, 0, 0, 1);
+	overlay_style(over, &style);
+	overlay_text(over, "&#916;");
+}
+
+
 static void revision_overlays_diff(struct gui_ctx *ctx)
 {
 	struct gui_hist *new = ctx->new_hist;
 	struct gui_hist *old = ctx->old_hist;
-	struct overlay *over;
 	struct overlay_style style;
 
 	new->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
@@ -199,13 +216,7 @@ static void revision_overlays_diff(struct gui_ctx *ctx)
 	overlay_style(new->over, &style);
 	show_history_details(new, 0);
 
-	over = overlay_add(&ctx->hist_overlays, &ctx->aois,
-	    NULL, show_diff_cb, ctx);
-	style = overlay_style_default;
-	if (ctx->diff_mode == diff_delta)
-		style.frame = RGBA(0, 0, 0, 1);
-	overlay_style(over, &style);
-	overlay_text(over, "&#916;");
+	add_delta(ctx);
 
 	old->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
 	    show_history_details, show_history_cb, old);
@@ -229,6 +240,8 @@ void do_revision_overlays(struct gui_ctx *ctx)
 		    ctx->new_hist);
 		overlay_style(ctx->new_hist->over, &overlay_style_default);
 		show_history_details(ctx->new_hist, 0);
+
+		add_delta(ctx);
 	}
 }
 

@@ -49,6 +49,7 @@ static void set_history_style(struct gui_hist *h, bool current)
 
 	switch (ctx->selecting) {
 	case sel_only:
+	case sel_split:
 		style.frame = COLOR(FRAME_SEL_ONLY);
 		break;
 	case sel_old:
@@ -120,6 +121,9 @@ static void click_history(void *user)
 
 	switch (ctx->selecting) {
 	case sel_only:
+		ctx->new_hist = h;
+		break;
+	case sel_split:
 		ctx->old_hist = ctx->new_hist;
 		ctx->new_hist = h;
 		break;
@@ -135,19 +139,21 @@ static void click_history(void *user)
 
 	ctx->diff_mode = diff_delta;
 
-	if (ctx->new_hist->age > ctx->old_hist->age) {
-		swap(ctx->new_hist, ctx->old_hist);
-		if (ctx->selecting == sel_old) {
-			go_to_sheet(ctx, sheet);
+	if (ctx->old_hist) {
+		if (ctx->new_hist->age > ctx->old_hist->age) {
+			swap(ctx->new_hist, ctx->old_hist);
+			if (ctx->selecting == sel_old) {
+				go_to_sheet(ctx, sheet);
+			} else {
+				go_to_sheet(ctx, old_sheet);
+				render_delta(ctx);
+			}
 		} else {
-			go_to_sheet(ctx, old_sheet);
-			render_delta(ctx);
+			if (ctx->selecting != sel_old)
+				go_to_sheet(ctx, sheet);
+			else
+				render_delta(ctx);
 		}
-	} else {
-		if (ctx->selecting != sel_old)
-			go_to_sheet(ctx, sheet);
-		else
-			render_delta(ctx);
 	}
 
 	if (ctx->old_hist == ctx->new_hist)

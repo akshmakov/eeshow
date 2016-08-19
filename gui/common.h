@@ -72,6 +72,7 @@ struct gui_ctx {
 	bool showing_history;
 	enum selecting {
 		sel_only,	/* select the only revision we show */
+		sel_split,	/* select revision to compare with */
 		sel_new,	/* select the new revision */
 		sel_old,	/* select the old revision */
 	} selecting;
