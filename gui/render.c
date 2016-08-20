@@ -74,7 +74,7 @@ static inline int cy(int y, int yo, float scale)
 
 
 static void highlight_glabel(const struct gui_ctx *ctx,
-    const struct gui_sheet *sheet,  cairo_t *cr, int x, int y, float f)
+    const struct gui_sheet *sheet,  cairo_t *cr, int xo, int yo, float f)
 {
 	const struct sch_obj *obj;
 
@@ -90,8 +90,8 @@ static void highlight_glabel(const struct gui_ctx *ctx,
 			continue;
 
 		cairo_rectangle(cr,
-		    cx(bbox->x, x, f) - GLABEL_HIGHLIGHT_PAD,
-		    cy(bbox->y, y, f) - GLABEL_HIGHLIGHT_PAD,
+		    cx(bbox->x, xo, f) - GLABEL_HIGHLIGHT_PAD,
+		    cy(bbox->y, yo, f) - GLABEL_HIGHLIGHT_PAD,
 		    cd(bbox->w, f) + 2 * GLABEL_HIGHLIGHT_PAD,
 		    cd(bbox->h, f) + 2 * GLABEL_HIGHLIGHT_PAD);
 		cairo_set_source_rgb(cr, 1, 0.8, 1);
@@ -103,14 +103,48 @@ static void highlight_glabel(const struct gui_ctx *ctx,
 /* ----- Draw to screen ---------------------------------------------------- */
 
 
-static void hack(const struct gui_ctx *ctx, cairo_t *cr)
+/*
+ * @@@ the highlighting of sub-sheets possibly containing changes is very
+ * unreliable since sheet_eq (from delta) responds to a lot of purely
+ * imaginary changes. However, this will be a good way to exercise and improve
+ * delta.
+ */
+
+static void hack(const struct gui_ctx *ctx, cairo_t *cr,
+    int xo, int yo, float f)
 {
 	const struct gui_sheet *new = ctx->curr_sheet;
 	const struct gui_sheet *old = find_corresponding_sheet(
 	    ctx->old_hist->sheets, ctx->new_hist->sheets, ctx->curr_sheet);
+	const struct sch_obj *obj;
+	struct area *areas = NULL;
+
+	for (obj = new->sch->objs; obj; obj = obj->next) {
+		const struct gui_sheet *new_sub;
+		const struct gui_sheet *old_sub;
+
+		if (obj->type != sch_obj_sheet)
+			continue;
+		if (!obj->u.sheet.sheet)
+			continue;
+
+		for (new_sub = ctx->new_hist->sheets;
+		    new_sub && new_sub->sch != obj->u.sheet.sheet;
+		    new_sub = new_sub->next);
+		if (!new_sub)
+			continue;
+		old_sub = find_corresponding_sheet(ctx->old_hist->sheets,
+		    ctx->new_hist->sheets, new_sub);
+
+		if (!sheet_eq(new_sub->sch, old_sub->sch))
+			add_area(&areas, cx(obj->x, xo, f), cy(obj->y, yo, f),
+		    	    cx(obj->x + obj->u.sheet.w, xo, f),
+			    cy(obj->y + obj->u.sheet.h, yo, f), 0xffff00);
+	}
 
 	diff_to_canvas(cr, ctx->x, ctx->y, 1.0 / (1 << ctx->zoom),
-	    old->gfx_ctx, new->gfx_ctx, NULL);
+	    old->gfx_ctx, new->gfx_ctx, areas);
+	free_areas(&areas);
 }
 
 
@@ -143,7 +177,7 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 		cro_canvas_draw(ctx->delta_a.gfx_ctx, cr, x, y, f);
 		cro_canvas_draw(ctx->delta_b.gfx_ctx, cr, x, y, f);
 #endif
-		hack(ctx, cr);
+		hack(ctx, cr, x, y, f);
 	}
 
 	overlay_draw_all(ctx->sheet_overlays, cr,
