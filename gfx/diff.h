@@ -14,6 +14,8 @@
 #ifndef GFX_DIFF_H
 #define	GFX_DIFF_H
 
+#include <stdint.h>
+
 #include <cairo/cairo.h>
 
 #include "gfx/gfx.h"
@@ -23,7 +25,15 @@
 extern const struct gfx_ops diff_ops;
 
 
+struct area {
+	int xa, ya, xb, yb;
+	uint32_t color;
+	struct area *next;
+};
+
+
 void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale, 
-    struct cro_ctx *old, struct cro_ctx *new);
+    struct cro_ctx *old, struct cro_ctx *new,
+    const struct area *areas);
 
 #endif /* !GFX_DIFF_H */

@@ -60,6 +60,7 @@ static inline int cd(int x, float scale)
 	return x * scale;
 }
 
+
 static inline int cx(int x, int xo, float scale)
 {
 	return xo + x * scale;
@@ -109,7 +110,7 @@ static void hack(const struct gui_ctx *ctx, cairo_t *cr)
 	    ctx->old_hist->sheets, ctx->new_hist->sheets, ctx->curr_sheet);
 
 	diff_to_canvas(cr, ctx->x, ctx->y, 1.0 / (1 << ctx->zoom),
-	    old->gfx_ctx, new->gfx_ctx);
+	    old->gfx_ctx, new->gfx_ctx, NULL);
 }
 
 

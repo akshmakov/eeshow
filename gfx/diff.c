@@ -47,12 +47,6 @@
 #define	AREA_FILL	0xffd0f0
 
 
-
-struct area {
-	int xa, ya, xb, yb;
-	struct area *next;
-};
-
 struct diff {
 	void *cr_ctx;
 	uint32_t *new_img;
@@ -212,6 +206,7 @@ static void mark_area(struct diff *diff, int x, int y)
 	area->xb = x + diff->frame_radius;
 	area->ya = y - diff->frame_radius;
 	area->yb = y + diff->frame_radius;
+	area->color = AREA_FILL;
 
 	area->next = diff->areas;
 	diff->areas = area;
@@ -265,7 +260,7 @@ static void show_areas(struct diff *diff, uint32_t *a)
 
 	for (area = diff->areas; area; area = area->next)
 		complement_box(diff, a, area->xa, area->ya, area->xb, area->yb,
-		    AREA_FILL);
+		    area->color);
 }
 
 
@@ -317,7 +312,8 @@ static void merge_coord(int pos_a, int pos_b, int dim_a, int dim_b,
 
 
 void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
-    struct cro_ctx *old, struct cro_ctx *new)
+    struct cro_ctx *old, struct cro_ctx *new,
+    const struct area *areas)
 {
 	int old_xmin, old_ymin, old_w, old_h;
 	int new_xmin, new_ymin, new_w, new_h;
@@ -378,9 +374,12 @@ void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
 	cairo_surface_flush(s);
 	differences(&diff, img_old, img_new);
 	show_areas(&diff, img_old);
-	cairo_surface_mark_dirty(s);
-
 	free_areas(&diff);
+	if (areas) {
+		diff.areas = (struct area *) areas;
+		show_areas(&diff, img_old);
+	}
+	cairo_surface_mark_dirty(s);
 
 	cairo_set_source_surface(cr, s, 0, 0);
 	cairo_paint(cr);
