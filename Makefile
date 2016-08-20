@@ -48,12 +48,11 @@ endif
 include ../common/Makefile.c-common
 
 .PHONY:		test neo900 sch test testref png pngref pdf diff view newref
-.PHONY:		version.c
 
 all::		$(NAME)
 
 $(NAME):	$(OBJS)
-		$(MAKE) version.o
+		$(MAKE) -B version.o
 		$(CC) -o $(NAME) $(OBJS) $(LDLIBS)
 
 help.inc:	$(HELP_TEXT) Makefile
