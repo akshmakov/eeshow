@@ -45,7 +45,6 @@ struct cro_ctx {
 	struct record record;	/* must be first */
 
 	int xo, yo;		/* offset in target (e.g., canvas) coord */
-	int xe, ye;		/* additional offset in eeschema coord */
 	float scale;
 
 	cairo_t *cr;
@@ -74,13 +73,13 @@ static inline int dc(const struct cro_ctx *cc, int x)
 
 static inline int cx(const struct cro_ctx *cc, int x)
 {
-	return cc->xo + (x + cc->xe) * cc->scale;
+	return cc->xo + x * cc->scale;
 }
 
 
 static inline int cy(const struct cro_ctx *cc, int y)
 {
-	return cc->yo + (y + cc->ye) * cc->scale;
+	return cc->yo + y * cc->scale;
 }
 
 
@@ -265,7 +264,6 @@ static struct cro_ctx *new_cc(void)
 
 	cc = alloc_type(struct cro_ctx);
 	cc->xo = cc->yo = 0;
-	cc->xe = cc->ye = 0;
 	cc->scale = DEFAULT_SCALE;
 
 	cc->sheets = NULL;
@@ -535,7 +533,6 @@ void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr, int xo, int yo,
 
 
 uint32_t *cro_img(struct cro_ctx *ctx, int xo, int yo, int w, int h,
-    int xe, int ye,
     float scale, cairo_t **res_cr, int *res_stride)
 {
 	int stride;
@@ -562,8 +559,6 @@ uint32_t *cro_img(struct cro_ctx *ctx, int xo, int yo, int w, int h,
 	ctx->s = s;
 	ctx->xo = xo;
 	ctx->yo = yo;
-	ctx->xe = xe;
-	ctx->ye = ye;
 	ctx->scale = scale;
 	ctx->color_override = COLOR_NONE;
 
