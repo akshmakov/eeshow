@@ -38,6 +38,8 @@
 
 static bool comp_eq_objs(const struct lib_obj *a, const struct lib_obj *b)
 {
+	int i;
+
 	/*
 	 * @@@ over-simplify a little. We don't search to find objects that
 	 * have merely been reordered.
@@ -49,6 +51,16 @@ static bool comp_eq_objs(const struct lib_obj *a, const struct lib_obj *b)
 			return 0;
 		switch (a->type) {
 		case lib_obj_poly:
+			if (a->u.poly.thick != b->u.poly.thick &&
+			    a->u.poly.fill != b->u.poly.fill)
+				return 0;
+			if (a->u.poly.points != b->u.poly.points)
+				return 0;
+			for (i = 0; i != a->u.poly.points; i++)
+				if (a->u.poly.x[i] != b->u.poly.x[i] ||
+				    a->u.poly.y[i] != b->u.poly.y[i])
+					return 0;
+			return 1;
 		case lib_obj_rect:
 			return a->u.rect.sx == b->u.rect.sx &&
 			    a->u.rect.ex == a->u.rect.ey &&
