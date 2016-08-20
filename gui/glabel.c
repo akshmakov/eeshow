@@ -260,11 +260,20 @@ static bool hover_glabel(void *user, bool on)
 	 * instead the box, either in general, or in this specific case. Not
 	 * sure if it's worth the trouble, though.
 	 *
+	 * Another way to avoid the problem would be to size the pop-up such
+	 * that it always includes the mouse position. But that could lead to
+	 * rather weird-looking results at deep high zoom levels.
+	 *
+	 * Yet another option would be to move the mouse pointer onto the
+	 * pop-up. The problem with this is that forced mouse pointer movement
+	 * is not appreciated by all users.
+	 *
 	 * Both issues result in a "hanging" pop-up because AoI (and input)
 	 * don't even know we're hovering. The pop-up can be cleared by
 	 * - hovering into it,
-	 * - hovering over some other glabel, or
-	 * - clicking.
+	 * - hovering over some other glabel,
+	 * - clicking, or
+	 * - pressing Escape.
 	 */
 	input_update();
 	redraw(ctx);
