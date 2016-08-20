@@ -101,14 +101,16 @@ static bool need_dehover(const struct aoi *aois, int x, int y)
 }
 
 
-bool aoi_click(const struct aoi *aois, int x, int y)
+/* Pointer to the anchor needed for the same reason as in aoi_hover. */
+
+bool aoi_click(struct aoi *const *aois, int x, int y)
 {
 	const struct aoi *aoi;
 
-	if (need_dehover(aois, x, y))
+	if (need_dehover(*aois, x, y))
 		aoi_dehover();
 
-	for (aoi = aois; aoi; aoi = aoi->next)
+	for (aoi = *aois; aoi; aoi = aoi->next)
 		if (aoi->click && in_aoi(aoi, x, y)) {
 			aoi->click(aoi->user);
 			return 1;

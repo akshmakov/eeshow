@@ -394,9 +394,9 @@ static bool sheet_click(void *user, int x, int y)
 		curr_sheet = find_corresponding_sheet(ctx->old_hist->sheets,
 		    ctx->new_hist->sheets, ctx->curr_sheet);
 
-	if (aoi_click(ctx->aois, x, y))
+	if (aoi_click(&ctx->aois, x, y))
 		return 1;
-	if (aoi_click(curr_sheet->aois,
+	if (aoi_click(&curr_sheet->aois,
 	    ex + curr_sheet->xmin, ey + curr_sheet->ymin))
 		return 1;
 

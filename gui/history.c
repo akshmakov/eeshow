@@ -206,7 +206,7 @@ static bool history_click(void *user, int x, int y)
 {
 	struct gui_ctx *ctx = user;
 
-	if (aoi_click(ctx->aois, x, y))
+	if (aoi_click(&ctx->aois, x, y))
 		return 1;
 	hide_history(ctx);
 	return 1;
