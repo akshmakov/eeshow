@@ -419,9 +419,9 @@ static bool sheet_hover_update(void *user, int x, int y)
 		curr_sheet = find_corresponding_sheet(ctx->old_hist->sheets,
 		    ctx->new_hist->sheets, ctx->curr_sheet);
 
-	if (aoi_hover(ctx->aois, x, y))
+	if (aoi_hover(&ctx->aois, x, y))
 		return 1;
-	return aoi_hover(curr_sheet->aois,
+	return aoi_hover(&curr_sheet->aois,
 	    ex + curr_sheet->xmin, ey + curr_sheet->ymin);
 }
 

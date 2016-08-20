@@ -32,7 +32,7 @@ struct aoi {
 
 struct aoi *aoi_add(struct aoi **aois, const struct aoi *cfg);
 void aoi_update(struct aoi *aoi, const struct aoi *cfg);
-bool aoi_hover(const struct aoi *aois, int x, int y);
+bool aoi_hover(struct aoi *const *aois, int x, int y);
 
 bool aoi_click(const struct aoi *aois, int x, int y);
 

@@ -217,7 +217,7 @@ static bool history_hover_update(void *user, int x, int y)
 {
 	struct gui_ctx *ctx = user;
 
-	return aoi_hover(ctx->aois, x, y);
+	return aoi_hover(&ctx->aois, x, y);
 }
 
 

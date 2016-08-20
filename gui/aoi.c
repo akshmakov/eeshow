@@ -57,7 +57,15 @@ static bool in_aoi(const struct aoi *aoi, int x, int y)
 }
 
 
-bool aoi_hover(const struct aoi *aois, int x, int y)
+/*
+ * We need a pointer to the anchor of the AoI list here because dehovering may
+ * delete the AoI *aois points to.
+ *
+ * We could just check if hovering == *aois, but that seems risky, because
+ * hover(..., 0) may destroy more than just the AoI being dehovered.
+ */
+
+bool aoi_hover(struct aoi *const *aois, int x, int y)
 {
 	const struct aoi *aoi;
 
@@ -68,7 +76,7 @@ bool aoi_hover(const struct aoi *aois, int x, int y)
 		hovering = NULL;
 	}
 
-	for (aoi = aois; aoi; aoi = aoi->next)
+	for (aoi = *aois; aoi; aoi = aoi->next)
 		if (aoi->hover && in_aoi(aoi, x, y) &&
 		    aoi->hover(aoi->user, 1)) {
 			hovering = aoi;
@@ -118,12 +126,14 @@ void aoi_set_related(struct aoi *aoi, const struct aoi *related)
 
 void aoi_remove(struct aoi **aois, const struct aoi *aoi)
 {
+	assert(aoi);
 	if (hovering == aoi) {
 		aoi->hover(aoi->user, 0);
 		hovering = NULL;
 	}
-	while (*aois != aoi)
+	while (*aois && *aois != aoi)
 		aois = &(*aois)->next;
+	assert(*aois);
 	*aois = aoi->next;
 	free((void *) aoi);
 }
@@ -135,4 +145,3 @@ void aoi_dehover(void)
 		hovering->hover(hovering->user, 0);
 	hovering = NULL;
 }
-
