@@ -198,7 +198,10 @@ static void add_delta(struct gui_ctx *ctx)
 	if (ctx->old_hist && ctx->diff_mode == diff_delta)
 		style.frame = RGBA(0, 0, 0, 1);
 	overlay_style(over, &style);
-	overlay_text(over, "&#916;");
+	if (use_delta)
+		overlay_text(over, "&#8711;");
+	else
+		overlay_text(over, "&#916;");
 }
 
 
@@ -524,6 +527,7 @@ static void sheet_key(void *user, int x, int y, int keyval)
 
 	case GDK_KEY_a:
 		use_delta = !use_delta;
+		do_revision_overlays(ctx);
 		redraw(ctx);
 		break;
 
