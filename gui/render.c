@@ -18,10 +18,12 @@
 #include <gtk/gtk.h>
 
 #include "misc/util.h"
+#include "gfx/style.h"
 #include "gfx/cro.h"
 #include "gfx/gfx.h"
 #include "kicad/sch.h"
 #include "kicad/delta.h"
+#include "gfx/diff.h"
 #include "gfx/diff.h"
 #include "gui/aoi.h"
 #include "gui/over.h"
@@ -35,6 +37,9 @@
 #define	SHEET_OVERLAYS_Y	10
 
 #define GLABEL_HIGHLIGHT_PAD	6
+
+
+bool use_delta = 0;
 
 
 /* ----- Helper functions -------------------------------------------------- */
@@ -170,13 +175,12 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 		    ctx->new_hist->sheets, ctx->curr_sheet);
 		highlight_glabel(ctx, sheet, cr, x, y, f);
 		cro_canvas_draw(sheet->gfx_ctx, cr, x, y, f);
-	} else {
-#if 0
+	} else if (use_delta) {
 		/* @@@ fix geometry later */
 		cro_canvas_draw(ctx->delta_ab.gfx_ctx, cr, x, y, f);
 		cro_canvas_draw(ctx->delta_a.gfx_ctx, cr, x, y, f);
 		cro_canvas_draw(ctx->delta_b.gfx_ctx, cr, x, y, f);
-#endif
+	} else {
 		hack(ctx, cr, x, y, f);
 	}
 
@@ -216,12 +220,12 @@ void render_sheet(struct gui_sheet *sheet)
 
 void render_delta(struct gui_ctx *ctx)
 {
-#if 0
+#if 1
 	/* @@@ needs updating for curr/last vs. new/old */
 	struct sheet *sch_a, *sch_b, *sch_ab;
-	const struct gui_sheet *a = ctx->curr_sheet;
-	const struct gui_sheet *b = find_corresponding_sheet(
-	    ctx->last_hist->sheets, ctx->curr_hist->sheets, ctx->curr_sheet);
+	struct gui_sheet *a = ctx->curr_sheet;
+	struct gui_sheet *b = find_corresponding_sheet(
+	    ctx->old_hist->sheets, ctx->new_hist->sheets, ctx->curr_sheet);
 
 	sch_a = alloc_type(struct sheet);
 	sch_b = alloc_type(struct sheet);
@@ -242,8 +246,6 @@ void render_delta(struct gui_ctx *ctx)
 
 	// @@@ clean up when leaving sheet
 #endif
-	struct gui_sheet *b = find_corresponding_sheet(
-	    ctx->old_hist->sheets, ctx->new_hist->sheets, ctx->curr_sheet);
 
 	if (!b->rendered) {
 		render_sheet(b);

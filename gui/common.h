@@ -145,6 +145,8 @@ void show_history(struct gui_ctx *ctx, enum selecting sel);
 
 /* gui.c */
 
+extern bool use_delta;
+
 struct gui_sheet *find_corresponding_sheet(struct gui_sheet *pick_from,
      struct gui_sheet *ref_in, const struct gui_sheet *ref);
 void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet);

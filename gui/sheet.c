@@ -522,6 +522,11 @@ static void sheet_key(void *user, int x, int y, int keyval)
 		redraw(ctx);
 		break;
 
+	case GDK_KEY_a:
+		use_delta = !use_delta;
+		redraw(ctx);
+		break;
+
 	case GDK_KEY_n:
 		ctx->diff_mode = diff_new;
 		redraw(ctx);
