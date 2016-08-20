@@ -58,7 +58,6 @@ GUI/history
 - in history, set font to non-bold if showing details
 - add scrolling to history, for hot-keys
 - add manual selection with Up/Down/Enter
-- highlight subsheets containing differences
 - "what I am selecting" indication (color of frames of sheets in history)
   is not very clear.
 
@@ -69,5 +68,5 @@ GUI/sheets:
 GUI/glabels:
 - maybe indicate how many times label is used on each sheet
 - maybe indicate how it is used
-- there can be "hanging" pop-ups, see comment in gui/glabel.c:hover_glabel
-- should there be a way to remove glabel highlighting ?
+- there can be "hanging" pop-ups, by design. See comment in
+  gui/glabel.c:hover_glabel
