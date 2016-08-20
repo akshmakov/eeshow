@@ -66,15 +66,15 @@ static inline int cd(const struct cro_ctx *cc, int x)
 }
 
 
-static inline int cx(const struct cro_ctx *cc, int x)
+static inline int dc(const struct cro_ctx *cc, int x)
 {
-	return cc->xo + (x + cc->xe) * cc->scale;
+	return x / cc->scale;
 }
 
 
-static inline int xc(const struct cro_ctx *cc, int x)
+static inline int cx(const struct cro_ctx *cc, int x)
 {
-	return (x - cc->xo) / cc->scale - cc->xe;
+	return cc->xo + (x + cc->xe) * cc->scale;
 }
 
 
@@ -230,9 +230,9 @@ static unsigned cr_text_width(void *ctx, const char *s, unsigned size)
 	struct cro_ctx *cc = ctx;
 	cairo_text_extents_t ext;
 
-	cairo_set_font_size(cc->cr, cx(cc, size) * TEXT_STRETCH);
+	cairo_set_font_size(cc->cr, cd(cc, size) * TEXT_STRETCH);
 	cairo_text_extents(cc->cr, s, &ext);
-	return xc(cc, ext.width) * 1.05; /* @@@ Cairo seems to underestimate */
+	return dc(cc, ext.width) * 1.05; /* @@@ Cairo seems to underestimate */
 }
 
 
