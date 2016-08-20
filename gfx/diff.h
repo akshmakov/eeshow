@@ -32,6 +32,10 @@ struct area {
 };
 
 
+void add_area(struct area **areas, int xa, int ya, int xb, int yb,
+    uint32_t color);
+void free_areas(struct area **areas);
+
 void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale, 
     struct cro_ctx *old, struct cro_ctx *new,
     const struct area *areas);

@@ -182,34 +182,47 @@ fail_open:
 }
 
 
+void add_area(struct area **areas, int xa, int ya, int xb, int yb,
+    uint32_t color)
+{
+	struct area *area;
+
+	area = alloc_type(struct area);
+
+	area->xa = xa;
+	area->ya = ya;
+	area->xb = xb;
+	area->yb = yb;
+	area->color = color;
+
+	area->next = *areas;
+	*areas = area;
+}
+
+
 static void mark_area(struct diff *diff, int x, int y)
 {
 	struct area *area;
+	int xa = x - diff->frame_radius;
+	int ya = y - diff->frame_radius;
+	int xb = x + diff->frame_radius;
+	int yb = y + diff->frame_radius;
 
 	for (area = diff->areas; area; area = area->next)
 		if (x >= area->xa && x <= area->xb &&
 		    y >= area->ya && y <= area->yb) {
-			if (area->xa > x - diff->frame_radius)
-				area->xa = x - diff->frame_radius;
-			if (area->xb < x + diff->frame_radius)
-				area->xb = x + diff->frame_radius;
-			if (area->ya > y - diff->frame_radius)
-				area->ya = y - diff->frame_radius;
-			if (area->yb < y + diff->frame_radius)
-				area->yb = y + diff->frame_radius;
+			if (area->xa > xa)
+				area->xa = xa;
+			if (area->xb < xb)
+				area->xb = xb;
+			if (area->ya > ya)
+				area->ya = ya;
+			if (area->yb < yb)
+				area->yb = yb;
 			return;
 		}
 
-	area = alloc_type(struct area);
-
-	area->xa = x - diff->frame_radius;
-	area->xb = x + diff->frame_radius;
-	area->ya = y - diff->frame_radius;
-	area->yb = y + diff->frame_radius;
-	area->color = AREA_FILL;
-
-	area->next = diff->areas;
-	diff->areas = area;
+	add_area(&diff->areas, xa, ya, xb, yb, AREA_FILL);
 }
 
 
@@ -264,14 +277,14 @@ static void show_areas(struct diff *diff, uint32_t *a)
 }
 
 
-static void free_areas(struct diff *diff)
+void free_areas(struct area **areas)
 {
 	struct area *next;
 
-	while (diff->areas) {
-		next = diff->areas->next;
-		free(diff->areas);
-		diff->areas = next;
+	while (*areas) {
+		next = (*areas)->next;
+		free(*areas);
+		*areas = next;
 	}
 }
 
@@ -288,7 +301,7 @@ static void diff_end(void *ctx)
 
 	differences(diff, old_img, diff->new_img);
 	show_areas(diff, old_img);
-	free_areas(diff);
+	free_areas(&diff->areas);
 
 	cro_img_write(diff->cr_ctx, diff->output_name);
 }
@@ -374,7 +387,7 @@ void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
 	cairo_surface_flush(s);
 	differences(&diff, img_old, img_new);
 	show_areas(&diff, img_old);
-	free_areas(&diff);
+	free_areas(&diff.areas);
 	if (areas) {
 		diff.areas = (struct area *) areas;
 		show_areas(&diff, img_old);
