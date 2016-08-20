@@ -74,7 +74,7 @@ static inline int cx(const struct cro_ctx *cc, int x)
 
 static inline int xc(const struct cro_ctx *cc, int x)
 {
-	return (x - cc->xe) / cc->scale - cc->xe;
+	return (x - cc->xo) / cc->scale - cc->xe;
 }
 
 
