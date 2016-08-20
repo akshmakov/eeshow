@@ -232,7 +232,12 @@ static void history_drag_move(void *user, int dx, int dy)
 
 static void history_key(void *user, int x, int y, int keyval)
 {
+	struct gui_ctx *ctx = user;
+
 	switch (keyval) {
+	case GDK_KEY_Escape:
+		hide_history(ctx);
+		break;
 	case GDK_KEY_q:
 		gtk_main_quit();
 	}

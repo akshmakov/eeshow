@@ -9,6 +9,8 @@ PgUp        go to the previous sheet in sequence
 PgDn        go to the next sheet in sequence
 Up or Down  invoke the revision history (WIP)
 Tab         toggle between old and new revision
+Esc         cancel current action (exit history, close
+            pop-up, de-highlight glabel, close help)
 H           show/hide help window
 D           when comparing revisions, show difference
 N           show newer sheet

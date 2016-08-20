@@ -516,6 +516,12 @@ static void sheet_key(void *user, int x, int y, int keyval)
 		toggle_old_new(ctx);
 		break;
 
+	case GDK_KEY_Escape:
+		dehover_glabel(user);
+		ctx->glabel = NULL;
+		redraw(ctx);
+		break;
+
 	case GDK_KEY_n:
 		ctx->diff_mode = diff_new;
 		redraw(ctx);

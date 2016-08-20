@@ -49,6 +49,8 @@ GUI:
   to new_sheet and old_sheet.
 - introduce location string, as command-line argument, e.g.,
   [top-sheet/]rev-old,rev-new[,x,y[,zoom]]
+  or maybe (allowing for sheets from completely different sources):
+  [revA]:[topA]:[sheetA][,[revB]:[topB]:[sheetB]][@x,y[,zoom]]
 - set/use location string via clipboard
 
 GUI/history
