@@ -253,15 +253,22 @@ static void differences(struct diff *diff, uint32_t *a, const uint32_t *b)
 static void complement_box(struct diff *diff, uint32_t *a,
     int xa, int ya, int xb, int yb, uint32_t color)
 {
+	int sx, sy, ex, ey;
 	uint32_t *p;
 	int x, y;
 
-	for (y = ya; y != yb; y++) {
-		if (y < 0 || y >= diff->h)
-			continue;
+	sx = xa > 0 ? xa : 0;
+	ex = xb < diff->w ? xb : diff->w;
+	sy = ya > 0 ? ya : 0;
+	ey = yb < diff->h ? yb : diff->h;
+
+	if (sx >= ex || sy >= ey)
+		return;
+
+	for (y = sy; y != ey; y++) {
 		p = a + y * (diff->stride >> 2);
-		for (x = xa; x != xb; x++)
-			if (x >= 0 && x < diff->w && (p[x] & MASK) == MASK)
+		for (x = sx; x != ex; x++)
+			if ((p[x] & MASK) == MASK)
 				p[x] = color;
 	}
 }
