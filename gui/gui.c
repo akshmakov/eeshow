@@ -17,13 +17,16 @@
  * https://developer.gnome.org/gtk3/stable/gtk-migrating-2-to-3.html
  */
 
+#define	_GNU_SOURCE	/* for asprintf */
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <gtk/gtk.h>
 
+#include "version.h"
 #include "misc/util.h"
 #include "misc/diag.h"
 #include "file/git-hist.h"
@@ -380,6 +383,7 @@ static void get_history(struct gui_ctx *ctx, const char *sch_name, int limit)
 int gui(unsigned n_args, char **args, bool recurse, int limit)
 {
 	GtkWidget *window;
+	char *title;
 	struct gui_ctx ctx = {
 		.zoom		= 4,	/* scale by 1 / 16 */
 		.hist		= NULL,
@@ -403,7 +407,8 @@ int gui(unsigned n_args, char **args, bool recurse, int limit)
 	gtk_container_add(GTK_CONTAINER(window), ctx.da);
 
 	gtk_window_set_default_size(GTK_WINDOW(window), 640, 480);
-	gtk_window_set_title(GTK_WINDOW(window), "eeshow");
+	if (asprintf(&title, "eeshow (rev %s)", version)) {};
+	gtk_window_set_title(GTK_WINDOW(window), title);
 
 	gtk_widget_set_events(ctx.da,
 	    GDK_EXPOSE | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK);
