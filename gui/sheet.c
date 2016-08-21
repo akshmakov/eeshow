@@ -198,6 +198,7 @@ static void add_delta(struct gui_ctx *ctx)
 	style = overlay_style_default;
 	if (ctx->old_hist && ctx->diff_mode == diff_delta)
 		style.frame = RGBA(0, 0, 0, 1);
+	style.pad = 4;
 	overlay_style(over, &style);
 	if (use_delta)
 		overlay_icon(over, icon_delta);

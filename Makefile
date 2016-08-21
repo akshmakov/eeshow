@@ -68,8 +68,8 @@ gui/help.c:	help.inc
 clean::
 		rm -f help.inc
 
-icons/%.hex:	icons/%.fig
-		$(BUILD) fig2dev -L png -S 4 -Z 0.48 $< | \
+icons/%.hex:	icons/%.fig Makefile
+		$(BUILD) fig2dev -L png -S 4 -Z 0.60 $< | \
 		    convert - -transparent white - | \
 		    hexdump -v -e '/1 "0x%x, "' >$@; \
 		    [ "$${PIPESTATUS[*]}" = "0 0 0" ] || { rm -f $@; exit 1; }
