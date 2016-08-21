@@ -262,8 +262,8 @@ void render_delta(struct gui_ctx *ctx)
 	render_sheet(&ctx->delta_ab);
 
 	cro_color_override(ctx->delta_ab.gfx_ctx, COLOR_LIGHT_GREY);
-	cro_color_override(ctx->delta_a.gfx_ctx, COLOR_RED);
-	cro_color_override(ctx->delta_b.gfx_ctx, COLOR_GREEN2);
+	cro_color_override(ctx->delta_b.gfx_ctx, COLOR_RED);
+	cro_color_override(ctx->delta_a.gfx_ctx, COLOR_GREEN2);
 
 	// @@@ clean up when leaving sheet
 #endif
