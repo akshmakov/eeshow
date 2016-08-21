@@ -63,7 +63,9 @@ static bool comp_eq_objs(const struct lib_obj *a, const struct lib_obj *b)
 			return 1;
 		case lib_obj_rect:
 			return a->u.rect.sx == b->u.rect.sx &&
-			    a->u.rect.ex == a->u.rect.ey &&
+			    a->u.rect.sy == b->u.rect.sy &&
+			    a->u.rect.ex == b->u.rect.ex &&
+			    a->u.rect.ey == b->u.rect.ey &&
 			    a->u.rect.thick == b->u.rect.thick &&
 			    a->u.rect.fill == b->u.rect.fill;
 		case lib_obj_circ:
