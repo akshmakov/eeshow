@@ -352,20 +352,7 @@ bool sheet_eq(const struct sheet *a, const struct sheet *b)
 }
 
 
-static void free_obj(struct sch_obj *obj)
-{
-	/* there may be more to free once we get into cloning components */
-	free(obj);
-}
-
-
-static void init_res(struct sheet *res)
-{
-	res->title = NULL;
-        res->objs = NULL;
-        res->next_obj = &res->objs;
-        res->next = NULL;
-}
+/* ----- Merge wires ------------------------------------------------------- */
 
 
 static int min(int a, int b)
@@ -433,6 +420,25 @@ static void merge_wires(struct sch_obj *a)
 			}
 		}
 	}
+}
+
+
+/* ----- Split objects from A and B into only-A, only-B, and A-and-B ------- */
+
+
+static void free_obj(struct sch_obj *obj)
+{
+	/* there may be more to free once we get into cloning components */
+	free(obj);
+}
+
+
+static void init_res(struct sheet *res)
+{
+	res->title = NULL;
+        res->objs = NULL;
+        res->next_obj = &res->objs;
+        res->next = NULL;
 }
 
 
