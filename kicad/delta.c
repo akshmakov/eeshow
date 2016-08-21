@@ -36,74 +36,81 @@
 /* ----- Components -------------------------------------------------------- */
 
 
-static bool comp_eq_objs(const struct lib_obj *a, const struct lib_obj *b)
+static bool comp_eq_obj(const struct lib_obj *a, const struct lib_obj *b)
 {
 	int i;
 
+	if (a->type != b->type)
+		return 0;
+	if (a->unit != b->unit || a->convert != b->convert)
+			return 0;
+	switch (a->type) {
+	case lib_obj_poly:
+		if (a->u.poly.thick != b->u.poly.thick &&
+		    a->u.poly.fill != b->u.poly.fill)
+			return 0;
+		if (a->u.poly.points != b->u.poly.points)
+			return 0;
+		for (i = 0; i != a->u.poly.points; i++)
+			if (a->u.poly.x[i] != b->u.poly.x[i] ||
+			    a->u.poly.y[i] != b->u.poly.y[i])
+				return 0;
+		return 1;
+	case lib_obj_rect:
+		return a->u.rect.sx == b->u.rect.sx &&
+		    a->u.rect.sy == b->u.rect.sy &&
+		    a->u.rect.ex == b->u.rect.ex &&
+		    a->u.rect.ey == b->u.rect.ey &&
+		    a->u.rect.thick == b->u.rect.thick &&
+		    a->u.rect.fill == b->u.rect.fill;
+	case lib_obj_circ:
+		return a->u.circ.x == b->u.circ.x &&
+		    a->u.circ.y == b->u.circ.y &&
+		    a->u.circ.r == b->u.circ.r &&
+		    a->u.circ.thick == b->u.circ.thick &&
+		    a->u.circ.fill == b->u.circ.fill;
+	case lib_obj_arc:
+		return a->u.arc.x == b->u.arc.x &&
+		    a->u.arc.y == b->u.arc.y &&
+		    a->u.arc.r == b->u.arc.r &&
+		    a->u.arc.start_a == b->u.arc.start_a &&
+		    a->u.arc.end_a == b->u.arc.end_a &&
+		    a->u.arc.thick == b->u.arc.thick &&
+		    a->u.arc.fill == b->u.arc.fill;
+	case lib_obj_text:
+		return a->u.text.x == b->u.text.x &&
+		    a->u.text.y == b->u.text.y &&
+		    a->u.text.dim == b->u.text.dim &&
+		    a->u.text.orient == b->u.text.orient &&
+		    a->u.text.style == b->u.text.style &&
+		    a->u.text.hor_align == b->u.text.hor_align &&
+		    a->u.text.vert_align == b->u.text.vert_align &&
+		    !strcmp(a->u.text.s, b->u.text.s);
+	case lib_obj_pin:
+		return a->u.pin.x == b->u.pin.x &&
+		    a->u.pin.y == b->u.pin.y &&
+		    a->u.pin.length == b->u.pin.length &&
+		    a->u.pin.orient == b->u.pin.orient &&
+		    a->u.pin.number_size == b->u.pin.number_size &&
+		    a->u.pin.name_size == b->u.pin.name_size &&
+		    a->u.pin.etype == b->u.pin.etype &&
+		    !strcmp(a->u.pin.name, b->u.pin.name) &&
+		    !strcmp(a->u.pin.number, b->u.pin.number);
+	default:
+		abort();
+	}
+}
+
+
+static bool comp_eq_objs(const struct lib_obj *a, const struct lib_obj *b)
+{
 	/*
 	 * @@@ over-simplify a little. We don't search to find objects that
 	 * have merely been reordered.
 	 */
 	while (a && b) {
-		if (a->type != b->type)
+		if (!comp_eq_obj(a, b))
 			return 0;
-		if (a->unit != b->unit || a->convert != b->convert)
-			return 0;
-		switch (a->type) {
-		case lib_obj_poly:
-			if (a->u.poly.thick != b->u.poly.thick &&
-			    a->u.poly.fill != b->u.poly.fill)
-				return 0;
-			if (a->u.poly.points != b->u.poly.points)
-				return 0;
-			for (i = 0; i != a->u.poly.points; i++)
-				if (a->u.poly.x[i] != b->u.poly.x[i] ||
-				    a->u.poly.y[i] != b->u.poly.y[i])
-					return 0;
-			return 1;
-		case lib_obj_rect:
-			return a->u.rect.sx == b->u.rect.sx &&
-			    a->u.rect.sy == b->u.rect.sy &&
-			    a->u.rect.ex == b->u.rect.ex &&
-			    a->u.rect.ey == b->u.rect.ey &&
-			    a->u.rect.thick == b->u.rect.thick &&
-			    a->u.rect.fill == b->u.rect.fill;
-		case lib_obj_circ:
-			return a->u.circ.x == b->u.circ.x &&
-			    a->u.circ.y == b->u.circ.y &&
-			    a->u.circ.r == b->u.circ.r &&
-			    a->u.circ.thick == b->u.circ.thick &&
-			    a->u.circ.fill == b->u.circ.fill;
-		case lib_obj_arc:
-			return a->u.arc.x == b->u.arc.x &&
-			    a->u.arc.y == b->u.arc.y &&
-			    a->u.arc.r == b->u.arc.r &&
-			    a->u.arc.start_a == b->u.arc.start_a &&
-			    a->u.arc.end_a == b->u.arc.end_a &&
-			    a->u.arc.thick == b->u.arc.thick &&
-			    a->u.arc.fill == b->u.arc.fill;
-		case lib_obj_text:
-			return a->u.text.x == b->u.text.x &&
-			    a->u.text.y == b->u.text.y &&
-			    a->u.text.dim == b->u.text.dim &&
-			    a->u.text.orient == b->u.text.orient &&
-			    a->u.text.style == b->u.text.style &&
-			    a->u.text.hor_align == b->u.text.hor_align &&
-			    a->u.text.vert_align == b->u.text.vert_align &&
-			    !strcmp(a->u.text.s, b->u.text.s);
-		case lib_obj_pin:
-			return a->u.pin.x == b->u.pin.x &&
-			    a->u.pin.y == b->u.pin.y &&
-			    a->u.pin.length == b->u.pin.length &&
-			    a->u.pin.orient == b->u.pin.orient &&
-			    a->u.pin.number_size == b->u.pin.number_size &&
-			    a->u.pin.name_size == b->u.pin.name_size &&
-			    a->u.pin.etype == b->u.pin.etype &&
-			    !strcmp(a->u.pin.name, b->u.pin.name) &&
-			    !strcmp(a->u.pin.number, b->u.pin.number);
-		default:
-			abort();
-		}
 		a = a->next;
 		b = b->next;
 	}
