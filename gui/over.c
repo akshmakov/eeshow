@@ -71,7 +71,7 @@ static void rrect(cairo_t *cr, double x, double y, double w, double h, int r)
 
 
 static void background(const struct overlay *over, cairo_t *cr,
-    unsigned x, unsigned y, unsigned w, unsigned h)
+    int x, int y, unsigned w, unsigned h)
 {
 	const struct overlay_style *style = &over->style;
 	const struct color *bg = &style->bg;
@@ -90,8 +90,7 @@ static void background(const struct overlay *over, cairo_t *cr,
 }
 
 
-static void post_aoi(struct overlay *over,
-    unsigned x, unsigned y, unsigned w, unsigned h)
+static void post_aoi(struct overlay *over, int x, int y, unsigned w, unsigned h)
 {
 	struct aoi aoi_cfg = {
 		.x	= x,
@@ -120,7 +119,7 @@ static void post_aoi(struct overlay *over,
 
 
 static unsigned overlay_draw(struct overlay *over, cairo_t *cr,
-    unsigned x, unsigned y, int dx, int dy)
+    int x, int y, int dx, int dy)
 {
 	const struct overlay_style *style = &over->style;
 	const struct color *fg = &style->fg;
@@ -204,7 +203,7 @@ fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->
 
 
 void overlay_draw_all_d(struct overlay *overlays, cairo_t *cr,
-    unsigned x, unsigned y, int dx, int dy)
+    int x, int y, int dx, int dy)
 {
 	struct overlay *over = overlays;
 	unsigned h;

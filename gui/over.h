@@ -45,7 +45,7 @@ struct overlay;
 
 
 void overlay_draw_all_d(struct overlay *overlays, cairo_t *cr,
-    unsigned x, unsigned y, int dx, int dy);
+    int x, int y, int dx, int dy);
 void overlay_draw_all(struct overlay *overlays, cairo_t *cr, int x, int y);
 
 void overlay_size(const struct overlay *over, PangoContext *pango_context,
