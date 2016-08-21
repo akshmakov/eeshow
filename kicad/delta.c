@@ -241,18 +241,25 @@ static bool obj_eq(const struct sch_obj *a, const struct sch_obj *b,
 {
 	if (a->type != b->type)
 		return 0;
-	if (a->x != b->x || a->y != b->y)
-		return 0;
-	switch (a->type) {
-	case sch_obj_wire:
+
+	/* Special treatment because we support direction reversal */
+	if (a->type == sch_obj_wire) {
 		if (a->u.wire.fn != b->u.wire.fn)
 			return 0;
-		if (a->x != b->x || a->y != b->y)
-			return 0;
-		if (a->u.wire.ex != b->u.wire.ex ||
-		    a->u.wire.ey != b->u.wire.ey)
-			return 0;
-		return 1;
+		if (a->x == b->x && a->y == b->y &&
+		    a->u.wire.ex == b->u.wire.ex &&
+		    a->u.wire.ey == b->u.wire.ey)
+			return 1;
+		if (a->x == b->u.wire.ex && a->y == b->u.wire.ey &&
+		    a->u.wire.ex == b->x && a->u.wire.ey == b->y)
+			return 1;
+		return 0;
+	}
+
+	if (a->x != b->x || a->y != b->y)
+		return 0;
+
+	switch (a->type) {
 	case sch_obj_junction:
 		return 1;	
 	case sch_obj_noconn:
