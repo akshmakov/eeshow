@@ -28,6 +28,7 @@
 #include "gfx/text.h"
 #include "gfx/gfx.h"
 #include "gfx/record.h"
+#include "gfx/pdftoc.h"
 #include "main.h"
 #include "gfx/cro.h"
 
@@ -54,6 +55,9 @@ struct cro_ctx {
 	unsigned n_sheets;
 
 	const char *output_name;
+
+	bool add_toc;
+	struct pdftoc *toc;
 
 	int color_override;	/* FIG color, COLOR_NONE if no override */
 };
@@ -273,6 +277,8 @@ static struct cro_ctx *new_cc(void)
 
 	cc->output_name = NULL;
 
+	cc->add_toc = 1;
+	cc->toc = NULL;
 	/*
 	 * record_init does not perform allocations or such, so it's safe to
 	 * call it here even if we don't use this facility.
@@ -288,13 +294,16 @@ static struct cro_ctx *init_common(int argc, char *const *argv)
 	struct cro_ctx *cc = new_cc();
 	char c;
 
-	while ((c = getopt(argc, argv, "o:s:")) != EOF)
+	while ((c = getopt(argc, argv, "o:s:T")) != EOF)
 		switch (c) {
 		case 'o':
 			cc->output_name = optarg;
 			break;
 		case 's':
 			cc->scale = atof(optarg) * DEFAULT_SCALE;
+			break;
+		case 'T':
+			cc->add_toc = 0;
 			break;
 		default:
 			usage(*argv);
@@ -353,6 +362,16 @@ static cairo_status_t stream_to_stdout(void *closure,
 /* ----- PDF (auto-sizing, using redraw) ----------------------------------- */
 
 
+static cairo_status_t stream_to_pdftoc(void *closure,
+    const unsigned char *data, unsigned length)
+{
+	struct cro_ctx *cc = closure;
+
+	return pdftoc_write(cc->toc, data, length) ?
+	    CAIRO_STATUS_SUCCESS : CAIRO_STATUS_WRITE_ERROR;
+}
+
+
 static void *cr_pdf_init(int argc, char *const *argv)
 {
 	struct cro_ctx *cc;
@@ -364,7 +383,19 @@ static void *cr_pdf_init(int argc, char *const *argv)
 	cc->s = cairo_pdf_surface_create(NULL, 16, 16);
 	cc->cr = cairo_create(cc->s);
 
+	if (cc->add_toc)
+		cc->toc = pdftoc_begin(cc->output_name);
+
 	return cc;
+}
+
+
+static void cr_pdf_sheet_name(void *ctx, const char *name)
+{
+	struct cro_ctx *cc = ctx;
+
+	if (cc->toc)
+		pdftoc_title(cc->toc, name ? name : "???");
 }
 
 
@@ -389,7 +420,10 @@ static void cr_pdf_end(void *ctx)
 
 	end_common(cc, &w, &h, NULL, NULL);
 
-	if (cc->output_name)
+	if (cc->toc)
+		cc->s = cairo_pdf_surface_create_for_stream(stream_to_pdftoc,
+		    cc, w, h);
+	else if (cc->output_name)
 		cc->s = cairo_pdf_surface_create(cc->output_name, w, h);
 	else
 		cc->s = cairo_pdf_surface_create_for_stream(stream_to_stdout,
@@ -419,6 +453,10 @@ static void cr_pdf_end(void *ctx)
 
 	cairo_surface_destroy(cc->s);
 	cairo_destroy(cc->cr);
+
+	if (cc->toc)
+		pdftoc_end(cc->toc);
+
 }
 
 
@@ -597,6 +635,7 @@ const struct gfx_ops cro_pdf_ops = {
 	.text		= record_text,
 	.text_width	= cr_text_width,
 	.init		= cr_pdf_init,
+	.sheet_name	= cr_pdf_sheet_name,
 	.new_sheet	= cr_pdf_new_sheet,
 	.end		= cr_pdf_end,
 };
