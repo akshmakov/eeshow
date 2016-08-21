@@ -154,6 +154,8 @@ static void click_history(void *user)
 			else
 				render_delta(ctx);
 		}
+	} else {
+		go_to_sheet(ctx, sheet);
 	}
 
 	if (ctx->old_hist == ctx->new_hist)
