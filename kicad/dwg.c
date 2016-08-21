@@ -462,11 +462,18 @@ void dwg_noconn(int x, int y)
 /*
  * We can't use gfx_poly because lines are dashed and we don't have that
  * property at the gfx_poly API.
+ *
+ * Since dashing may produce different results between going from A to B and
+ * going from B to A, we enforce a common direction, so that pixel diffs will
+ * treat reversed lines as still equal.
  */
 
 void dwg_line(int sx, int sy, int ex, int ey)
 {
-	gfx_line(sx, sy, ex, ey, COLOR_SHEET_DWG, LAYER_LINES);
+	if (sx < ex || (sx == ex && sy < ey))
+		gfx_line(sx, sy, ex, ey, COLOR_SHEET_DWG, LAYER_LINES);
+	else
+		gfx_line(ex, ey, sx, sy, COLOR_SHEET_DWG, LAYER_LINES);
 }
 
 
