@@ -32,7 +32,6 @@ Rendering:
 - support fonts attributes ?
 - support line thickness ?
 - ~ as overline (grep for ~ in out.fig)
-- PDF TOC
 - let user set PNG size [we have zoom level]
 - return indication of whether diff found any differences
 - in diff, pass only options understood by cairo_png
@@ -51,6 +50,7 @@ GUI:
   [top-sheet/]rev-old,rev-new[,x,y[,zoom]]
   or maybe (allowing for sheets from completely different sources):
   [revA]:[topA]:[sheetA][,[revB]:[topB]:[sheetB]][@x,y[,zoom]]
+  [revA]:[topA]:[sheetA][,[revB]:[topB]:[sheetB]][@x,y[,radius]]
 - set/use location string via clipboard
 - incremental search with / ? and maybe Ctrl-S and Ctrl-R
   https://www.gnu.org/software/emacs/manual/html_node/emacs/Repeat-Isearch.html#Repeat-Isearch
