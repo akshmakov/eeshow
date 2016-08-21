@@ -25,6 +25,7 @@
 #include "gui/over.h"
 #include "gui/input.h"
 #include "gui/help.h"
+#include "gui/icons.h"
 #include "gui/common.h"
 
 
@@ -199,9 +200,9 @@ static void add_delta(struct gui_ctx *ctx)
 		style.frame = RGBA(0, 0, 0, 1);
 	overlay_style(over, &style);
 	if (use_delta)
-		overlay_text(over, "&#8711;");
+		overlay_icon(over, icon_delta);
 	else
-		overlay_text(over, "&#916;");
+		overlay_icon(over, icon_diff);
 }
 
 
