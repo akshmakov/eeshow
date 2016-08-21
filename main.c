@@ -243,6 +243,7 @@ found:
 		if (!gfx_multi_sheet())
 			fatal("graphics backend only supports single sheet\n");
 		for (sheet = sch_ctx.sheets; sheet; sheet = sheet->next) {
+			gfx_sheet_name(sheet->title);
 			sch_render(sheet);
 			if (sheet->next)
 				gfx_new_sheet();

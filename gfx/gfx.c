@@ -101,6 +101,13 @@ void gfx_init(const struct gfx_ops *ops, int argc, char *const *argv)
 }
 
 
+void gfx_sheet_name(const char *name)
+{
+	if (gfx_ops->sheet_name)
+		gfx_ops->sheet_name(gfx_ctx, name);
+}
+
+
 void gfx_new_sheet(void)
 {
 	if (gfx_ops->new_sheet)
