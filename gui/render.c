@@ -86,6 +86,7 @@ static void highlight_glabel(const struct gui_ctx *ctx,
 	if (!ctx->glabel)
 		return;
 
+	cairo_set_source_rgb(cr, 1, 0.8, 1);
 	for (obj = sheet->sch->objs; obj; obj = obj->next) {
 		const struct dwg_bbox *bbox = &obj->u.text.bbox;
 
@@ -99,7 +100,6 @@ static void highlight_glabel(const struct gui_ctx *ctx,
 		    cy(bbox->y, yo, f) - GLABEL_HIGHLIGHT_PAD,
 		    cd(bbox->w, f) + 2 * GLABEL_HIGHLIGHT_PAD,
 		    cd(bbox->h, f) + 2 * GLABEL_HIGHLIGHT_PAD);
-		cairo_set_source_rgb(cr, 1, 0.8, 1);
 		cairo_fill(cr);
 	}
 }
@@ -115,12 +115,10 @@ static void highlight_glabel(const struct gui_ctx *ctx,
  * delta.
  */
 
-static void hack(const struct gui_ctx *ctx, cairo_t *cr,
+static struct area *changed_sheets(const struct gui_ctx *ctx,
     int xo, int yo, float f)
 {
 	const struct gui_sheet *new = ctx->curr_sheet;
-	const struct gui_sheet *old = find_corresponding_sheet(
-	    ctx->old_hist->sheets, ctx->new_hist->sheets, ctx->curr_sheet);
 	const struct sch_obj *obj;
 	struct area *areas = NULL;
 
@@ -146,7 +144,19 @@ static void hack(const struct gui_ctx *ctx, cairo_t *cr,
 		    	    cx(obj->x + obj->u.sheet.w, xo, f),
 			    cy(obj->y + obj->u.sheet.h, yo, f), 0xffff00);
 	}
+	return areas;
+}
 
+
+static void hack(const struct gui_ctx *ctx, cairo_t *cr,
+    int xo, int yo, float f)
+{
+	const struct gui_sheet *new = ctx->curr_sheet;
+	const struct gui_sheet *old = find_corresponding_sheet(
+	    ctx->old_hist->sheets, ctx->new_hist->sheets, ctx->curr_sheet);
+	struct area *areas = NULL;
+
+	areas = changed_sheets(ctx, xo, yo, f);
 	diff_to_canvas(cr, ctx->x, ctx->y, 1.0 / (1 << ctx->zoom),
 	    old->gfx_ctx, new->gfx_ctx, areas);
 	free_areas(&areas);
@@ -176,6 +186,17 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 		highlight_glabel(ctx, sheet, cr, x, y, f);
 		cro_canvas_draw(sheet->gfx_ctx, cr, x, y, f);
 	} else if (use_delta) {
+		struct area *areas = changed_sheets(ctx, x, y, f);
+		const struct area *area;
+
+		cairo_set_source_rgb(cr, 1, 1, 0);
+		for (area = areas; area; area = area->next) {
+			cairo_rectangle(cr, area->xa, area->ya,
+			    area->xb - area->xa, area->yb - area->ya);
+			cairo_fill(cr);
+		}
+		free_areas(&areas);
+
 		/* @@@ fix geometry later */
 		cro_canvas_draw(ctx->delta_ab.gfx_ctx, cr, x, y, f);
 		cro_canvas_draw(ctx->delta_a.gfx_ctx, cr, x, y, f);
