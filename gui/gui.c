@@ -36,6 +36,7 @@
 #include "gui/aoi.h"
 #include "gui/input.h"
 #include "gui/common.h"
+#include "gui/icons.h"
 #include "gui/gui.h"
 
 
