@@ -70,17 +70,63 @@ static void rrect(cairo_t *cr, double x, double y, double w, double h, int r)
 }
 
 
+static void background(const struct overlay *over, cairo_t *cr,
+    unsigned x, unsigned y, unsigned w, unsigned h)
+{
+	const struct overlay_style *style = &over->style;
+	const struct color *bg = &style->bg;
+	const struct color *frame = &style->frame;
+	double center;
+
+	center = style->width / 2.0;
+	rrect(cr, x - center, y - center, w + style->width, h + style->width,
+	    style->radius);
+
+	cairo_set_source_rgba(cr, bg->r, bg->g, bg->b, bg->alpha);
+	cairo_fill_preserve(cr);
+	cairo_set_source_rgba(cr, frame->r, frame->g, frame->b, frame->alpha);
+	cairo_set_line_width(cr, style->width);
+	cairo_stroke(cr);
+}
+
+
+static void post_aoi(struct overlay *over,
+    unsigned x, unsigned y, unsigned w, unsigned h)
+{
+	struct aoi aoi_cfg = {
+		.x	= x,
+		.y	= y,
+		.w	= w,
+		.h	= h,
+		.hover	= over->hover,
+		.click	= over->click,
+		.user	= over->user,
+	};
+
+
+	if (!over->hover && !over->click)
+		return;
+
+	if (over->aoi) {
+		aoi_update(over->aoi, &aoi_cfg);
+	} else {
+		over->aoi = aoi_add(over->aois, &aoi_cfg);
+		if (over->related) {
+			assert(over->related->aoi);
+			aoi_set_related(over->aoi, over->related->aoi);
+		}
+	}
+}
+
+
 static unsigned overlay_draw(struct overlay *over, cairo_t *cr,
     unsigned x, unsigned y, int dx, int dy)
 {
 	const struct overlay_style *style = &over->style;
 	const struct color *fg = &style->fg;
-	const struct color *bg = &style->bg;
-	const struct color *frame = &style->frame;
 	unsigned ink_w, ink_h;	/* effectively used text area size */
 	unsigned w, h;		/* box size */
 	int tx, ty;		/* text start position */
-	double center;
 
 	PangoLayout *layout;
 	PangoFontDescription *desc;
@@ -117,15 +163,7 @@ fprintf(stderr, "%d + %d  %d + %d\n",
 	tx = x - ink_rect.x / PANGO_SCALE + style->pad;
 	ty = y - ink_rect.y / PANGO_SCALE + style->pad;
 
-	center = style->width / 2.0;
-	rrect(cr, x - center, y - center, w + style->width, h + style->width,
-	    style->radius);
-
-	cairo_set_source_rgba(cr, bg->r, bg->g, bg->b, bg->alpha);
-	cairo_fill_preserve(cr);
-	cairo_set_source_rgba(cr, frame->r, frame->g, frame->b, frame->alpha);
-	cairo_set_line_width(cr, style->width);
-	cairo_stroke(cr);
+	background(over, cr, x, y, w, h);
 
 	if (style->wmax) {
 		cairo_new_path(cr);
@@ -156,27 +194,7 @@ fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->
 	cairo_reset_clip(cr);
 	g_object_unref(layout);
 
-	if (over->hover || over->click) {
-		struct aoi aoi_cfg = {
-			.x	= x,
-			.y	= y,
-			.w	= w,
-			.h	= h,
-			.hover	= over->hover,
-			.click	= over->click,
-			.user	= over->user,
-		};
-
-		if (over->aoi)
-			aoi_update(over->aoi, &aoi_cfg);
-		else {
-			over->aoi = aoi_add(over->aois, &aoi_cfg);
-			if (over->related) {
-				assert(over->related->aoi);
-				aoi_set_related(over->aoi, over->related->aoi);
-			}
-		}
-	}
+	post_aoi(over, x, y, w, h);
 
 	return h;
 }
