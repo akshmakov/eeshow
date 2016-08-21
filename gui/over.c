@@ -40,6 +40,8 @@
 
 struct overlay {
 	const char *s;
+	cairo_surface_t *icon;
+
 	struct overlay_style style;
 
 	struct aoi **aois;
@@ -54,7 +56,7 @@ struct overlay {
 };
 
 
-/* ----- Drawing core ------------------------------------------------------ */
+/* ----- Drawing helper functions ------------------------------------------ */
 
 
 static void rrect(cairo_t *cr, double x, double y, double w, double h, int r)
@@ -118,7 +120,10 @@ static void post_aoi(struct overlay *over, int x, int y, unsigned w, unsigned h)
 }
 
 
-static unsigned overlay_draw(struct overlay *over, cairo_t *cr,
+/* ----- Drawing text ------------------------------------------------------ */
+
+
+static unsigned overlay_draw_text(struct overlay *over, cairo_t *cr,
     int x, int y, int dx, int dy)
 {
 	const struct overlay_style *style = &over->style;
@@ -199,7 +204,58 @@ fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->
 }
 
 
+/* ----- Drawing an icon --------------------------------------------------- */
+
+
+static unsigned overlay_draw_icon(struct overlay *over, cairo_t *cr,
+    int x, int y, int dx, int dy)
+{
+	const struct overlay_style *style = &over->style;
+	unsigned iw, ih;	/* icon size */
+	unsigned w, h;		/* box size */
+	int ix, iy;		/* icon start position */
+
+	iw = cairo_image_surface_get_width(over->icon);
+	iw = iw > style->wmin ? iw : style->wmin;
+	iw = !style->wmax || iw < style->wmax ? iw : style->wmax;
+
+	ih = cairo_image_surface_get_height(over->icon);
+	ih = ih > style->hmin ? ih : style->hmin;
+	ih = !style->hmax || ih < style->hmax ? ih : style->hmax;
+
+	w = iw + 2 * style->pad;
+	h = ih + 2 * style->pad;
+
+	if (dx < 0)
+		x -= w;
+	if (dy < 0)
+		y -= h;
+
+	ix = x + style->pad;
+	iy = y + style->pad;
+
+	background(over, cr, x, y, w, h);
+
+	cairo_set_source_surface(cr, over->icon, ix, iy);
+	cairo_paint(cr);
+
+	post_aoi(over, x, y, w, h);
+
+	return h;
+}
+
+
 /* ----- Drawing interfaces ------------------------------------------------ */
+
+
+static unsigned overlay_draw(struct overlay *over, cairo_t *cr,
+    int x, int y, int dx, int dy)
+{
+	if (over->s)
+		return overlay_draw_text(over, cr, x, y, dx, dy);
+	else
+		return overlay_draw_icon(over, cr, x, y, dx, dy);
+}
 
 
 void overlay_draw_all_d(struct overlay *overlays, cairo_t *cr,
@@ -249,11 +305,11 @@ void overlay_draw_all(struct overlay *overlays, cairo_t *cr, int x, int y)
 }
 
 
-/* ----- Sizing ------------------------------------------------------------ */
+/* ----- Sizing text ------------------------------------------------------- */
 
 
-void overlay_size(const struct overlay *over, PangoContext *pango_context,
-    int *w, int *h)
+static void overlay_size_text(const struct overlay *over,
+    PangoContext *pango_context, int *w, int *h)
 {
 	const struct overlay_style *style = &over->style;
 	PangoLayout *layout;
@@ -287,9 +343,45 @@ void overlay_size(const struct overlay *over, PangoContext *pango_context,
 	ink_h = !style->hmax || ink_h < style->hmax ? ink_h : style->hmax;
 
 	if (w)
-		*w = ink_w + 2 * over->style.pad;
+		*w = ink_w + 2 * style->pad;
 	if (h)
-		*h = ink_h + 2 * over->style.pad;
+		*h = ink_h + 2 * style->pad;
+}
+
+
+/* ----- Sizing icons ------------------------------------------------------ */
+
+
+static void overlay_size_icon(const struct overlay *over, int *w, int *h)
+{
+	const struct overlay_style *style = &over->style;
+	unsigned iw, ih;	/* effectively used icon size */
+
+	iw = cairo_image_surface_get_width(over->icon);
+	iw = iw > style->wmin ? iw : style->wmin;
+	iw = !style->wmax || iw < style->wmax ? iw : style->wmax;
+
+	ih = cairo_image_surface_get_height(over->icon);
+	ih = ih > style->hmin ? ih : style->hmin;
+	ih = !style->hmax || ih < style->hmax ? ih : style->hmax;
+
+	if (w)
+		*w = iw + 2 * style->pad;
+	if (h)
+		*h = ih + 2 * style->pad;
+}
+
+
+/* ----- Sizing ------------------------------------------------------------ */
+
+
+void overlay_size(const struct overlay *over, PangoContext *pango_context,
+    int *w, int *h)
+{
+	if (over->s)
+		overlay_size_text(over, pango_context, w, h);
+	else
+		overlay_size_icon(over, w, h);
 }
 
 
@@ -335,6 +427,7 @@ struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
 
 	over = alloc_type(struct overlay);
 	over->s = NULL;
+	over->icon = NULL;
 	over->style = overlay_style_default;
 
 	over->aois = aois;
@@ -381,6 +474,13 @@ void overlay_text(struct overlay *over, const char *fmt, ...)
 }
 
 
+void overlay_icon(struct overlay *over, cairo_surface_t *icon)
+{
+	assert(!over->s);
+	over->icon = cairo_surface_reference(icon);
+}
+
+
 /* ----- Nesting ----------------------------------------------------------- */
 
 
@@ -414,6 +514,8 @@ static void overlay_free(struct overlay *over)
 	if (over->aoi)
 		aoi_remove(over->aois, over->aoi);
 	free((void *) over->s);
+	if (!over->s)
+		cairo_surface_destroy(over->icon);
 	free(over);
 }
 

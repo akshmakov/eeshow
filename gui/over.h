@@ -58,6 +58,7 @@ struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
 
 void overlay_text_raw(struct overlay *over, const char *s);
 void overlay_text(struct overlay *over, const char *fmt, ...);
+void overlay_icon(struct overlay *over, cairo_surface_t *icon);
 void overlay_style(struct overlay *over, const struct overlay_style *style);
 
 void overlay_set_related(struct overlay *over, struct overlay *related);
