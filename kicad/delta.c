@@ -368,6 +368,74 @@ static void init_res(struct sheet *res)
 }
 
 
+static int min(int a, int b)
+{
+	return a < b ? a : b;
+}
+
+
+static int max(int a, int b)
+{
+	return a > b ? a : b;
+}
+
+
+static void merge_coord(int *sa, int *ea, int sb, int eb)
+{
+	int tmp;
+
+	tmp = min(min(*sa, *ea), min(sb, eb));
+	*ea = max(max(*sa, *ea), max(sb, eb));
+	*sa = tmp;
+}
+
+
+static bool merge_wire(struct sch_obj *a, const struct sch_obj *b)
+{
+	struct sch_wire *wa = &a->u.wire;
+	const struct sch_wire *wb = &b->u.wire;
+
+	if (a->x == b->x && a->x == wa->ex && a->x == wb->ex &&
+	    (a->y == b->y || a->y == wb->ey || wa->ey == b->y ||
+	    wa->ey == wb->ey)) {
+		merge_coord(&a->y, &wa->ey, b->y, wb->ey);
+		return 1;
+	}
+	if (a->y == b->y && a->y == wa->ey && a->y == wb->ey &&
+	    (a->x == b->x || a->x == wb->ex || wa->ex == b->x ||
+	    wa->ex == wb->ex)) {
+		merge_coord(&a->x, &wa->ex, b->x, wb->ex);
+		return 1;
+	}
+	return 0;
+}
+
+
+static void merge_wires(struct sch_obj *a)
+{
+	struct sch_obj **b, **next;
+
+	for (; a; a = a->next) {
+		if (a->type != sch_obj_wire)
+			continue;
+		for (b = &a->next; *b; b = next) {
+			next = &(*b)->next;
+			if ((*b)->type != sch_obj_wire)
+				continue;
+			if (a->u.wire.fn != (*b)->u.wire.fn)
+				return;
+			if (merge_wire(a, *b)) {
+				struct sch_obj *tmp = *b;
+
+				*b = *next;
+				free(tmp);
+				next = b;
+			}
+		}
+	}
+}
+
+
 void delta(const struct sheet *a, const struct sheet *b,
     struct sheet *res_a, struct sheet *res_b, struct sheet *res_ab)
 {
@@ -388,6 +456,9 @@ void delta(const struct sheet *a, const struct sheet *b,
 
 	objs_a = objs_clone(a->objs);
 	objs_b = objs_clone(b->objs);
+
+	merge_wires(objs_a);
+	merge_wires(objs_b);
 
 	while (objs_a) {
 		next_a = objs_a->next;
