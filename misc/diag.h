@@ -28,7 +28,7 @@ extern unsigned verbose;
 
 /* perror, based on "fatal" or "error" */
 
-void diag_pfatal(const char *s);
+void __attribute__((noreturn)) diag_pfatal(const char *s);
 void diag_perror(const char *s);
 
 
