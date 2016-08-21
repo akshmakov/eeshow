@@ -10,17 +10,21 @@
 # (at your option) any later version.
 #
 
+SHELL = /bin/bash
+
 NAME = eeshow
 OBJS = main.o version.o \
        kicad/sch-parse.o kicad/sch-render.o kicad/lib-parse.o \
        kicad/lib-render.o kicad/dwg.o kicad/delta.o \
        gui/gui.o gui/over.o gui/style.o gui/aoi.o gui/fmt-pango.o gui/input.o \
        gui/progress.o gui/glabel.o gui/sheet.o gui/history.o gui/render.o \
-       gui/help.o \
+       gui/help.o gui/icons.o \
        file/file.o file/git-util.o file/git-file.o file/git-hist.o \
        gfx/style.o gfx/fig.o gfx/record.o gfx/cro.o gfx/diff.o gfx/gfx.o \
        gfx/text.o gfx/misc.o \
        misc/diag.o
+
+ICONS = delta diff
 
 CFLAGS = -g  -Wall -Wextra -Wno-unused-parameter -Wshadow \
 	 -Wmissing-prototypes -Wmissing-declarations \
@@ -63,6 +67,17 @@ gui/help.c:	help.inc
 
 clean::
 		rm -f help.inc
+
+icons/%.hex:	icons/%.fig
+		$(BUILD) fig2dev -L png -S 4 -Z 0.48 $< | \
+		    convert - -transparent white - | \
+		    hexdump -v -e '/1 "0x%x, "' >$@; \
+		    [ "$${PIPESTATUS[*]}" = "0 0 0" ] || { rm -f $@; exit 1; }
+
+gui/icons.c:	$(ICONS:%=icons/%.hex)
+
+clean::
+		rm -f $(ICONS:%=icons/%.hex)
 
 #----- Test sheet -------------------------------------------------------------
 

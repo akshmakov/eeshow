@@ -430,6 +430,7 @@ int gui(unsigned n_args, char **args, bool recurse, int limit)
 	g_signal_connect(window, "destroy",
 	    G_CALLBACK(gtk_main_quit), NULL);
 
+	icons_init();
 	sheet_setup(&ctx);
 	render_setup(&ctx);
 
