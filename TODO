@@ -52,11 +52,15 @@ GUI:
   or maybe (allowing for sheets from completely different sources):
   [revA]:[topA]:[sheetA][,[revB]:[topB]:[sheetB]][@x,y[,zoom]]
 - set/use location string via clipboard
+- incremental search with / ? and maybe Ctrl-S and Ctrl-R
+  https://www.gnu.org/software/emacs/manual/html_node/emacs/Repeat-Isearch.html#Repeat-Isearch
+- allow changing font size
+- maybe allow changing diff contrast
 
 GUI/history
 - should have quick way to show diff of a single commit
 - in history, set font to non-bold if showing details
-- add scrolling to history, for hot-keys
+- add scrolling with keys to history
 - add manual selection with Up/Down/Enter
 - "what I am selecting" indication (color of frames of sheets in history)
   is not very clear.
