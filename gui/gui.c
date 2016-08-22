@@ -154,7 +154,7 @@ void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet)
 }
 
 
-static struct gui_sheet *get_sheets(struct gui_ctx *ctx,
+static struct gui_sheet *get_sheets(struct gui_ctx *ctx, struct gui_hist *hist,
     const struct sheet *sheets)
 {
 	const struct sheet *sheet;
@@ -166,6 +166,7 @@ static struct gui_sheet *get_sheets(struct gui_ctx *ctx,
 		new = alloc_type(struct gui_sheet);
 		new->sch = sheet;
 		new->ctx = ctx;
+		new->hist = hist;
 		new->rendered = 0;
 
 		*next = new;
@@ -324,7 +325,7 @@ static void add_hist(void *user, struct hist *h)
 	hist->libs_open = 0;
 	hist->identical = 0;
 	sch = parse_files(hist, ahc->n_args, ahc->args, ahc->recurse, prev);
-	hist->sheets = sch ? get_sheets(ctx, sch) : NULL;
+	hist->sheets = sch ? get_sheets(ctx, hist, sch) : NULL;
 	hist->age = age;
 
 	hist->next = NULL;

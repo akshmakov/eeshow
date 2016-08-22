@@ -26,10 +26,12 @@
 
 
 struct gui_ctx;
+struct gui_hist;
 
 struct gui_sheet {
 	const struct sheet *sch;
 	struct gui_ctx *ctx;	/* back link */
+	struct gui_hist *hist;	/* back link */
 	struct cro_ctx *gfx_ctx;
 
 	int w, h;		/* in eeschema coordinates */
