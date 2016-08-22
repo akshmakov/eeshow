@@ -30,6 +30,7 @@
 #include "misc/util.h"
 #include "misc/diag.h"
 #include "file/git-hist.h"
+#include "kicad/ext.h"
 #include "kicad/pl.h"
 #include "kicad/lib.h"
 #include "kicad/sch.h"
@@ -212,12 +213,13 @@ static struct gui_sheet *get_sheets(struct gui_ctx *ctx, struct gui_hist *hist,
  */
 
 static const struct sheet *parse_files(struct gui_hist *hist,
-    int n_args, char **args, bool recurse, struct gui_hist *prev)
+    const struct file_names *fn, bool recurse, struct gui_hist *prev)
 {
 	char *rev = NULL;
 	struct file sch_file;
-	struct file lib_files[n_args - 1];
-	int libs_open, i;
+	struct file lib_files[fn->n_libs];
+	struct file pl_file;
+	unsigned libs_open, i;
 	bool libs_cached = 0;
 	bool ok;
 
@@ -225,7 +227,7 @@ static const struct sheet *parse_files(struct gui_hist *hist,
 		rev = vcs_git_get_rev(hist->vcs_hist);
 
 	sch_init(&hist->sch_ctx, recurse);
-	ok = file_open_revision(&sch_file, rev, args[n_args - 1], NULL);
+	ok = file_open_revision(&sch_file, rev, fn->sch, NULL);
 
 	if (rev)
 		free(rev);
@@ -235,10 +237,21 @@ static const struct sheet *parse_files(struct gui_hist *hist,
 	}
 
 	lib_init(&hist->lib);
-	for (libs_open = 0; libs_open != n_args - 1; libs_open++)
-		if (!file_open(lib_files + libs_open, args[libs_open],
+	for (libs_open = 0; libs_open != fn->n_libs; libs_open++)
+		if (!file_open(lib_files + libs_open, fn->libs[libs_open],
 		    &sch_file))
 			goto fail;
+
+	if (fn->pl) {
+		if (!file_open(&pl_file, fn->pl, &sch_file))
+			goto fail;
+ 		hist->pl = pl_parse(&pl_file);
+		file_close(&pl_file);
+		/*
+		 * We treat failing to parse the page layout as a "minor"
+		 * failure and don't reject the revision just because of it.
+		 */
+	}
 
 	if (hist->vcs_hist) {
 		hist->oids = alloc_type_n(void *, libs_open);
@@ -293,8 +306,7 @@ fail:
 
 struct add_hist_ctx {
 	struct gui_ctx *ctx;
-	int n_args;
-	char **args;
+	const struct file_names *fn;
 	bool recurse;
 	unsigned limit;
 };
@@ -324,7 +336,8 @@ static void add_hist(void *user, struct hist *h)
 	hist->vcs_hist = h;
 	hist->libs_open = 0;
 	hist->identical = 0;
-	sch = parse_files(hist, ahc->n_args, ahc->args, ahc->recurse, prev);
+	hist->pl = NULL;
+	sch = parse_files(hist, ahc->fn, ahc->recurse, prev);
 	hist->sheets = sch ? get_sheets(ctx, hist, sch) : NULL;
 	hist->age = age;
 
@@ -336,13 +349,12 @@ static void add_hist(void *user, struct hist *h)
 }
 
 
-static void get_revisions(struct gui_ctx *ctx,
-    int n_args, char **args, bool recurse, int limit)
+static void get_revisions(struct gui_ctx *ctx, const struct file_names *fn,
+    bool recurse, int limit)
 {
 	struct add_hist_ctx add_hist_ctx = {
 		.ctx		= ctx,
-		.n_args		= n_args,
-		.args		= args,
+		.fn		= fn,
 		.recurse	= recurse,
 		.limit		= limit ? limit < 0 ? -limit : limit : -1,
 	};
@@ -383,14 +395,12 @@ static void get_history(struct gui_ctx *ctx, const char *sch_name, int limit)
 /* ----- Initialization ---------------------------------------------------- */
 
 
-int gui(unsigned n_args, char **args, bool recurse, int limit,
-    struct pl_ctx *pl)
+int gui(const struct file_names *fn, bool recurse, int limit)
 {
 	GtkWidget *window;
 	char *title;
 	struct gui_ctx ctx = {
 		.scale		= 1 / 16.0,
-		.pl		= pl, // @@@
 		.hist		= NULL,
 		.vcs_hist	= NULL,
 		.showing_history= 0,
@@ -422,11 +432,11 @@ int gui(unsigned n_args, char **args, bool recurse, int limit,
 
 	gtk_widget_show_all(window);
 
-	get_history(&ctx, args[n_args - 1], limit);
+	get_history(&ctx, fn->sch, limit);
 	if (ctx.hist_size)
 		setup_progress_bar(&ctx, window);
 
-	get_revisions(&ctx, n_args, args, recurse, limit);
+	get_revisions(&ctx, fn, recurse, limit);
 	for (ctx.new_hist = ctx.hist; ctx.new_hist && !ctx.new_hist->sheets;
 	    ctx.new_hist = ctx.new_hist->next);
 	if (!ctx.new_hist)

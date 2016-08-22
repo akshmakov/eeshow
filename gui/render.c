@@ -231,8 +231,8 @@ void render_sheet(struct gui_sheet *sheet)
 	char *argv[] = { "gui", NULL };
 
 	gfx_init(&cro_canvas_ops, 1, argv);
-	if (sheet->ctx && sheet->ctx->pl) /* @@@ no pl_render for delta */
-		pl_render(sheet->ctx->pl, sheet->hist->sch_ctx.sheets,
+	if (sheet->hist && sheet->hist->pl) /* @@@ no pl_render for delta */
+		pl_render(sheet->hist->pl, sheet->hist->sch_ctx.sheets,
 		    sheet->sch);
 	sch_render(sheet->sch);
 	cro_canvas_end(gfx_ctx,

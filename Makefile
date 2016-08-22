@@ -131,7 +131,7 @@ neo900.pdf:	$(NAME) sch2pdf neo900-template.fig
 		    $(NEO900_HW)/neo900.sch
 
 pdf:		$(NAME)
-		./eeshow -r -P $(NEO900_HW)/neo900pageframe_A3.kicad_wks \
+		./eeshow -r $(NEO900_HW)/neo900pageframe_A3.kicad_wks \
 		    neo900.lib kicad-libs/components/powered.lib \
 		    $(NEO900_HW)/neo900.sch -- pdf -o neo900.pdf
 

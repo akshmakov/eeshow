@@ -1,5 +1,5 @@
 /*
- * main.c - Convert Eeschema schematics to FIG
+ * main.c - Visualize and convert Eeschema schematics
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -26,6 +26,7 @@
 #include "gfx/diff.h"
 #include "gfx/gfx.h"
 #include "file/file.h"
+#include "kicad/ext.h"
 #include "kicad/sexpr.h"
 #include "kicad/pl.h"
 #include "kicad/lib.h"
@@ -60,12 +61,12 @@ static void sexpr(void)
 		exit(1);
 }
 
-					
+
 void usage(const char *name)
 {
 	fprintf(stderr,
-"usage: %s [gtk_flags] [-r] [-N n] [[rev:]file.lib ...] [rev:]file.sch\n"
-"       %s [-r] [-v ...] [[rev:]file.lib ...] [rev:]file.sch\n"
+"usage: %s [gtk_flags] [-r] [-N n] kicad_file ...\n"
+"       %s [-r] [-v ...] kicad_file ...\n"
 "       %*s[-- driver_spec]\n"
 "       %s [-v ...] -C [rev:]file\n"
 "       %s [-v ...] -H path_into_repo\n"
@@ -73,7 +74,10 @@ void usage(const char *name)
 "       %s -V\n"
 "       %s gdb ...\n"
 "\n"
-"  rev   git revision\n"
+"  kicad_file  [rev:]file.ext\n"
+"    ext       .lib, .sch, or .kicad_wks\n"
+"    rev       git revision\n"
+"\n"
 "  -r    recurse into sub-sheets\n"
 "  -v    increase verbosity of diagnostic output\n"
 "  -C    'cat' the file to standard output\n"
@@ -121,12 +125,13 @@ int main(int argc, char **argv)
 	const char *cat = NULL;
 	const char *history = NULL;
 	const char *fmt = NULL;
-	const char *page_layout = NULL;
 	struct pl_ctx *pl = NULL;
 	int limit = 0;
 	char c;
-	int arg, dashdash;
+	int  dashdash;
+	unsigned i;
 	bool have_dashdash = 0;
+	struct file_names file_names;
 	int gfx_argc;
 	char **gfx_argv;
 	const struct gfx_ops **ops = ops_list;
@@ -153,7 +158,7 @@ int main(int argc, char **argv)
 	if (!have_dashdash)
 		gtk_init(&argc, &argv);
 
-	while ((c = getopt(dashdash, argv, "P:rvC:F:H:N:SV")) != EOF)
+	while ((c = getopt(dashdash, argv, "rvC:F:H:N:SV")) != EOF)
 		switch (c) {
 		case 'r':
 			recurse = 1;
@@ -172,9 +177,6 @@ int main(int argc, char **argv)
 			break;
 		case 'N':
 			limit = atoi(optarg);
-			break;
-		case 'P':
-			page_layout = optarg;
 			break;
 		case 'S':
 			sexpr();
@@ -215,39 +217,37 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
-	if (page_layout) {
+	if (dashdash - optind < 1)
+		usage(*argv);
+
+	classify_files(&file_names, argv + optind, dashdash - optind);
+	if (!file_names.sch)
+		fatal("top sheet name required");
+
+	if (!have_dashdash) {
+		optind = 0; /* reset getopt */
+		return gui(&file_names, recurse, limit);
+	}
+
+	sch_init(&sch_ctx, recurse);
+	if (!file_open(&sch_file, file_names.sch, NULL))
+		return 1;
+
+	lib_init(&lib);
+	for (i = 0; i != file_names.n_libs; i++)
+		if (!lib_parse(&lib, file_names.libs[i], &sch_file))
+			return 1;
+
+	if (file_names.pl) {
 		struct file file;
 
-		if (!file_open(&file, page_layout, NULL))
+		if (!file_open(&file, file_names.pl, &sch_file))
 			return 1;
 		pl = pl_parse(&file);
 		file_close(&file);
 		if (!pl)
 			return 1;
 	}
-
-	if (dashdash - optind < 1)
-		usage(*argv);
-
-	if (!have_dashdash) {
-		unsigned n = argc - optind;
-		char **args;
-
-		args = alloc_type_n(char *, n);
-		memcpy(args, argv + optind, sizeof(const char *) * n);
-	
-		optind = 0; /* reset getopt */
-		return gui(n, args, recurse, limit, pl);
-	}
-
-	sch_init(&sch_ctx, recurse);
-	if (!file_open(&sch_file, argv[dashdash - 1], NULL))
-		return 1;
-
-	lib_init(&lib);
-	for (arg = optind; arg != dashdash - 1; arg++)
-		if (!lib_parse(&lib, argv[arg], &sch_file))
-			return 1;
 
 	if (dashdash == argc) {
 		gfx_argc = 1;

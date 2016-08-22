@@ -15,12 +15,9 @@
 
 #include <stdbool.h>
 
-/*
- * Note: this isn't (argc, argv) ! args stars right with the first file name
- * and there is no NULL at the end.
- */
+#include "kicad/ext.h"
 
-int gui(unsigned n_args, char **args, bool recurse, int limit,
-    struct pl_ctx *pl);
+
+int gui(const struct file_names *fn, bool recurse, int limit);
 
 #endif /* !GUI_GUI_H */

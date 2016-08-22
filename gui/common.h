@@ -52,9 +52,11 @@ struct gui_hist {
 	struct gui_sheet *sheets; /* NULL if failed */
 	unsigned age;		/* 0-based; uncommitted or HEAD = 0 */
 
+	struct pl_ctx *pl;	/* NULL if none or failed */
+
 	/* caching support */
 	void **oids;		/* file object IDs */
-	int libs_open;
+	unsigned libs_open;
 	struct sch_ctx sch_ctx;
 	struct lib lib;		/* combined library */
 	bool identical;		/* identical with previous entry */
@@ -67,8 +69,6 @@ struct gui_ctx {
 
 	float scale;		/* pixels = eeschema * scale */
 	int x, y;		/* center, in eeschema coordinates */
-
-	struct pl_ctx *pl;	// @@@
 
 	struct gui_hist *hist;	/* revision history; NULL if none */
 	struct hist *vcs_hist;	/* underlying VCS data; NULL if none */

@@ -1,5 +1,5 @@
 /*
- * main.h - Convert Eeschema schematics to FIG
+ * main.h - Visualize and convert Eeschema schematics
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
