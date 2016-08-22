@@ -32,8 +32,11 @@ static bool get_coord(const struct expr *e,
 	*dx = -1;
 	*dy = -1;
 	for (; e; e = e->next) {
-		if (e->e)
+		if (e->e) {
+			warning("coord: ignoring list");
 			continue;
+		}
+
 		if (!strcmp(e->s, "ltcorner")) {
 			*dx = *dy = 1;
 		} else if (!strcmp(e->s, "lbcorner")) {
@@ -49,7 +52,7 @@ static bool get_coord(const struct expr *e,
 			float f = strtof(e->s, &end);
 
 			if (*end) {
-				error("no a number \"%s\"", e->s);
+				error("coord: no a number \"%s\"", e->s);
 				return 0;
 			}
 			if (n++)
@@ -62,12 +65,12 @@ static bool get_coord(const struct expr *e,
 	switch (n) {
 	case 0:
 	case 1:
-		error("no enough coordinates");
+		error("coord: no enough coordinates");
 		return 0;
 	case 2:
 		return 1;
 	default:
-		error("too many coordinates");
+		error("coord: too many coordinates");
 		return 0;
 	}
 }
@@ -81,12 +84,14 @@ static bool get_size(const struct expr *e, float *x, float *y)
 		char *end;
 		float f;
 
-		if (e->e)
+		if (e->e) {
+			warning("size: ignoring list");
 			continue;
+		}
 
 		f = strtof(e->s, &end);
 		if (*end) {
-			error("no a number \"%s\"", e->s);
+			error("size: no a number \"%s\"", e->s);
 			return 0;
 		}
 		if (n++)
@@ -98,12 +103,12 @@ static bool get_size(const struct expr *e, float *x, float *y)
 	switch (n) {
 	case 0:
 	case 1:
-		error("no enough coordinates");
+		error("size: no enough coordinates");
 		return 0;
 	case 2:
 		return 1;
 	default:
-		error("too many coordinates");
+		error("size: too many coordinates");
 		return 0;
 	}
 }
@@ -141,7 +146,7 @@ static bool process_setup(struct pl_ctx *pl, const struct expr *e)
 
 	for (; e; e = e->next) {
 		if (!e->e) {
-			warning("ignoring non-list");
+			warning("setup: ignoring non-list");
 			continue;
 		}
 
@@ -171,7 +176,7 @@ static bool process_setup(struct pl_ctx *pl, const struct expr *e)
 			if (!get_float(next, &pl->b))
 				return 0;
 		} else {
-			warning("ignoring \"%s\"", s);
+			warning("setup: ignoring \"%s\"", s);
 		}
 	}
 	return 1;
@@ -190,12 +195,12 @@ static bool process_font(struct pl_obj *obj, const struct expr *e)
 			else if (!strcmp(e->s, "italic"))
 				obj->font |= font_italic;
 			else
-				warning("ignoring \"%s\"", e->s);
+				warning("font: ignoring \"%s\"", e->s);
 			continue;
 		}
 
 		if (!e->e) {
-			warning("ignoring empty list");
+			warning("font: ignoring empty list");
 			continue;
 		}
 		s = e->e->s;
@@ -208,7 +213,7 @@ static bool process_font(struct pl_obj *obj, const struct expr *e)
 			if (!get_size(next, &obj->ex, &obj->ey))
 				return 0;
 		} else {
-			warning("ignoring \"%s\"", s);
+			warning("font: ignoring \"%s\"", s);
 		}
 	}
 	return 1;
@@ -219,7 +224,7 @@ static bool process_justify(struct pl_obj *obj, const struct expr *e)
 {
 	for (; e; e = e->next) {
 		if (e->e) {
-			warning("ignoring list");
+			warning("justify: ignoring list");
 			continue;
 		}
 
@@ -234,7 +239,7 @@ static bool process_justify(struct pl_obj *obj, const struct expr *e)
 		else if (!strcmp(e->s, "bottom"))
 			obj->vert = text_min;
 		else
-			warning("ignoring \"%s\"", e->s);
+			warning("justify: ignoring \"%s\"", e->s);
 	}
 	return 1;
 }
@@ -263,14 +268,14 @@ static bool process_obj(struct pl_ctx *pl, const struct expr *e,
 	for (; e; e = e->next) {
 		if (e->s) {
 			if (obj->s) {
-				error("multiple strings");
+				error("pl_obj: multiple strings");
 				return 0;
 			}
 			obj->s = stralloc(e->s);
 			continue;
 		}
 		if (!e->e) {
-			warning("ignoring empty list");
+			warning("pl_obj: ignoring empty list");
 			continue;
 		}
 
@@ -311,7 +316,7 @@ static bool process_obj(struct pl_ctx *pl, const struct expr *e,
 			if (!process_justify(obj, next))
 				return 0;
 		} else
-			warning("ignoring \"%s\"", s);
+			warning("pl_obj: ignoring \"%s\"", s);
 	}
 
 	obj->next = pl->objs;
@@ -328,7 +333,7 @@ static bool process_layout(struct pl_ctx *pl, const struct expr *e)
 
 	for (; e; e = e->next) {
 		if (!e->e) {
-			warning("ignoring non-list");
+			warning("layout: ignoring non-list");
 			continue;
 		}
 
@@ -350,7 +355,7 @@ static bool process_layout(struct pl_ctx *pl, const struct expr *e)
 			if (!process_obj(pl, next, pl_obj_text))
 				return 0;
 		} else {
-			warning("ignoring \"%s\"", s);
+			warning("layout: ignoring \"%s\"", s);
 		}
 	}
 	return 1;
