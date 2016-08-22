@@ -10,9 +10,10 @@
  * (at your option) any later version.
  */
 
-
+#define	_GNU_SOURCE	/* for asprintf */
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include "misc/util.h"
@@ -20,6 +21,7 @@
 #include "gfx/style.h"
 #include "gfx/text.h"
 #include "gfx/gfx.h"
+#include "kicad/sch.h"
 #include "kicad/pl-common.h"
 #include "kicad/pl.h"
 
@@ -42,11 +44,95 @@ static int coord(int v, int d, int o, int e)
 }
 
 
-static void render_text(const struct pl_ctx *pl, const struct pl_obj *obj,
-    int x, int y)
+static char *expand(const struct pl_ctx *pl, const char *s,
+    const struct sheet *sheets, const struct sheet *sheet)
 {
+	const struct sheet *sch;
+	char *res = NULL;
+	const char *p;
+	unsigned size = 0;
+	unsigned len;
+	char *x;
+	unsigned n;
+
+	while (1) {
+		p = strchr(s, '%');
+		if (!p)
+			break;
+		switch (p[1]) {
+		case '%':
+			x = "%";
+			break;
+		case 'C':
+			x = "%C";	// comment #n
+			break;
+		case 'D':
+			x = "%D";	// date
+			break;
+		case 'F':
+			x = "%F";	// file name
+			break;
+		case 'K':
+			x = "%K";	// KiCad version
+			break;
+		case 'N':
+			n = 0;
+			for (sch = sheets; sch; sch = sch->next)
+				n++;
+			if (asprintf(&x, "%u", n)) {}
+			break;
+		case 'P':
+			x = "%P";	// sheet path
+			break;
+		case 'R':
+			x = "%R";	// revision
+			break;
+		case 'S':
+			n = 1;
+			for (sch = sheets; sch != sheet;
+			    sch = sch->next)
+				n++;
+			if (asprintf(&x, "%u", n)) {}
+			break;
+		case 'T':
+			x = (char *) sheet->title;
+			break;
+		case 'Y':
+			x = "%Y";	// company name
+			break;
+		case 'Z':
+			x = "%Z";	// paper format
+			break;
+		default:
+			x = "???";
+			break;
+		}
+		len = strlen(x);
+		res = realloc(res, size + p - s + len);
+		if (!res)
+			diag_pfatal("realloc");
+		memcpy(res + size, s, p - s);
+		size += p - s;
+		s = p + 2;
+		memcpy(res + size, x, len);
+		size += len;
+	}
+
+	len = strlen(s);
+	res = realloc(res, size + len + 1);
+	if (!res)
+		diag_pfatal("realloc");
+	memcpy(res + size, s, len + 1);
+	return res;
+}
+
+
+static void render_text(const struct pl_ctx *pl, const struct pl_obj *obj,
+    int x, int y, const struct sheet *sheets, const struct sheet *sheet)
+{
+	
 	struct text txt = {
-		.s	= obj->s,
+		.s	= expand(pl, obj->s, sheets, sheet),
 		.size	= mil(obj->ey ? obj->ey : pl->ty),
 		.x	= x,
 		.y	= y,
@@ -56,12 +142,16 @@ static void render_text(const struct pl_ctx *pl, const struct pl_obj *obj,
 	};
 
 	text_fig(&txt, COLOR_COMP_DWG, LAYER_COMP_DWG);
+	free((void *) txt.s);
 }
 
 
 static void render_obj(const struct pl_ctx *pl, const struct pl_obj *obj,
-    unsigned i, int w, int h)
+    unsigned i,
+    const struct sheet *sheets, const struct sheet *sheet)
 {
+	int w = sheet->w;
+	int h = sheet->h;
 	int xo = mil(pl->l);
 	int yo = mil(pl->r);
 	int xe = w - mil(pl->t);
@@ -97,7 +187,7 @@ static void render_obj(const struct pl_ctx *pl, const struct pl_obj *obj,
 		}
 		break;
 	case pl_obj_text:
-		render_text(pl, obj, x, y);
+		render_text(pl, obj, x, y, sheets, sheet);
 		break;
 	default:
 		break;
@@ -105,12 +195,13 @@ static void render_obj(const struct pl_ctx *pl, const struct pl_obj *obj,
 }
 
 
-void pl_render(struct pl_ctx *pl, int w, int h)
+void pl_render(struct pl_ctx *pl, const struct sheet *sheets,
+    const struct sheet *sheet)
 {
 	const struct pl_obj *obj;
 	int i;
 
 	for (obj = pl->objs; obj; obj = obj->next)
 		for (i = 0; i != obj->repeat; i++)
-			render_obj(pl, obj, i, w, h);
+			render_obj(pl, obj, i, sheets, sheet);
 }

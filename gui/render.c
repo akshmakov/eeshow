@@ -232,7 +232,8 @@ void render_sheet(struct gui_sheet *sheet)
 
 	gfx_init(&cro_canvas_ops, 1, argv);
 	if (sheet->ctx->pl)
-		pl_render(sheet->ctx->pl, sheet->sch->w, sheet->sch->h);
+		pl_render(sheet->ctx->pl, sheet->hist->sch_ctx.sheets,
+		    sheet->sch);
 	sch_render(sheet->sch);
 	cro_canvas_end(gfx_ctx,
 	    &sheet->w, &sheet->h, &sheet->xmin, &sheet->ymin);
