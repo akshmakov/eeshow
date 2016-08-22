@@ -410,7 +410,7 @@ static void merge_wires(struct sch_obj *a)
 			if ((*b)->type != sch_obj_wire)
 				continue;
 			if (a->u.wire.fn != (*b)->u.wire.fn)
-				return;
+				continue;
 			if (merge_wire(a, *b)) {
 				struct sch_obj *tmp = *b;
 
