@@ -118,7 +118,7 @@ static void hover_update(int x, int y)
 	if (sp != old_sp)
 		return;
 
-	progress(3, "hover_update %s\n", state());
+	progress(3, "hover_update %s", state());
 
 	switch (sp->state) {
 	case input_idle:
@@ -180,7 +180,7 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
 	if (!sp)
 		return TRUE;
 
-	progress(3, "motion %s\n", state());
+	progress(3, "motion %s", state());
 
 	switch (sp->state) {
 	case input_idle:
@@ -221,7 +221,7 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event,
 	if (event->button != 1)
 		return TRUE;
 
-	progress(3, "press %s\n", state());
+	progress(3, "press %s", state());
 
 	switch (sp->state) {
 	case input_idle:
@@ -256,7 +256,7 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event,
 	if (event->button != 1)
 		return TRUE;
 
-	progress(3, "release %s\n", state());
+	progress(3, "release %s", state());
 
 	switch (sp->state) {
 	case input_idle:

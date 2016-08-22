@@ -89,7 +89,7 @@ static bool try_related(struct file *file)
 		return 0;
 	}
 
-	progress(1, "reading %s\n", tmp);
+	progress(1, "reading %s", tmp);
 
 	free((char *) file->name);
 	file->name = tmp;
@@ -138,14 +138,14 @@ static void *open_vcs(struct file *file)
 			free(tmp);
 			return file->vcs;
 		}
-		progress(2, "could not open %s:%s\n", tmp, colon + 1);
+		progress(2, "could not open %s:%s", tmp, colon + 1);
 		return NULL;
 	} else {
 		file->vcs = vcs_git_open(NULL, file->name,
 		    file->related ? file->related->vcs : NULL);
 		if (file->vcs)
 			return file->vcs;
-		progress(2, "could not open %s\n", file->name);
+		progress(2, "could not open %s", file->name);
 		return NULL;
 	}
 }
@@ -174,7 +174,7 @@ bool file_open(struct file *file, const char *name, const struct file *related)
 
 	file->file = fopen(name, "r");
 	if (file->file) {
-		progress(1, "reading %s\n", name);
+		progress(1, "reading %s", name);
 		return 1;
 	}
 
@@ -211,7 +211,7 @@ bool file_open_revision(struct file *file, const char *rev, const char *name,
 	file->vcs = vcs_git_open(rev, name, related ? related->vcs : NULL);
 	if (file->vcs)
 		return 1;
-	progress(2, "could not open %s at %s\n", name, rev);
+	progress(2, "could not open %s at %s", name, rev);
 	return 0;
 }
 

@@ -85,4 +85,5 @@ void progress(unsigned level, const char *fmt, ...)
 	fprintf(stderr, "%*s", level * 2, "");
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
+	fprintf(stderr, "\n");
 }

@@ -85,7 +85,7 @@ static void recurse(struct hist *h,
 
 	n = git_commit_parentcount(h->commit);
 	if (verbose > 2)
-		progress(3, "commit %p: %u + %u\n", h->commit, n_branches, n);
+		progress(3, "commit %p: %u + %u", h->commit, n_branches, n);
 
 	b = alloca(sizeof(struct hist) * (n_branches - 1 + n));
 	n_branches--;
