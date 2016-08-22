@@ -312,24 +312,30 @@ struct sexpr_ctx *sexpr_new(void)
 /* ----- Termination ------------------------------------------------------- */
 
 
+void sexpr_abort(struct sexpr_ctx *ctx)
+{
+	free_stack(ctx);
+	free_expr(ctx->e);
+	free(ctx);
+}
+
+
 bool sexpr_finish(struct sexpr_ctx *ctx, struct expr **res)
 {
 	if (ctx->sp != &ctx->stack) {
 		error("not enough )\n");
 		ctx->state = failed;
-		free_stack(ctx);
 	}
 	if (ctx->state != idle && ctx->state != failed)
 		error("invalid end state %d\n", ctx->state);
-	if (ctx->state == idle) {
-		if (res)
-			*res = ctx->e;
-		else
-			free_expr(ctx->e);
-		free(ctx);
-		return 1;
+	if (ctx->state != idle) {
+		sexpr_abort(ctx);
+		return 0;
 	}
-	free_expr(ctx->e);
+	if (res)
+		*res = ctx->e;
+	else
+		free_expr(ctx->e);
 	free(ctx);
-	return 0;
+	return 1;
 }

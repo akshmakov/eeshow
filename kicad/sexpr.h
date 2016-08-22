@@ -42,6 +42,7 @@ void free_expr(struct expr *e);
 
 struct sexpr_ctx *sexpr_new(void);
 bool sexpr_parse(struct sexpr_ctx *ctx, const char *s);
+void sexpr_abort(struct sexpr_ctx *ctx);
 bool sexpr_finish(struct sexpr_ctx *ctx, struct expr **res);
 
 #endif /* !KICAD_SEXPR_H */
