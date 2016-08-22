@@ -285,11 +285,15 @@ found:
 		for (sheet = sch_ctx.sheets; sheet; sheet = sheet->next) {
 			gfx_sheet_name(sheet->title);
 			sch_render(sheet);
+			if (pl)
+				pl_render(pl, sch_ctx.sheets, sheet);
 			if (sheet->next)
 				gfx_new_sheet();
 		}
 	} else {
 		sch_render(sch_ctx.sheets);
+		if (pl)
+			pl_render(pl, sch_ctx.sheets, sch_ctx.sheets);
 	}
 	gfx_end();
 
