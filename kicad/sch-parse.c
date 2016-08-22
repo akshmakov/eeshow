@@ -310,6 +310,8 @@ static struct sheet *new_sheet(struct sch_ctx *ctx)
 	sheet->next_obj = &sheet->objs;
 	sheet->next = NULL;
 
+	sheet->w = sheet->h = 0;
+
 	sheet->has_children = 0;
 
 	sheet->oid = NULL;
@@ -490,6 +492,9 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 		}
 		break;
 	case sch_descr:
+		if (sscanf(line, "$Descr %*s %d %d",
+		    &ctx->curr_sheet->w, &ctx->curr_sheet->h) == 2)
+			return 1;
 		if (sscanf(line, "Title \"%m[^\"]\"", &s) == 1) {
 			ctx->curr_sheet->title = s;
 			return 1;

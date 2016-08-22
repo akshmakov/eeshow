@@ -103,6 +103,8 @@ struct sheet {
 	struct sch_obj **next_obj;
 	struct sheet *next;
 
+	int w, h;
+
 	bool has_children;		/* aka sub-sheets */
 
 	/* caching */
