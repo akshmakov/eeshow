@@ -70,6 +70,7 @@ void warning(const char *fmt, ...)
 	fprintf(stderr, "warning: ");
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
+	fprintf(stderr, "\n");
 }
 
 

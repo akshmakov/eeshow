@@ -375,7 +375,7 @@ static bool related_other_repo(struct vcs_git *vcs_git)
 
 	/* @@@ find revision <= date of revision in related */
 	if (!shown)
-		warning("related_other_repo is not yet implemented\n");
+		warning("related_other_repo is not yet implemented");
 	shown = 1;
 	return 0;
 }

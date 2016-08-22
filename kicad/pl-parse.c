@@ -141,7 +141,7 @@ static bool process_setup(struct pl_ctx *pl, const struct expr *e)
 
 	for (; e; e = e->next) {
 		if (!e->e) {
-			warning("ignoring non-list\n");
+			warning("ignoring non-list");
 			continue;
 		}
 
@@ -171,7 +171,7 @@ static bool process_setup(struct pl_ctx *pl, const struct expr *e)
 			if (!get_float(next, &pl->b))
 				return 0;
 		} else {
-			warning("ignoring \"%s\"\n", s);
+			warning("ignoring \"%s\"", s);
 		}
 	}
 	return 1;
@@ -190,12 +190,12 @@ static bool process_font(struct pl_obj *obj, const struct expr *e)
 			else if (!strcmp(e->s, "italic"))
 				obj->font |= font_italic;
 			else
-				warning("ignoring \"%s\"\n", e->s);
+				warning("ignoring \"%s\"", e->s);
 			continue;
 		}
 
 		if (!e->e) {
-			warning("ignoring empty list\n");
+			warning("ignoring empty list");
 			continue;
 		}
 		s = e->e->s;
@@ -208,7 +208,7 @@ static bool process_font(struct pl_obj *obj, const struct expr *e)
 			if (!get_size(next, &obj->ex, &obj->ey))
 				return 0;
 		} else {
-			warning("ignoring \"%s\"\n", s);
+			warning("ignoring \"%s\"", s);
 		}
 	}
 	return 1;
@@ -219,7 +219,7 @@ static bool process_justify(struct pl_obj *obj, const struct expr *e)
 {
 	for (; e; e = e->next) {
 		if (e->e) {
-			warning("ignoring list\n");
+			warning("ignoring list");
 			continue;
 		}
 
@@ -234,7 +234,7 @@ static bool process_justify(struct pl_obj *obj, const struct expr *e)
 		else if (!strcmp(e->s, "bottom"))
 			obj->vert = text_min;
 		else
-			warning("ignoring \"%s\"\n", e->s);
+			warning("ignoring \"%s\"", e->s);
 	}
 	return 1;
 }
@@ -270,7 +270,7 @@ static bool process_obj(struct pl_ctx *pl, const struct expr *e,
 			continue;
 		}
 		if (!e->e) {
-			warning("ignoring empty list\n");
+			warning("ignoring empty list");
 			continue;
 		}
 
@@ -311,7 +311,7 @@ static bool process_obj(struct pl_ctx *pl, const struct expr *e,
 			if (!process_justify(obj, next))
 				return 0;
 		} else
-			warning("ignoring \"%s\"\n", s);
+			warning("ignoring \"%s\"", s);
 	}
 
 	obj->next = pl->objs;
@@ -328,7 +328,7 @@ static bool process_layout(struct pl_ctx *pl, const struct expr *e)
 
 	for (; e; e = e->next) {
 		if (!e->e) {
-			warning("ignoring non-list\n");
+			warning("ignoring non-list");
 			continue;
 		}
 
@@ -350,7 +350,7 @@ static bool process_layout(struct pl_ctx *pl, const struct expr *e)
 			if (!process_obj(pl, next, pl_obj_text))
 				return 0;
 		} else {
-			warning("ignoring \"%s\"\n", s);
+			warning("ignoring \"%s\"", s);
 		}
 	}
 	return 1;
