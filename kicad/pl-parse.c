@@ -140,6 +140,43 @@ static bool process_setup(struct pl_ctx *p, const struct expr *e)
 }
 
 
+static bool process_font(struct pl_obj *obj, const struct expr *e)
+{
+	const char *s;
+	const struct expr *next;
+
+	for (; e; e = e->next) {
+		if (e->s) {
+			if (!strcmp(e->s, "bold"))
+				obj->font |= font_bold;
+			else if (!strcmp(e->s, "italic"))
+				obj->font |= font_italic;
+			else
+				warning("ignoring \"%s\"\n", e->s);
+			continue;
+		}
+
+		if (!e->e) {
+			warning("ignoring empty list\n");
+			continue;
+		}
+		s = e->e->s;
+		next = e->e->next;
+
+		if (!strcmp(s, "comment"))
+			continue;
+
+		if (!strcmp(s, "size")) {
+			if (!get_coord(next, &obj->ex, &obj->ey,
+			    &obj->edx, &obj->edy))
+				return 0;
+		} else
+			warning("ignoring \"%s\"\n", s);
+	}
+	return 1;
+}
+
+
 static bool process_obj(struct pl_ctx *pl, const struct expr *e,
     enum pl_obj_type type)
 {
@@ -156,10 +193,19 @@ static bool process_obj(struct pl_ctx *pl, const struct expr *e,
 	obj->incrx = 0;
 	obj->incry = 0;
 	obj->incrlabel = 0;
+	obj->font = 0;
 
 	for (; e; e = e->next) {
+		if (e->s) {
+			if (obj->s) {
+				error("multiple strings\n");
+				return 0;
+			}
+			obj->s = stralloc(e->s);
+			continue;
+		}
 		if (!e->e) {
-			warning("ignoring non-list\n");
+			warning("ignoring empty list\n");
 			continue;
 		}
 
@@ -192,6 +238,9 @@ static bool process_obj(struct pl_ctx *pl, const struct expr *e,
 				return 0;
 		} else if (!strcmp(s, "incrlabel")) {
 			if (!get_int(next, &obj->incrlabel))
+				return 0;
+		} else if (!strcmp(s, "font")) {
+			if (!process_font(obj, next))
 				return 0;
 		} else
 			warning("ignoring \"%s\"\n", s);

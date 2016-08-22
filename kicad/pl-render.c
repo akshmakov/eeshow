@@ -18,6 +18,7 @@
 #include "misc/util.h"
 #include "misc/diag.h"
 #include "gfx/style.h"
+#include "gfx/text.h"
 #include "gfx/gfx.h"
 #include "kicad/pl-common.h"
 #include "kicad/pl.h"
@@ -35,15 +36,9 @@ static int mil(float mm)
 }
 
 
-static int cx(int x, int dx, int xo, int xe)
+static int coord(int v, int d, int o, int e)
 {
-	return dx >= 0 ? xo + x : xe - x;
-}
-
-
-static int cy(int y, int dy, int yo, int ye)
-{
-	return dy >= 0 ? yo + y : ye - y;
+	return d >= 0 ? o + v : e - v;
 }
 
 
@@ -66,26 +61,27 @@ static void render_obj(const struct pl_ctx *pl, const struct pl_obj *obj,
 	if (x > ww || y > hh || ex > ww || ey > hh)
 		return;
 
+	x = coord(x, obj->dx, xo, xe);
+	y = coord(y, obj->dy, yo, ye);
+	ex = coord(ex, obj->edx, xo, xe);
+	ey = coord(ey, obj->edy, yo, ye);
+
 	switch (obj->type) {
 	case pl_obj_rect:
-		gfx_rect(
-		    cx(x, obj->dx, xo, xe), cy(y, obj->dy, yo, ye),
-	    	    cx(ex, obj->edx, xo, xe), cy(ey, obj->edy, yo, ye),
+		gfx_rect(x, y, ex, ey,
 		    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 		break;
 	case pl_obj_line: {
-			int vx[] = {
-			    cx(x, obj->dx, xo, xe),
-			    cx(ex, obj->edx, xo, xe)
-			};
-			int vy[] = {
-			    cy(y, obj->dy, yo, ye),
-			    cy(ey, obj->edy, yo, ye)
-			};
+			int vx[] = { x, ex };
+			int vy[] = { y, ey };
 
 			gfx_poly(2, vx, vy,
 			    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 		}
+		break;
+	case pl_obj_text:
+		gfx_text(x, y, obj->s, mil(obj->ey), text_min, 0,
+		    COLOR_COMP_DWG, LAYER_COMP_DWG);
 		break;
 	default:
 		break;
