@@ -286,7 +286,7 @@ static git_tree_entry *find_file(git_repository *repo, git_tree *tree,
 	if (git_tree_entry_bypath(&entry, tree, canon_path)) {
 		const git_error *e = giterr_last();
 
-		error("%s: %s\n", path, e->message);
+		error("%s: %s", path, e->message);
 		free(canon_path);
 		return NULL;
 	}
@@ -443,7 +443,7 @@ struct vcs_git *vcs_git_open(const char *revision, const char *name,
 
 	vcs_git->repo = select_repo(name);
 	if (!vcs_git->repo) {
-		error("%s: not found\n", name);
+		error("%s: not found", name);
 		goto fail;
 	}
 	progress(2, "using repository %s\n",

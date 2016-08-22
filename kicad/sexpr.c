@@ -138,7 +138,7 @@ bool sexpr_parse(struct sexpr_ctx *ctx, const char *s)
 			case ')':
 				if (!ctx->sp->prev) {
 					ctx->state = failed;
-					error("too many\n )");
+					error("too many )");
 					break;
 				}
 				ctx->sp = ctx->sp->prev;
@@ -177,7 +177,7 @@ bool sexpr_parse(struct sexpr_ctx *ctx, const char *s)
 			case '\r':
 			case '\n':
 				ctx->state = failed;
-				error("newline in string\n");
+				error("newline in string");
 				break;
 			case '"':
 				ctx->state = idle;
@@ -195,7 +195,7 @@ bool sexpr_parse(struct sexpr_ctx *ctx, const char *s)
 			case '\r':
 			case '\n':
 				ctx->state = failed;
-				error("newline in string\n");
+				error("newline in string");
 				break;
 			default:
 				ctx->state = string;
@@ -323,11 +323,11 @@ void sexpr_abort(struct sexpr_ctx *ctx)
 bool sexpr_finish(struct sexpr_ctx *ctx, struct expr **res)
 {
 	if (ctx->sp != &ctx->stack) {
-		error("not enough )\n");
+		error("not enough )");
 		ctx->state = failed;
 	}
 	if (ctx->state != idle && ctx->state != failed)
-		error("invalid end state %d\n", ctx->state);
+		error("invalid end state %d", ctx->state);
 	if (ctx->state != idle) {
 		sexpr_abort(ctx);
 		return 0;

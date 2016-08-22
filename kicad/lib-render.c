@@ -398,7 +398,7 @@ const struct comp *lib_find(const struct lib *lib, const char *name)
 			if (!strcmp(alias->name, name))
 				return comp;
 	}
-	error("\"%s\" not found\n", name);
+	error("\"%s\" not found", name);
 	return NULL;
 }
 

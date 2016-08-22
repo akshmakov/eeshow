@@ -49,7 +49,7 @@ static bool get_coord(const struct expr *e,
 			float f = strtof(e->s, &end);
 
 			if (*end) {
-				error("no a number \"%s\"\n", e->s);
+				error("no a number \"%s\"", e->s);
 				return 0;
 			}
 			if (n++)
@@ -62,12 +62,12 @@ static bool get_coord(const struct expr *e,
 	switch (n) {
 	case 0:
 	case 1:
-		error("no enough coordinates\n");
+		error("no enough coordinates");
 		return 0;
 	case 2:
 		return 1;
 	default:
-		error("too many coordinates\n");
+		error("too many coordinates");
 		return 0;
 	}
 }
@@ -86,7 +86,7 @@ static bool get_size(const struct expr *e, float *x, float *y)
 
 		f = strtof(e->s, &end);
 		if (*end) {
-			error("no a number \"%s\"\n", e->s);
+			error("no a number \"%s\"", e->s);
 			return 0;
 		}
 		if (n++)
@@ -98,12 +98,12 @@ static bool get_size(const struct expr *e, float *x, float *y)
 	switch (n) {
 	case 0:
 	case 1:
-		error("no enough coordinates\n");
+		error("no enough coordinates");
 		return 0;
 	case 2:
 		return 1;
 	default:
-		error("too many coordinates\n");
+		error("too many coordinates");
 		return 0;
 	}
 }
@@ -116,7 +116,7 @@ static bool get_float(const struct expr *e, float *f)
 			*f = atof(e->s);	// @@@ error checking
 			return 1;
 		}
-	error("no number found\n");
+	error("no number found");
 	return 0;
 }
 
@@ -129,7 +129,7 @@ static bool get_int(const struct expr *e, int *n)
 			*n = atoi(e->s);	// @@@ error checking
 			return 1;
 		}
-	error("no number found\n");
+	error("no number foundn");
 	return 0;
 }
 
@@ -263,7 +263,7 @@ static bool process_obj(struct pl_ctx *pl, const struct expr *e,
 	for (; e; e = e->next) {
 		if (e->s) {
 			if (obj->s) {
-				error("multiple strings\n");
+				error("multiple strings");
 				return 0;
 			}
 			obj->s = stralloc(e->s);
@@ -365,7 +365,7 @@ static bool process(struct pl_ctx *p, const struct expr *e)
 			return process_layout(p, e->e->next);
 		e = e->next;
 	}
-	error("no layout information found\n");
+	error("no layout information found");
 	return 0;
 }
 

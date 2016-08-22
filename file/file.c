@@ -194,7 +194,7 @@ bool file_open(struct file *file, const char *name, const struct file *related)
 	if (file->vcs)
 		return 1;
 
-	error("could not open %s\n", name);
+	error("could not open %s", name);
 fail:
 	free((char *) file->name);
 	return 0;
