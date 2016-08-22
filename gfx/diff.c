@@ -116,7 +116,7 @@ static unsigned diff_text_width(void *ctx, const char *s, unsigned size)
 }
 
 
-/* ----- Initialization and termination ------------------------------------ */
+/* ----- Initialization ---------------------------------------------------- */
 
 
 static void *diff_init(int argc, char *const *argv)
@@ -182,6 +182,9 @@ fail_open:
 }
 
 
+/* ----- Area highlighting ------------------------------------------------- */
+
+
 void add_area(struct area **areas, int xa, int ya, int xb, int yb,
     uint32_t color)
 {
@@ -223,30 +226,6 @@ static void mark_area(struct diff *diff, int x, int y)
 		}
 
 	add_area(&diff->areas, xa, ya, xb, yb, AREA_FILL);
-}
-
-
-static void differences(struct diff *diff, uint32_t *a, const uint32_t *b)
-{
-	unsigned skip = diff->w * 4 - diff->stride;
-	int x, y;
-
-	for (y = 0; y != diff->h; y++) {
-		for (x = 0; x != diff->w; x++) {
-			if (!((*a ^ *b) & MASK)) {
-				*a = ((*a >> FADE_SHIFT) & FADE_MASK) |
-				    FADE_OFFSET;
-			} else {
-				mark_area(diff, x, y);
-				*a = (*a & MASK) == MASK ? ONLY_NEW :
-				    (*b & MASK) == MASK ? ONLY_OLD : BOTH;
-			}
-			a++;
-			b++;
-		}
-		a += skip;
-		b += skip;
-	}
 }
 
 
@@ -292,6 +271,33 @@ void free_areas(struct area **areas)
 		next = (*areas)->next;
 		free(*areas);
 		*areas = next;
+	}
+}
+
+
+/* ----- Termination ------------------------------------------------------- */
+
+
+static void differences(struct diff *diff, uint32_t *a, const uint32_t *b)
+{
+	unsigned skip = diff->w * 4 - diff->stride;
+	int x, y;
+
+	for (y = 0; y != diff->h; y++) {
+		for (x = 0; x != diff->w; x++) {
+			if (!((*a ^ *b) & MASK)) {
+				*a = ((*a >> FADE_SHIFT) & FADE_MASK) |
+				    FADE_OFFSET;
+			} else {
+				mark_area(diff, x, y);
+				*a = (*a & MASK) == MASK ? ONLY_NEW :
+				    (*b & MASK) == MASK ? ONLY_OLD : BOTH;
+			}
+			a++;
+			b++;
+		}
+		a += skip;
+		b += skip;
 	}
 }
 
