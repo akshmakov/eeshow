@@ -231,7 +231,7 @@ void render_sheet(struct gui_sheet *sheet)
 	char *argv[] = { "gui", NULL };
 
 	gfx_init(&cro_canvas_ops, 1, argv);
-	if (sheet->ctx->pl)
+	if (sheet->ctx && sheet->ctx->pl) /* @@@ no pl_render for delta */
 		pl_render(sheet->ctx->pl, sheet->hist->sch_ctx.sheets,
 		    sheet->sch);
 	sch_render(sheet->sch);
@@ -260,6 +260,9 @@ void render_delta(struct gui_ctx *ctx)
 	ctx->delta_a.sch = sch_a,
 	ctx->delta_b.sch = sch_b,
 	ctx->delta_ab.sch = sch_ab,
+
+	ctx->delta_a.ctx = ctx->delta_b.ctx = ctx->delta_ab.ctx = NULL;
+	ctx->delta_a.hist = ctx->delta_b.hist = ctx->delta_ab.hist = NULL;
 
 	render_sheet(&ctx->delta_a);
 	render_sheet(&ctx->delta_b);
