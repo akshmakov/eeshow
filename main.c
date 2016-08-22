@@ -27,6 +27,7 @@
 #include "gfx/gfx.h"
 #include "file/file.h"
 #include "kicad/sexpr.h"
+#include "kicad/pl.h"
 #include "kicad/lib.h"
 #include "kicad/sch.h"
 #include "gui/fmt-pango.h"
@@ -120,6 +121,8 @@ int main(int argc, char **argv)
 	const char *cat = NULL;
 	const char *history = NULL;
 	const char *fmt = NULL;
+	const char *page_layout = NULL;
+	struct pl_ctx *pl = NULL;
 	int limit = 0;
 	char c;
 	int arg, dashdash;
@@ -150,7 +153,7 @@ int main(int argc, char **argv)
 	if (!have_dashdash)
 		gtk_init(&argc, &argv);
 
-	while ((c = getopt(dashdash, argv, "rvC:F:H:N:SV")) != EOF)
+	while ((c = getopt(dashdash, argv, "P:rvC:F:H:N:SV")) != EOF)
 		switch (c) {
 		case 'r':
 			recurse = 1;
@@ -169,6 +172,9 @@ int main(int argc, char **argv)
 			break;
 		case 'N':
 			limit = atoi(optarg);
+			break;
+		case 'P':
+			page_layout = optarg;
 			break;
 		case 'S':
 			sexpr();
@@ -209,6 +215,17 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
+	if (page_layout) {
+		struct file file;
+
+		if (!file_open(&file, page_layout, NULL))
+			return 1;
+		pl = pl_parse(&file);
+		file_close(&file);
+		if (!pl)
+			return 1;
+	}
+
 	if (dashdash - optind < 1)
 		usage(*argv);
 
@@ -220,7 +237,7 @@ int main(int argc, char **argv)
 		memcpy(args, argv + optind, sizeof(const char *) * n);
 	
 		optind = 0; /* reset getopt */
-		return gui(n, args, recurse, limit);
+		return gui(n, args, recurse, limit, pl);
 	}
 
 	sch_init(&sch_ctx, recurse);

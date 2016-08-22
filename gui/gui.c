@@ -30,6 +30,7 @@
 #include "misc/util.h"
 #include "misc/diag.h"
 #include "file/git-hist.h"
+#include "kicad/pl.h"
 #include "kicad/lib.h"
 #include "kicad/sch.h"
 #include "kicad/delta.h"
@@ -381,12 +382,14 @@ static void get_history(struct gui_ctx *ctx, const char *sch_name, int limit)
 /* ----- Initialization ---------------------------------------------------- */
 
 
-int gui(unsigned n_args, char **args, bool recurse, int limit)
+int gui(unsigned n_args, char **args, bool recurse, int limit,
+    struct pl_ctx *pl)
 {
 	GtkWidget *window;
 	char *title;
 	struct gui_ctx ctx = {
 		.zoom		= 4,	/* scale by 1 / 16 */
+		.pl		= pl, // @@@
 		.hist		= NULL,
 		.vcs_hist	= NULL,
 		.showing_history= 0,

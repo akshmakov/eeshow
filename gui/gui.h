@@ -20,6 +20,7 @@
  * and there is no NULL at the end.
  */
 
-int gui(unsigned n_args, char **args, bool recurse, int limit);
+int gui(unsigned n_args, char **args, bool recurse, int limit,
+    struct pl_ctx *pl);
 
 #endif /* !GUI_GUI_H */

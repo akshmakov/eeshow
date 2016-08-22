@@ -21,6 +21,7 @@
 #include "gfx/style.h"
 #include "gfx/cro.h"
 #include "gfx/gfx.h"
+#include "kicad/pl.h"
 #include "kicad/sch.h"
 #include "kicad/delta.h"
 #include "gfx/diff.h"
@@ -230,6 +231,8 @@ void render_sheet(struct gui_sheet *sheet)
 	char *argv[] = { "gui", NULL };
 
 	gfx_init(&cro_canvas_ops, 1, argv);
+	if (sheet->ctx->pl)
+		pl_render(sheet->ctx->pl, sheet->sch->w, sheet->sch->h);
 	sch_render(sheet->sch);
 	cro_canvas_end(gfx_ctx,
 	    &sheet->w, &sheet->h, &sheet->xmin, &sheet->ymin);
