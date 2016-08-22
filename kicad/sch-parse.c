@@ -354,6 +354,8 @@ static struct sheet *recurse_sheet(struct sch_ctx *ctx,
 				ctx->curr_sheet = parent;
 				sheet->title = stralloc(other->title);
 				sheet->objs = other->objs;
+				sheet->w = other->w;
+				sheet->h = other->h;
 				return sheet;
 			}
 	}
