@@ -181,7 +181,7 @@ bool sexpr_parse(struct sexpr_ctx *ctx, const char *s)
 				break;
 			case '"':
 				ctx->state = idle;
-				add_string(ctx, s);
+				end_string(ctx, s);
 				break;
 			case '\\':
 				ctx->state = escape;
