@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "misc/util.h"
 #include "misc/diag.h"
@@ -127,12 +128,31 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 }
 
 
-static void render_text(const struct pl_ctx *pl, const struct pl_obj *obj,
-    int x, int y, const struct sheet *sheets, const struct sheet *sheet)
+static char *increment(char *s, int inc, const char *range)
 {
-	
+	char *t;
+	unsigned len = strlen(s);
+	int base, n;
+
+	t = realloc(s, len + 2);
+	if (!t)
+		diag_perror("realloc");
+	t[len + 1] = 0;
+
+	base = range[1] - range[0] + 1;
+	n = t[len - 1] - range[0] + inc;
+	t[len - 1] = n / base + range[0];
+	t[len] = n % base + range[0];
+	return t;
+}
+
+
+static void render_text(const struct pl_ctx *pl, const struct pl_obj *obj,
+    int x, int y, int inc,
+    const struct sheet *sheets, const struct sheet *sheet)
+{
+	char *s = expand(pl, obj->s, sheets, sheet);
 	struct text txt = {
-		.s	= expand(pl, obj->s, sheets, sheet),
 		.size	= mil(obj->ey ? obj->ey : pl->ty),
 		.x	= x,
 		.y	= y,
@@ -141,13 +161,31 @@ static void render_text(const struct pl_ctx *pl, const struct pl_obj *obj,
 		.vert	= obj->vert,
 	};
 
+	if (inc && *s) {
+		char *end = strchr(s, 0) - 1;
+		const char *range = NULL;
+
+		if (isdigit(*end))
+			range = "09";
+		else if (isupper(*end))
+			range = "AZ";
+		else if (islower(*end))
+			range = "az";
+		if (range) {
+			 if (*end + inc <= range[1])
+				*end += inc;
+			else
+				s = increment(s, inc, range);
+		}
+	}
+	txt.s = s;
 	text_fig(&txt, COLOR_COMP_DWG, LAYER_COMP_DWG);
-	free((void *) txt.s);
+	free(s);
 }
 
 
 static void render_obj(const struct pl_ctx *pl, const struct pl_obj *obj,
-    unsigned i,
+    unsigned inc,
     const struct sheet *sheets, const struct sheet *sheet)
 {
 	int w = sheet->w;
@@ -156,10 +194,10 @@ static void render_obj(const struct pl_ctx *pl, const struct pl_obj *obj,
 	int yo = mil(pl->r);
 	int xe = w - mil(pl->t);
 	int ye = h - mil(pl->b);
-	int x = mil(obj->x + i * obj->incrx);
-	int y = mil(obj->y + i * obj->incry);
-	int ex = mil(obj->ex + i * obj->incrx);
-	int ey = mil(obj->ey + i * obj->incry);
+	int x = mil(obj->x + inc * obj->incrx);
+	int y = mil(obj->y + inc * obj->incry);
+	int ex = mil(obj->ex + inc * obj->incrx);
+	int ey = mil(obj->ey + inc * obj->incry);
 	int ww = xe - xo;
 	int hh = ye - yo;
 
@@ -187,7 +225,7 @@ static void render_obj(const struct pl_ctx *pl, const struct pl_obj *obj,
 		}
 		break;
 	case pl_obj_text:
-		render_text(pl, obj, x, y, sheets, sheet);
+		render_text(pl, obj, x, y, inc, sheets, sheet);
 		break;
 	default:
 		break;
