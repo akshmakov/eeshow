@@ -14,6 +14,7 @@
 #ifndef KICAD_PL_COMMON_H
 #define	KICAD_PL_COMMON_H
 
+#include "gfx/text.h"
 #include "kicad/sexpr.h"
 
 
@@ -39,6 +40,8 @@ struct pl_obj {
 	float incrx, incry;
 	int incrlabel;		/* tbtext */
 	int font;		/* tbtext (flags) */
+	enum text_align hor;	/* tbtext */
+	enum text_align vert;	/* tbtext */
 
 	struct pl_obj *next;
 };

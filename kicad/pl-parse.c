@@ -17,6 +17,7 @@
 
 #include "misc/util.h"
 #include "misc/diag.h"
+#include "gfx/text.h"
 #include "file/file.h"
 #include "kicad/sexpr.h"
 #include "kicad/pl-common.h"
@@ -170,8 +171,34 @@ static bool process_font(struct pl_obj *obj, const struct expr *e)
 			if (!get_coord(next, &obj->ex, &obj->ey,
 			    &obj->edx, &obj->edy))
 				return 0;
-		} else
+		} else {
 			warning("ignoring \"%s\"\n", s);
+		}
+	}
+	return 1;
+}
+
+
+static bool process_justify(struct pl_obj *obj, const struct expr *e)
+{
+	for (; e; e = e->next) {
+		if (e->e) {
+			warning("ignoring list\n");
+			continue;
+		}
+
+		if (!strcmp(e->s, "center"))
+			obj->hor = obj->vert = text_mid;
+		else if (!strcmp(e->s, "left"))
+			obj->hor = text_min;
+		else if (!strcmp(e->s, "right"))
+			obj->hor = text_max;
+		else if (!strcmp(e->s, "top"))
+			obj->vert = text_max;
+		else if (!strcmp(e->s, "bottom"))
+			obj->vert = text_min;
+		else
+			warning("ignoring \"%s\"\n", e->s);
 	}
 	return 1;
 }
@@ -194,6 +221,8 @@ static bool process_obj(struct pl_ctx *pl, const struct expr *e,
 	obj->incry = 0;
 	obj->incrlabel = 0;
 	obj->font = 0;
+	obj->hor = text_min;
+	obj->vert = text_mid;
 
 	for (; e; e = e->next) {
 		if (e->s) {
@@ -241,6 +270,9 @@ static bool process_obj(struct pl_ctx *pl, const struct expr *e,
 				return 0;
 		} else if (!strcmp(s, "font")) {
 			if (!process_font(obj, next))
+				return 0;
+		} else if (!strcmp(s, "justify")) {
+			if (!process_justify(obj, next))
 				return 0;
 		} else
 			warning("ignoring \"%s\"\n", s);

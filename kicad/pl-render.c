@@ -42,6 +42,22 @@ static int coord(int v, int d, int o, int e)
 }
 
 
+static void render_text(const struct pl_obj *obj, int x, int y)
+{
+	struct text txt = {
+		.s	= obj->s,
+		.size	= mil(obj->ey),
+		.x	= x,
+		.y	= y,
+		.rot	= 0,
+		.hor	= obj->hor,
+		.vert	= obj->vert,
+	};
+
+	text_fig(&txt, COLOR_COMP_DWG, LAYER_COMP_DWG);
+}
+
+
 static void render_obj(const struct pl_ctx *pl, const struct pl_obj *obj,
     unsigned i, int w, int h)
 {
@@ -80,8 +96,7 @@ static void render_obj(const struct pl_ctx *pl, const struct pl_obj *obj,
 		}
 		break;
 	case pl_obj_text:
-		gfx_text(x, y, obj->s, mil(obj->ey), text_min, 0,
-		    COLOR_COMP_DWG, LAYER_COMP_DWG);
+		render_text(obj, x, y);
 		break;
 	default:
 		break;
