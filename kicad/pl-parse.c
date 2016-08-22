@@ -257,7 +257,7 @@ static bool process_obj(struct pl_ctx *pl, const struct expr *e,
 	obj->s = NULL;
 	obj->repeat = 1;
 	obj->x = obj->y = obj->ex = obj->ey = 0;
-	obj->dx = obj->dy = 0;
+	obj->dx = obj->dy = obj->edx = obj->edy = 0;
 	obj->incrx = 0;
 	obj->incry = 0;
 	obj->incrlabel = 0;
