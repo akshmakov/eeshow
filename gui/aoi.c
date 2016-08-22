@@ -57,6 +57,14 @@ static bool in_aoi(const struct aoi *aoi, int x, int y)
 }
 
 
+static bool hover_d(const struct aoi *aoi, bool on,int x, int y)
+{
+	return aoi->hover(aoi->user, on,
+	    x < aoi->x ? -1 : x >= aoi->x + aoi->w ? 1 : 0,
+	    y < aoi->y ? -1 : y >= aoi->y + aoi->h ? 1 : 0);
+}
+
+
 /*
  * We need a pointer to the anchor of the AoI list here because dehovering may
  * delete the AoI *aois points to.
@@ -67,25 +75,26 @@ static bool in_aoi(const struct aoi *aoi, int x, int y)
 
 bool aoi_hover(struct aoi *const *aois, int x, int y)
 {
+	static int last_x = 0;
+	static int last_y = 0;
 	const struct aoi *aoi;
 
 	if (hovering) {
 		if (in_aoi(hovering, x, y))
 			return 1;
-		aoi = hovering;
-		aoi->hover(aoi->user, 0,
-		    x < aoi->x ? -1 : x >= aoi->x + aoi->w ? 1 : 0,
-		    y < aoi->y ? -1 : y >= aoi->y + aoi->h ? 1 : 0);
+		hover_d(hovering, 0, x, y);
 		hovering = NULL;
 	}
 
 	for (aoi = *aois; aoi; aoi = aoi->next)
 		if (aoi->hover && in_aoi(aoi, x, y) &&
-		    aoi->hover(aoi->user, 1, 0, 0)) {
+		    hover_d(aoi, 1, last_x, last_y)) {
 			hovering = aoi;
-			return 1;
+			break;
 		}
-	return 0;
+	last_x = x;
+	last_y = y;
+	return aoi;
 }
 
 
