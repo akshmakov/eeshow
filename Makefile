@@ -60,6 +60,8 @@ $(NAME):	$(OBJS)
 		$(MAKE) -B version.o
 		$(CC) -o $(NAME) $(OBJS) $(LDLIBS)
 
+#----- Help textx -------------------------------------------------------------
+
 help.inc:	$(HELP_TEXT) Makefile
 		$(BUILD) sed 's/"/\\"/g;s/.*/"&\\n"/' $< >$@ || \
 		    { rm -f $@; exit 1; }
@@ -68,6 +70,8 @@ gui/help.c:	help.inc
 
 clean::
 		rm -f help.inc
+
+#----- Icons ------------------------------------------------------------------
 
 icons/%.hex:	icons/%.fig Makefile
 		$(BUILD) fig2dev -L png -S 4 -Z 0.60 $< | \
