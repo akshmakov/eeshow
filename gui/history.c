@@ -15,6 +15,7 @@
 #include <stdlib.h>
 
 #include <gtk/gtk.h>
+#include <pango/pangocairo.h>
 
 #include "misc/util.h"
 #include "file/git-hist.h"
@@ -82,12 +83,38 @@ static void set_history_style(struct gui_hist *h, bool current)
 }
 
 
+/*
+ * One difficulty with resizing (enlarging, in this case) list items on hover
+ * is that, if we only change the size but not the position, hovering towards
+ * the next item will cause the previous item to shrink and thus move the next
+ * item up - possibly even above the mouse pointer. This can be confusing.
+ *
+ * We could adjust the mouse pointer, but manipulating the pointer position is
+ * not universally popular.
+ *
+ * Instead, we move the list such that the bottom edge of the item we're
+ * leaving remains stationary. Thus the list moves down when mousing over items
+ * from the top towards the bottom.
+ *
+ * To prevent this movement from being overly pronounced, we try to predict the
+ * direction in which an item will be left (i.e., in the same direction from
+ * which it was entered), and compensate for the likely list movement on
+ * departure on entry.
+ *
+ * These heuristics can still sometimes fail, but by and large, they produce
+ * the desired result without introducing too much list movement.
+ */
+
 static bool hover_history(void *user, bool on, int dx, int dy)
 {
 	struct gui_hist *h = user;
 	struct gui_ctx *ctx = h->ctx;
 	char *s;
+	int before, after;
 
+	if (dy)
+		overlay_size(h->over, gtk_widget_get_pango_context(ctx->da),
+		    NULL, &before);
 	if (on) {
 		s = vcs_git_long_for_pango(h->vcs_hist, fmt_pango);
 		overlay_text_raw(h->over, s);
@@ -97,6 +124,15 @@ static bool hover_history(void *user, bool on, int dx, int dy)
 		    vcs_git_summary(h->vcs_hist));
 	}
 	set_history_style(h, on);
+	if (dy)
+		overlay_size(h->over, gtk_widget_get_pango_context(ctx->da),
+		    NULL, &after);
+
+	if (dy < 0 && on)
+		ctx->hist_y_offset -= after - before;
+	if (dy > 0 && !on)
+		ctx->hist_y_offset -= after - before;
+
 	redraw(ctx);
 	return 1;
 }
@@ -274,8 +310,8 @@ void show_history(struct gui_ctx *ctx, enum selecting sel)
 		h = skip_history(ctx, h);
 		h->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
 		    hover_history, click_history, h);
-		hover_history(h, 0, 0, 0);
 		set_history_style(h, 0);
+		hover_history(h, 0, 0, 0);
 	}
 	redraw(ctx);
 }
