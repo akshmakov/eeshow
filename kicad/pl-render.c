@@ -42,11 +42,12 @@ static int coord(int v, int d, int o, int e)
 }
 
 
-static void render_text(const struct pl_obj *obj, int x, int y)
+static void render_text(const struct pl_ctx *pl, const struct pl_obj *obj,
+    int x, int y)
 {
 	struct text txt = {
 		.s	= obj->s,
-		.size	= mil(obj->ey),
+		.size	= mil(obj->ey ? obj->ey : pl->ty),
 		.x	= x,
 		.y	= y,
 		.rot	= 0,
@@ -96,7 +97,7 @@ static void render_obj(const struct pl_ctx *pl, const struct pl_obj *obj,
 		}
 		break;
 	case pl_obj_text:
-		render_text(obj, x, y);
+		render_text(pl, obj, x, y);
 		break;
 	default:
 		break;

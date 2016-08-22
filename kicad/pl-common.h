@@ -49,6 +49,7 @@ struct pl_obj {
 struct pl_ctx {
 	struct sexpr_ctx *sexpr_ctx;
 	float l, r, t, b;	/* margins */
+	float tx, ty;		/* text size */
 	struct pl_obj *objs;
 };
 

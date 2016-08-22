@@ -73,6 +73,42 @@ static bool get_coord(const struct expr *e,
 }
 
 
+static bool get_size(const struct expr *e, float *x, float *y)
+{
+	unsigned n = 0;
+
+	for (; e; e = e->next) {
+		char *end;
+		float f;
+
+		if (e->e)
+			continue;
+
+		f = strtof(e->s, &end);
+		if (*end) {
+			error("no a number \"%s\"\n", e->s);
+			return 0;
+		}
+		if (n++)
+			*y = f;
+		else
+			*x = f;
+	}
+
+	switch (n) {
+	case 0:
+	case 1:
+		error("no enough coordinates\n");
+		return 0;
+	case 2:
+		return 1;
+	default:
+		error("too many coordinates\n");
+		return 0;
+	}
+}
+
+
 static bool get_float(const struct expr *e, float *f)
 {
 	for (; e; e = e->next)
@@ -98,7 +134,7 @@ static bool get_int(const struct expr *e, int *n)
 }
 
 
-static bool process_setup(struct pl_ctx *p, const struct expr *e)
+static bool process_setup(struct pl_ctx *pl, const struct expr *e)
 {
 	const char *s;
 	const struct expr *next;
@@ -116,22 +152,23 @@ static bool process_setup(struct pl_ctx *p, const struct expr *e)
 			continue;
 
 		if (!strcmp(s, "textsize")) {
-			// meh
+			if (!get_size(next, &pl->tx, &pl->ty))
+				return 0;
 		} else if (!strcmp(s, "linewidth")) {
 			// meh
 		} else if (!strcmp(s, "textlinewidth")) {
 			// meh
 		} else if (!strcmp(s, "left_margin")) {
-			if (!get_float(next, &p->l))
+			if (!get_float(next, &pl->l))
 				return 0;
 		} else if (!strcmp(s, "right_margin")) {
-			if (!get_float(next, &p->r))
+			if (!get_float(next, &pl->r))
 				return 0;
 		} else if (!strcmp(s, "top_margin")) {
-			if (!get_float(next, &p->t))
+			if (!get_float(next, &pl->t))
 				return 0;
 		} else if (!strcmp(s, "bottom_margin")) {
-			if (!get_float(next, &p->b))
+			if (!get_float(next, &pl->b))
 				return 0;
 		} else {
 			warning("ignoring \"%s\"\n", s);
@@ -168,8 +205,7 @@ static bool process_font(struct pl_obj *obj, const struct expr *e)
 			continue;
 
 		if (!strcmp(s, "size")) {
-			if (!get_coord(next, &obj->ex, &obj->ey,
-			    &obj->edx, &obj->edy))
+			if (!get_size(next, &obj->ex, &obj->ey))
 				return 0;
 		} else {
 			warning("ignoring \"%s\"\n", s);
@@ -351,6 +387,7 @@ struct pl_ctx *pl_parse(struct file *file)
 	pl = alloc_type(struct pl_ctx);
 	pl->sexpr_ctx = sexpr_new();
 	pl->l = pl->r = pl->t = pl->b = 0;
+	pl->tx = pl->ty = 0;
 	pl->objs = NULL;
 
 	if (!file_read(file, pl_parse_line, pl)) {
