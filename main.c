@@ -26,6 +26,7 @@
 #include "gfx/diff.h"
 #include "gfx/gfx.h"
 #include "file/file.h"
+#include "kicad/sexpr.h"
 #include "kicad/lib.h"
 #include "kicad/sch.h"
 #include "gui/fmt-pango.h"
@@ -43,6 +44,22 @@ static struct gfx_ops const *ops_list[] = {
 };
 
 
+static void sexpr(void)
+{
+	struct sexpr_ctx *parser = sexpr_new();
+	struct expr *expr;
+	char *buf = NULL;
+	size_t n = 0;
+
+	while (getline(&buf, &n, stdin) > 0)
+		sexpr_parse(parser, buf);
+	if (sexpr_finish(parser, &expr))
+		dump_expr(expr);
+	else
+		exit(1);
+}
+
+					
 void usage(const char *name)
 {
 	fprintf(stderr,
@@ -51,6 +68,7 @@ void usage(const char *name)
 "       %*s[-- driver_spec]\n"
 "       %s [-v ...] -C [rev:]file\n"
 "       %s [-v ...] -H path_into_repo\n"
+"       %s -S\n"
 "       %s -V\n"
 "       %s gdb ...\n"
 "\n"
@@ -60,6 +78,7 @@ void usage(const char *name)
 "  -C    'cat' the file to standard output\n"
 "  -H    show history of repository on standard output\n"
 "  -N n  limit history to n revisions (unlimited if omitted or 0)\n"
+"  -S    parse S-expressions from stdin and dump to stdout\n"
 "  -V    print revision (version) number and exit\n"
 "  gdb   run eeshow under gdb\n"
 "\n"
@@ -87,7 +106,7 @@ void usage(const char *name)
 "  diff [-o output.pdf] [-s scale] [file.lib ...] file.sch\n"
 "\n"
 "  see PNG\n"
-    , name, name, (int) strlen(name) + 1, "", name, name, name, name);
+    , name, name, (int) strlen(name) + 1, "", name, name, name, name, name);
 	exit(1);
 }
 
@@ -131,7 +150,7 @@ int main(int argc, char **argv)
 	if (!have_dashdash)
 		gtk_init(&argc, &argv);
 
-	while ((c = getopt(dashdash, argv, "rvC:F:H:N:V")) != EOF)
+	while ((c = getopt(dashdash, argv, "rvC:F:H:N:SV")) != EOF)
 		switch (c) {
 		case 'r':
 			recurse = 1;
@@ -151,6 +170,9 @@ int main(int argc, char **argv)
 		case 'N':
 			limit = atoi(optarg);
 			break;
+		case 'S':
+			sexpr();
+			return 0;
 		case 'V':
 			fprintf(stderr, "%s\n", version);
 			return 1;
