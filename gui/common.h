@@ -65,7 +65,7 @@ struct gui_hist {
 struct gui_ctx {
 	GtkWidget *da;
 
-	unsigned zoom;		/* scale by 1.0 / (1 << zoom) */
+	float scale;		/* pixels = eeschema * scale */
 	int x, y;		/* center, in eeschema coordinates */
 
 	struct pl_ctx *pl;	// @@@

@@ -29,6 +29,12 @@
 #include "gui/common.h"
 
 
+#define	ZOOM_FACTOR	1.26	/* 2^(1/3) */
+#define	ZOOM_MAX	1
+#define	ZOOM_MIN_SIZE	16
+#define	ZOOM_MARGIN	0.95
+
+
 /* ----- Tools ------------------------------------------------------------- */
 
 
@@ -41,8 +47,8 @@ static void canvas_coord(const struct gui_ctx *ctx,
 	gtk_widget_get_allocation(ctx->da, &alloc);
 	sx = ex - alloc.width / 2;
 	sy = ey - alloc.height / 2;
-	*x = (sx << ctx->zoom) + ctx->x;
-	*y = (sy << ctx->zoom) + ctx->y;
+	*x = sx / ctx->scale + ctx->x;
+	*y = sy / ctx->scale + ctx->y;
 }
 
 
@@ -51,11 +57,15 @@ static void canvas_coord(const struct gui_ctx *ctx,
 
 static bool zoom_in(struct gui_ctx *ctx, int x, int y)
 {
-	if (ctx->zoom == 0)
+	float old = ctx->scale;
+
+	if (ctx->scale == ZOOM_MAX)
 		return 0;
-	ctx->zoom--;
-	ctx->x = (ctx->x + x) / 2;
-	ctx->y = (ctx->y + y) / 2;
+	ctx->scale *= ZOOM_FACTOR;
+	if (ctx->scale > ZOOM_MAX)
+		ctx->scale = ZOOM_MAX;
+	ctx->x = x + (ctx->x - x) * old / ctx->scale;
+	ctx->y = y + (ctx->y - y) * old / ctx->scale;
 	redraw(ctx);
 	return 1;
 }
@@ -63,11 +73,17 @@ static bool zoom_in(struct gui_ctx *ctx, int x, int y)
 
 static bool zoom_out(struct gui_ctx *ctx, int x, int y)
 {
-	if (ctx->curr_sheet->w >> ctx->zoom <= 16)
+	float old = ctx->scale;
+
+	if (ctx->curr_sheet->w * ctx->scale <= ZOOM_MIN_SIZE)
 		return 0;
-	ctx->zoom++;
-	ctx->x = 2 * ctx->x - x;
-	ctx->y = 2 * ctx->y - y;
+	ctx->scale /= ZOOM_FACTOR;
+	if (ctx->curr_sheet->w <= ZOOM_MIN_SIZE)
+		ctx->scale = 1;
+	else if (ctx->curr_sheet->w * ctx->scale <= ZOOM_MIN_SIZE )
+		ctx->scale = (float) ZOOM_MIN_SIZE / ctx->curr_sheet->w;
+	ctx->x = x + (ctx->x - x) * old / ctx->scale;
+	ctx->y = y + (ctx->y - y) * old / ctx->scale;
 	redraw(ctx);
 	return 1;
 }
@@ -106,15 +122,17 @@ static void zoom_to_extents(struct gui_ctx *ctx)
 {
 	GtkAllocation alloc;
 	int w, h;
+	float sw, sh;
 
 	curr_sheet_size(ctx, &w, &h);
 	ctx->x = w / 2;
 	ctx->y = h / 2;
 
 	gtk_widget_get_allocation(ctx->da, &alloc);
-	ctx->zoom = 0;
-	while (w >> ctx->zoom > alloc.width || h >> ctx->zoom > alloc.height)
-		ctx->zoom++;
+	
+	sw = w ? (float) ZOOM_MARGIN * alloc.width / w : 1;
+	sh = h ? (float) ZOOM_MARGIN * alloc.height / h : 1;
+	ctx->scale = sw < sh ? sw : sh;
 
 	redraw(ctx);
 }
@@ -439,8 +457,8 @@ static void sheet_drag_move(void *user, int dx, int dy)
 {
 	struct gui_ctx *ctx = user;
 
-	ctx->x -= dx << ctx->zoom;
-	ctx->y -= dy << ctx->zoom;
+	ctx->x -= dx / ctx->scale;
+	ctx->y -= dy / ctx->scale;
 	redraw(ctx);
 }
 

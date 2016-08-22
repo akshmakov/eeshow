@@ -158,7 +158,7 @@ static void hack(const struct gui_ctx *ctx, cairo_t *cr,
 	struct area *areas = NULL;
 
 	areas = changed_sheets(ctx, xo, yo, f);
-	diff_to_canvas(cr, ctx->x, ctx->y, 1.0 / (1 << ctx->zoom),
+	diff_to_canvas(cr, ctx->x, ctx->y, ctx->scale,
 	    old->gfx_ctx, new->gfx_ctx, areas);
 	free_areas(&areas);
 }
@@ -170,7 +170,7 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	const struct gui_ctx *ctx = user_data;
 	const struct gui_sheet *sheet = ctx->curr_sheet;
 	GtkAllocation alloc;
-	float f = 1.0 / (1 << ctx->zoom);
+	float f = ctx->scale;
 	int x, y;
 
 	gtk_widget_get_allocation(ctx->da, &alloc);

@@ -389,7 +389,7 @@ int gui(unsigned n_args, char **args, bool recurse, int limit,
 	GtkWidget *window;
 	char *title;
 	struct gui_ctx ctx = {
-		.zoom		= 4,	/* scale by 1 / 16 */
+		.scale		= 1 / 16.0,
 		.pl		= pl, // @@@
 		.hist		= NULL,
 		.vcs_hist	= NULL,

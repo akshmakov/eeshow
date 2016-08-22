@@ -49,8 +49,8 @@ static void eeschema_coord(const struct gui_ctx *ctx,
 	GtkAllocation alloc;
 
 	gtk_widget_get_allocation(ctx->da, &alloc);
-	*rx = ((x - ctx->x) >> ctx->zoom) + alloc.width / 2;
-	*ry = ((y - ctx->y) >> ctx->zoom) + alloc.height / 2;
+	*rx = ((x - ctx->x) * ctx->scale) + alloc.width / 2;
+	*ry = ((y - ctx->y) * ctx->scale) + alloc.height / 2;
 }
 
 
