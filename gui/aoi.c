@@ -72,13 +72,16 @@ bool aoi_hover(struct aoi *const *aois, int x, int y)
 	if (hovering) {
 		if (in_aoi(hovering, x, y))
 			return 1;
-		hovering->hover(hovering->user, 0);
+		aoi = hovering;
+		aoi->hover(aoi->user, 0,
+		    x < aoi->x ? -1 : x >= aoi->x + aoi->w ? 1 : 0,
+		    y < aoi->y ? -1 : y >= aoi->y + aoi->h ? 1 : 0);
 		hovering = NULL;
 	}
 
 	for (aoi = *aois; aoi; aoi = aoi->next)
 		if (aoi->hover && in_aoi(aoi, x, y) &&
-		    aoi->hover(aoi->user, 1)) {
+		    aoi->hover(aoi->user, 1, 0, 0)) {
 			hovering = aoi;
 			return 1;
 		}
@@ -130,7 +133,7 @@ void aoi_remove(struct aoi **aois, const struct aoi *aoi)
 {
 	assert(aoi);
 	if (hovering == aoi) {
-		aoi->hover(aoi->user, 0);
+		aoi->hover(aoi->user, 0, 0, 0);
 		hovering = NULL;
 	}
 	while (*aois && *aois != aoi)
@@ -144,6 +147,6 @@ void aoi_remove(struct aoi **aois, const struct aoi *aoi)
 void aoi_dehover(void)
 {
 	if (hovering)
-		hovering->hover(hovering->user, 0);
+		hovering->hover(hovering->user, 0, 0, 0);
 	hovering = NULL;
 }

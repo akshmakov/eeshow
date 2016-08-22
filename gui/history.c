@@ -82,7 +82,7 @@ static void set_history_style(struct gui_hist *h, bool current)
 }
 
 
-static bool hover_history(void *user, bool on)
+static bool hover_history(void *user, bool on, int dx, int dy)
 {
 	struct gui_hist *h = user;
 	struct gui_ctx *ctx = h->ctx;
@@ -274,7 +274,7 @@ void show_history(struct gui_ctx *ctx, enum selecting sel)
 		h = skip_history(ctx, h);
 		h->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
 		    hover_history, click_history, h);
-		hover_history(h, 0);
+		hover_history(h, 0, 0, 0);
 		set_history_style(h, 0);
 	}
 	redraw(ctx);

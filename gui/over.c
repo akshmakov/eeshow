@@ -45,7 +45,7 @@ struct overlay {
 	struct overlay_style style;
 
 	struct aoi **aois;
-	bool (*hover)(void *user, bool on);
+	bool (*hover)(void *user, bool on, int dx, int dy);
 	void (*click)(void *user);
 	void *user;
 
@@ -420,7 +420,8 @@ void overlay_size_all(const struct overlay *overlays,
 
 
 struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
-    bool (*hover)(void *user, bool on), void (*click)(void *user), void *user)
+    bool (*hover)(void *user, bool on, int dx, int dy),
+    void (*click)(void *user), void *user)
 {
 	struct overlay *over, *prev;
 	struct overlay **anchor;

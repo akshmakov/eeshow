@@ -132,7 +132,7 @@ static void add_dest_overlay(struct gui_ctx *ctx, const char *label,
 }
 
 
-static bool pop_hover(void *user, bool on)
+static bool pop_hover(void *user, bool on, int dx, int dy)
 {
 	struct gui_ctx *ctx = user;
 
@@ -184,7 +184,7 @@ static void add_dest_frame(struct gui_ctx *ctx)
 }
 
 
-static bool hover_glabel(void *user, bool on)
+static bool hover_glabel(void *user, bool on, int dx, int dy)
 {
 	struct glabel_aoi_ctx *aoi_ctx = user;
 	struct gui_ctx *ctx = aoi_ctx->sheet->ctx;

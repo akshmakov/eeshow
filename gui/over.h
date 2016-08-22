@@ -54,7 +54,8 @@ void overlay_size_all(const struct overlay *overlays,
     PangoContext *pango_context, bool dx, bool dy, int *w, int *h);
 
 struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
-    bool (*hover)(void *user, bool on), void (*click)(void *user), void *user);
+    bool (*hover)(void *user, bool on, int dx, int dy),
+    void (*click)(void *user), void *user);
 
 void overlay_text_raw(struct overlay *over, const char *s);
 void overlay_text(struct overlay *over, const char *fmt, ...);

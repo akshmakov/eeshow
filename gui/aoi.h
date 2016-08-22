@@ -20,7 +20,7 @@ struct aoi {
 	int x, y, w, h;		/* activation box, eeschema coordinates */
 				/* points to hovered aoi, or NULL */
 
-	bool (*hover)(void *user, bool on);
+	bool (*hover)(void *user, bool on, int dx, int dy);
 	void (*click)(void *user);
 	void *user;
 

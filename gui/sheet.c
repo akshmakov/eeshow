@@ -123,7 +123,7 @@ static void zoom_to_extents(struct gui_ctx *ctx)
 /* ----- Revision selection overlays --------------------------------------- */
 
 
-static bool show_history_details(void *user, bool on)
+static bool show_history_details(void *user, bool on, int dx, int dy)
 {
 	struct gui_hist *h = user;
 	struct gui_ctx *ctx = h->ctx;
@@ -219,7 +219,7 @@ static void revision_overlays_diff(struct gui_ctx *ctx)
 	if (ctx->diff_mode == diff_new)
 		style.frame = RGBA(0, 0, 0, 1);
 	overlay_style(new->over, &style);
-	show_history_details(new, 0);
+	show_history_details(new, 0, 0, 0);
 
 	add_delta(ctx);
 
@@ -229,7 +229,7 @@ static void revision_overlays_diff(struct gui_ctx *ctx)
 	if (ctx->diff_mode == diff_old)
 		style.frame = RGBA(0, 0, 0, 1);
 	overlay_style(old->over, &style);
-	show_history_details(old, 0);
+	show_history_details(old, 0, 0, 0);
 }
 
 
@@ -244,7 +244,7 @@ void do_revision_overlays(struct gui_ctx *ctx)
 		    &ctx->aois, show_history_details, show_history_cb,
 		    ctx->new_hist);
 		overlay_style(ctx->new_hist->over, &overlay_style_default);
-		show_history_details(ctx->new_hist, 0);
+		show_history_details(ctx->new_hist, 0, 0, 0);
 
 		add_delta(ctx);
 	}
@@ -263,7 +263,7 @@ static void close_subsheet(void *user)
 }
 
 
-static bool hover_sheet(void *user, bool on)
+static bool hover_sheet(void *user, bool on, int dx, int dy)
 {
 	struct gui_sheet *sheet = user;
 	struct gui_ctx *ctx = sheet->ctx;
@@ -314,7 +314,7 @@ static void sheet_selector_recurse(struct gui_ctx *ctx, struct gui_sheet *sheet)
 		sheet_selector_recurse(ctx, parent);
 	sheet->over = overlay_add(&ctx->sheet_overlays, &ctx->aois,
 	    hover_sheet, close_subsheet, sheet);
-	hover_sheet(sheet, 0);
+	hover_sheet(sheet, 0, 0, 0);
 }
 
 
