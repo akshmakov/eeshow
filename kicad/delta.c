@@ -94,6 +94,7 @@ static bool comp_eq_obj(const struct lib_obj *a, const struct lib_obj *b)
 		    a->u.pin.number_size == b->u.pin.number_size &&
 		    a->u.pin.name_size == b->u.pin.name_size &&
 		    a->u.pin.etype == b->u.pin.etype &&
+		    a->u.pin.shape == b->u.pin.shape &&
 		    !strcmp(a->u.pin.name, b->u.pin.name) &&
 		    !strcmp(a->u.pin.number, b->u.pin.number);
 	default:

@@ -158,6 +158,37 @@ static void add_alias(struct comp *comp, const char *alias)
 /* ----- Library parser ---------------------------------------------------- */
 
 
+static enum pin_shape decode_pin_shape(const char *s)
+{
+	int flags = 0;
+
+	if (*s == 'N') {
+		flags = pin_invisible;
+		s++;
+	}
+	if (!strcmp(s, ""))
+		return flags;
+	if (!strcmp(s, "I"))
+		return flags | pin_inverted;
+	if (!strcmp(s, "C"))
+		return flags | pin_clock;
+	if (!strcmp(s, "CI") || !strcmp(s, "IC"))
+		return flags | pin_clock | pin_inverted;
+	if (!strcmp(s, "L"))
+		return flags | pin_input_low;
+	if (!strcmp(s, "CL"))
+		return flags | pin_clock | pin_input_low;
+	if (!strcmp(s, "V"))
+		return flags | pin_output_low;;
+	if (!strcmp(s, "F"))
+		return flags | pin_falling_edge;
+	if (!strcmp(s, "X"))
+		return flags | pin_non_logic;
+	error("unrecognized pin shape \"%s\"", s);
+	return flags;
+}
+
+
 static bool lib_parse_line(const struct file *file,
     void *user, const char *line)
 {
@@ -264,13 +295,20 @@ static bool lib_parse_line(const struct file *file,
 			obj->type = lib_obj_text;
 			return 1;
 		}
-		if (sscanf(line, "X %ms %ms %d %d %d %c %d %d %u %u %c",
+		s = NULL;
+		if (sscanf(line, "X %ms %ms %d %d %d %c %d %d %u %u %c %ms",
 		    &obj->u.pin.name, &obj->u.pin.number,
 		    &obj->u.pin.x, &obj->u.pin.y, &obj->u.pin.length,
 		    &obj->u.pin.orient,
 		    &obj->u.pin.number_size, &obj->u.pin.name_size,
-		    &obj->unit, &obj->convert, &obj->u.pin.etype) == 11) {
+		    &obj->unit, &obj->convert, &obj->u.pin.etype, &s) >= 11) {
 			obj->type = lib_obj_pin;
+			if (s) {
+				obj->u.pin.shape = decode_pin_shape(s);
+				free(s);
+			} else {
+				obj->u.pin.shape = 0;
+			}
 			return 1;
 		}
 		break;

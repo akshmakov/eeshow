@@ -20,6 +20,16 @@
 #include "gfx/text.h"
 
 
+enum pin_shape {
+	pin_inverted		= 1 << 0,
+	pin_clock		= 1 << 1,
+	pin_input_low		= 1 << 2,
+	pin_output_low		= 1 << 3,
+	pin_falling_edge	= 1 << 4,
+	pin_non_logic		= 1 << 5,
+	pin_invisible		= 1 << 6,
+};
+
 enum lib_state {
 	lib_skip,	/* before a definition */
 	lib_def,	/* in definition */
@@ -82,7 +92,7 @@ struct lib_obj {
 			int number_size;
 			int name_size;
 			char etype;
-			// @@@ shape
+			enum pin_shape shape;
 		} pin;
 	} u;
 	struct lib_obj *next;
