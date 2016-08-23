@@ -69,12 +69,6 @@ struct pdftoc {
 };
 
 
-static bool begins(const char *s, const char *pfx)
-{
-	return !strncmp(s, pfx, strlen(pfx));
-}
-
-
 struct pdftoc *pdftoc_begin(const char *file)
 {
 	struct pdftoc *ctx;
@@ -149,27 +143,27 @@ static void line(struct pdftoc *ctx, const char *s)
 			ctx->state = object;
 			break;
 		}
-		if (begins(s, "xref")) {
+		if (strbegins(s, "xref")) {
 			ctx->state = xref;
 			break;
 		}
 		break;
 	case object:
-		if (begins(s, "endobj")) {
+		if (strbegins(s, "endobj")) {
 			ctx->state = idle;
 			break;
 		}
-		if (begins(s, "<< /Type /Page")) {
+		if (strbegins(s, "<< /Type /Page")) {
 			ctx->curr_obj->is_page = 1;
 			break;
 		}
-		if (begins(s, "<< /Type /Catalog")) {
+		if (strbegins(s, "<< /Type /Catalog")) {
 			ctx->state = catalog;
 			break;
 		}
 		break;
 	case catalog:
-		if (begins(s, ">>")) {
+		if (strbegins(s, ">>")) {
 			ctx->state = object;
 			ctx->pos += fprintf(ctx->file,
 			    "   /Outlines %u 0 R\n",
