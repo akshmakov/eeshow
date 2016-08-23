@@ -338,7 +338,8 @@ static void merge_coord(int pos_a, int pos_b, int dim_a, int dim_b,
 
 
 void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
-    struct cro_ctx *old, struct cro_ctx *new,
+    struct cro_ctx *old, struct cro_ctx *old_extra,
+    struct cro_ctx *new, struct cro_ctx *new_extra,
     const struct area *areas)
 {
 	int old_xmin, old_ymin, old_w, old_h;
@@ -363,12 +364,12 @@ void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
 	merge_coord(old_xmin, new_xmin, old_w, new_w, &xmin, &w);
 	merge_coord(old_ymin, new_ymin, old_h, new_h, &ymin, &h);
 
-	img_old = cro_img(old,
+	img_old = cro_img(old, old_extra,
 	    sw / 2.0 - (cx + xmin) * scale,
 	    sh / 2.0 - (cy + ymin) * scale,
 	    sw, sh,
 	    scale, &old_cr, &stride);
-	img_new = cro_img(new,
+	img_new = cro_img(new, new_extra,
 	    sw / 2.0 - (cx + xmin) * scale,
 	    sh / 2.0 - (cy + ymin) * scale,
 	    sw, sh,

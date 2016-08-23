@@ -573,7 +573,8 @@ void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr, int xo, int yo,
 /* ----- Image for external use (simplified API) --------------------------- */
 
 
-uint32_t *cro_img(struct cro_ctx *ctx, int xo, int yo, int w, int h,
+uint32_t *cro_img(struct cro_ctx *ctx, struct cro_ctx *ctx_extra,
+    int xo, int yo, int w, int h,
     float scale, cairo_t **res_cr, int *res_stride)
 {
 	int stride;
@@ -603,6 +604,10 @@ uint32_t *cro_img(struct cro_ctx *ctx, int xo, int yo, int w, int h,
 	ctx->scale = scale;
 	ctx->color_override = COLOR_NONE;
 
+	if (ctx_extra) {
+		ctx_extra->record.user = ctx->record.user;  /* @@@ eww ! */
+		record_replay(&ctx_extra->record);
+	}
 	record_replay(&ctx->record);
 
 	if (res_cr)

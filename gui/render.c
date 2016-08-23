@@ -160,7 +160,8 @@ static void hack(const struct gui_ctx *ctx, cairo_t *cr,
 
 	areas = changed_sheets(ctx, xo, yo, f);
 	diff_to_canvas(cr, ctx->x, ctx->y, ctx->scale,
-	    old->gfx_ctx, new->gfx_ctx, areas);
+	    old->gfx_ctx, show_extra ? old->gfx_ctx_extra : NULL,
+	    new->gfx_ctx, show_extra ? new->gfx_ctx_extra : NULL, areas);
 	free_areas(&areas);
 }
 

@@ -37,7 +37,8 @@ void add_area(struct area **areas, int xa, int ya, int xb, int yb,
 void free_areas(struct area **areas);
 
 void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale, 
-    struct cro_ctx *old, struct cro_ctx *new,
+    struct cro_ctx *old, struct cro_ctx *old_extra,
+    struct cro_ctx *new, struct cro_ctx *new_extra,
     const struct area *areas);
 
 #endif /* !GFX_DIFF_H */
