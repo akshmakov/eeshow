@@ -37,7 +37,7 @@ struct gui_sheet {
 	int w, h;		/* in eeschema coordinates */
 	int xmin, ymin;
 
-	bool rendered;		/* 0 if still have to render it */
+	bool rendered;		/* 0 if we still have to render it */
 
 	struct overlay *over;	/* current overlay */
 	struct aoi *aois;	/* areas of interest; in schematics coord  */
@@ -127,6 +127,10 @@ void progress_update(struct gui_ctx *ctx);
 
 /* render.c */
 
+extern bool use_delta;
+extern bool show_extra;
+
+
 void redraw(const struct gui_ctx *ctx);
 void render_sheet(struct gui_sheet *sheet);
 void render_delta(struct gui_ctx *ctx);
@@ -149,7 +153,7 @@ void show_history(struct gui_ctx *ctx, enum selecting sel);
 
 /* gui.c */
 
-extern bool use_delta;
+void unrender_all(struct gui_ctx *ctx);
 
 struct gui_sheet *find_corresponding_sheet(struct gui_sheet *pick_from,
      struct gui_sheet *ref_in, const struct gui_sheet *ref);

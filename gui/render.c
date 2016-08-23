@@ -41,6 +41,7 @@
 
 
 bool use_delta = 0;
+bool show_extra = 0;
 
 
 /* ----- Helper functions -------------------------------------------------- */
@@ -235,6 +236,8 @@ void render_sheet(struct gui_sheet *sheet)
 		pl_render(sheet->hist->pl, sheet->hist->sch_ctx.sheets,
 		    sheet->sch);
 	sch_render(sheet->sch);
+	if (show_extra)
+		sch_render_extra(sheet->sch);
 	cro_canvas_end(gfx_ctx,
 	    &sheet->w, &sheet->h, &sheet->xmin, &sheet->ymin);
 	sheet->gfx_ctx = gfx_ctx;

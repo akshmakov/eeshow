@@ -198,6 +198,7 @@ Up or Down		invoke the revision history (WIP)
 Tab			toggle between old and new revision
 Esc			cancel current action (exit history, close pop-up,
 			de-highlight glabel, close help)
+E			show/hide extra information (pin types)
 H			show/hide help window
 D			when comparing revisions, show difference (default)
 N			show newer sheet

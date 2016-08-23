@@ -550,6 +550,11 @@ static void sheet_key(void *user, int x, int y, int keyval)
 		do_revision_overlays(ctx);
 		redraw(ctx);
 		break;
+	case GDK_KEY_e:
+		show_extra = !show_extra;
+		unrender_all(ctx);
+		go_to_sheet(ctx, ctx->curr_sheet);
+		break;
 
 	case GDK_KEY_n:
 		ctx->diff_mode = diff_new;

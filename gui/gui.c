@@ -43,6 +43,24 @@
 #include "gui/gui.h"
 
 
+/* ----- @@@ Hack: discard all rendering on major mode change -------------- */
+
+void unrender_all(struct gui_ctx *ctx)
+{
+	const struct gui_hist *h;
+	struct gui_sheet *sheet;
+
+	for (h = ctx->hist; h; h = h->next)
+		for (sheet = h->sheets; sheet; sheet = sheet->next) {
+			/*
+			 * @@@ if there was a gfx_free, we wouldn't create a
+			 * massive memory leak here.
+			 */
+			sheet->rendered = 0;
+		}
+}
+
+
 /* ----- Helper functions -------------------------------------------------- */
 
 
