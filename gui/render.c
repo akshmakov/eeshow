@@ -181,11 +181,15 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	cro_canvas_prepare(cr);
 	if (!ctx->old_hist || ctx->diff_mode == diff_new) {
 		highlight_glabel(ctx, sheet, cr, x, y, f);
+		if (show_extra)
+			cro_canvas_draw(sheet->gfx_ctx_extra, cr, x, y, f);
 		cro_canvas_draw(sheet->gfx_ctx, cr, x, y, f);
 	} else if (ctx->diff_mode == diff_old) {
 		sheet = find_corresponding_sheet(ctx->old_hist->sheets,
 		    ctx->new_hist->sheets, ctx->curr_sheet);
 		highlight_glabel(ctx, sheet, cr, x, y, f);
+		if (show_extra)
+			cro_canvas_draw(sheet->gfx_ctx_extra, cr, x, y, f);
 		cro_canvas_draw(sheet->gfx_ctx, cr, x, y, f);
 	} else if (use_delta) {
 		struct area *areas = changed_sheets(ctx, x, y, f);
@@ -236,11 +240,15 @@ void render_sheet(struct gui_sheet *sheet)
 		pl_render(sheet->hist->pl, sheet->hist->sch_ctx.sheets,
 		    sheet->sch);
 	sch_render(sheet->sch);
-	if (show_extra)
-		sch_render_extra(sheet->sch);
 	cro_canvas_end(gfx_ctx,
 	    &sheet->w, &sheet->h, &sheet->xmin, &sheet->ymin);
 	sheet->gfx_ctx = gfx_ctx;
+
+	gfx_init(&cro_canvas_ops, 1, argv);
+	sch_render_extra(sheet->sch);
+	cro_canvas_end(gfx_ctx, NULL, NULL, NULL, NULL);
+	sheet->gfx_ctx_extra = gfx_ctx;
+
 	sheet->rendered = 1;
 	// gfx_end();
 }

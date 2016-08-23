@@ -33,6 +33,7 @@ struct gui_sheet {
 	struct gui_ctx *ctx;	/* back link */
 	struct gui_hist *hist;	/* back link */
 	struct cro_ctx *gfx_ctx;
+	struct cro_ctx *gfx_ctx_extra;
 
 	int w, h;		/* in eeschema coordinates */
 	int xmin, ymin;
@@ -152,8 +153,6 @@ void sheet_setup(struct gui_ctx *ctx);
 void show_history(struct gui_ctx *ctx, enum selecting sel);
 
 /* gui.c */
-
-void unrender_all(struct gui_ctx *ctx);
 
 struct gui_sheet *find_corresponding_sheet(struct gui_sheet *pick_from,
      struct gui_sheet *ref_in, const struct gui_sheet *ref);

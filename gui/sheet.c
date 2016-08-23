@@ -552,8 +552,7 @@ static void sheet_key(void *user, int x, int y, int keyval)
 		break;
 	case GDK_KEY_e:
 		show_extra = !show_extra;
-		unrender_all(ctx);
-		go_to_sheet(ctx, ctx->curr_sheet);
+		redraw(ctx);
 		break;
 
 	case GDK_KEY_n:
