@@ -20,6 +20,7 @@ uint32_t color_rgb[] = {
 	[COLOR_BLACK]		= 0x000000,
 	[COLOR_BLUE]		= 0x0000ff,
 	[COLOR_GREEN]		= 0x00ff00,
+	[COLOR_CYAN]		= 0x00ffff,
 	[COLOR_RED]		= 0xff0000,
 	[COLOR_YELLOW]		= 0xffff00,
 	[COLOR_WHITE]		= 0xffffff,
@@ -42,6 +43,7 @@ uint32_t color_rgb[] = {
 		 * If COLOR_LIGHT_YELLOW should be visible in diff (and not
 		 * just appear white), use 0xffffa0 or darker.
 		 */
+	[COLOR_ORANGE]		= 0xff6000,
 };
 
 unsigned n_color_rgb = ARRAY_ELEMENTS(color_rgb);

@@ -42,6 +42,21 @@ static void transform_poly(unsigned n, int *vx, int *vy, const int m[6])
 }
 
 
+static void transform_poly_md(unsigned n, int *vx, int *vy, const int m[6],
+    int xo, int yo, int dx, int dy)
+{
+	unsigned i;
+	int x, y;
+
+	for (i = 0; i != n; i++) {
+		x = xo + dx * *vx + dy * *vy;
+		y = yo + dx * *vy + dy * *vx;
+		*vx++ = mx(x, y, m);
+		*vy++ = my(x, y, m);
+	}
+}
+
+
 /* ----- Polygons and rectangles ------------------------------------------- */
 
 
@@ -386,6 +401,142 @@ static void draw_pin_line(const struct lib_pin *pin, enum pin_shape shape,
 }
 
 
+/* ----- Pin etype --------------------------------------------------------- */
+
+
+static void draw_pin_etype(const struct lib_pin *pin, enum pin_shape shape,
+    int dx, int dy, const int m[6])
+{
+	int mx, my;
+	int x[6], y[6];
+	int i;
+
+	mx = (pin->x + pin->x + dx * pin->length) / 2;
+	my = (pin->y + pin->y + dy * pin->length)/ 2;
+
+	switch (pin->etype) {
+	case 'I':
+		x[0] = -PIN_EXTRA_R / 2;
+		y[0] = PIN_EXTRA_R;
+		x[1] = PIN_EXTRA_R / 2;
+		y[1] = 0;
+		x[2] = -PIN_EXTRA_R / 2;
+		y[2] = -PIN_EXTRA_R;
+		transform_poly_md(3, x, y, m, mx, my, dx, dy);
+		gfx_poly(3, x, y, COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		break;
+	case 'O':
+		x[0] = PIN_EXTRA_R / 2;
+		y[0] = PIN_EXTRA_R;
+		x[1] = -PIN_EXTRA_R / 2;
+		y[1] = 0;
+		x[2] = PIN_EXTRA_R / 2;
+		y[2] = -PIN_EXTRA_R;
+		transform_poly_md(3, x, y, m, mx, my, dx, dy);
+		gfx_poly(3, x, y, COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		break;
+	case 'B':
+	bidir:
+		x[0] = 0;
+		y[0] = PIN_EXTRA_R;
+		x[1] = -PIN_EXTRA_R;
+		y[1] = 0;
+		x[2] = 0;
+		y[2] = -PIN_EXTRA_R;
+		x[3] = PIN_EXTRA_R;
+		y[3] = 0;
+		x[4] = x[0];
+		y[4] = y[0];
+		transform_poly_md(5, x, y, m, mx, my, dx, dy);
+		gfx_poly(5, x, y, COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		break;
+	case 'T':
+		x[0] = 0;
+		y[0] = PIN_EXTRA_R;
+		x[1] = -PIN_EXTRA_R;
+		y[1] = 0;
+		x[2] = 0;
+		y[2] = -PIN_EXTRA_R;
+		x[3] = x[0];
+		y[3] = y[0];
+		x[4] = PIN_EXTRA_R;
+		y[4] = 0;
+		x[5] = 0;
+		y[5] = -PIN_EXTRA_R;
+		transform_poly_md(6, x, y, m, mx, my, dx, dy);
+		gfx_poly(6, x, y, COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		break;
+	case 'P':
+		x[0] = mx - PIN_EXTRA_R;
+		y[0] = my - PIN_EXTRA_R;
+		x[1] = mx + PIN_EXTRA_R;
+		y[1] = my + PIN_EXTRA_R;
+		transform_poly(2, x, y, m);
+		gfx_rect(x[0], y[0], x[1], y[1],
+		    COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		break;
+	case 'U':
+		break;
+	case 'W':
+		for (i = 0; i != 2; i++) {
+			x[0] = 0;
+			y[0] = PIN_EXTRA_R;
+			x[1] = PIN_EXTRA_R;
+			y[1] = 0;
+			x[2] = 0;
+			y[2] = -PIN_EXTRA_R;
+			transform_poly_md(3, x, y, m, mx - i * PIN_EXTRA_R, my,
+			    dx, dy);
+			gfx_poly(3, x, y,
+			    COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		}
+		break;
+	case 'w':
+		for (i = 0; i != 2; i++) {
+			x[0] = 0,
+			y[0] = PIN_EXTRA_R;
+			x[1] = -PIN_EXTRA_R;
+			y[1] = 0;
+			x[2] = 0;
+			y[2] = -PIN_EXTRA_R;
+			transform_poly_md(3, x, y, m, mx + i * PIN_EXTRA_R, my,
+			    dx, dy);
+			gfx_poly(3, x, y,
+			    COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		}
+		break;
+	case 'C':
+		x[0] = -PIN_EXTRA_R;
+		y[0] = PIN_EXTRA_R;
+		x[1] = PIN_EXTRA_R;
+		y[1] = PIN_EXTRA_R;
+		transform_poly_md(2, x, y, m, mx, my, dx, dy);
+		gfx_poly(2, x, y, COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		goto bidir;
+	case 'E':
+		x[0] = -PIN_EXTRA_R;
+		y[0] = -PIN_EXTRA_R;
+		x[1] = PIN_EXTRA_R;
+		y[1] = -PIN_EXTRA_R;
+		transform_poly_md(2, x, y, m, mx, my, dx, dy);
+		gfx_poly(2, x, y, COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		goto bidir;
+	case 'N':
+		x[0] = -PIN_EXTRA_R;
+		y[0] = -PIN_EXTRA_R;
+		x[1] = PIN_EXTRA_R;
+		y[1] = PIN_EXTRA_R;
+		transform_poly_md(2, x, y, m, mx, my, dx, dy);
+		gfx_poly(2, x, y, COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		swap(x[0], x[1]);
+		gfx_poly(2, x, y, COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		break;
+	default:
+		BUG("unrecognized etype '%c'", pin->etype);
+	}
+}
+
+
 /* ----- Pin basics -------------------------------------------------------- */
 
 
@@ -432,6 +583,38 @@ static void draw_pin(const struct comp *comp, const struct lib_pin *pin,
 
 	if (comp->show_pin_num)
 		draw_pin_num(comp, pin, m, dx, dy, rot, hor);
+}
+
+
+/* ----- Pin extras -------------------------------------------------------- */
+
+
+static void draw_pin_extra(const struct comp *comp, const struct lib_pin *pin,
+    const int m[6])
+{
+	int dx = 0, dy = 0;
+
+	if (pin->shape & pin_invisible)
+		return;
+
+	switch (pin->orient) {
+	case 'U':
+		dy = 1;
+		break;
+	case 'D':
+		dy = -1;
+		break;
+	case 'R':
+		dx = 1;
+		break;
+	case 'L':
+		dx = -1;
+		break;
+	default:
+		BUG("invalid orientation '%c'", pin->orient);
+	}
+
+	draw_pin_etype(pin, pin->etype, dx, dy, m);
 }
 
 
@@ -538,6 +721,25 @@ static void draw(const struct comp *comp, const struct lib_obj *obj,
 }
 
 
+static void draw_extra(const struct comp *comp, const struct lib_obj *obj,
+    const int m[6])
+{
+	switch (obj->type) {
+	case lib_obj_poly:
+	case lib_obj_rect:
+	case lib_obj_circ:
+	case lib_obj_arc:
+	case lib_obj_text:
+		break;
+	case lib_obj_pin:
+		draw_pin_extra(comp, &obj->u.pin, m);
+		break;
+	default:
+		BUG("invalid object type %d", obj->type);
+	}
+}
+
+
 static void missing_component(const int m[4])
 {
 	int sx = mx(0, 0, m);
@@ -550,8 +752,10 @@ static void missing_component(const int m[4])
 }
 
 
-void lib_render(const struct comp *comp, unsigned unit, unsigned convert,
-    const int m[4])
+static void render_lib(const struct comp *comp, unsigned unit, unsigned convert,
+    const int m[4],
+    void (*draw_fn)(const struct comp *comp, const struct lib_obj *obj,
+    const int m[4]))
 {
 	const struct lib_obj *obj;
 
@@ -566,6 +770,20 @@ void lib_render(const struct comp *comp, unsigned unit, unsigned convert,
 			continue;
 		if (obj->convert && obj->convert != convert)
 			continue;
-		draw(comp, obj, m);
+		draw_fn(comp, obj, m);
 	}
+}
+
+
+void lib_render(const struct comp *comp, unsigned unit, unsigned convert,
+    const int m[4])
+{
+	render_lib(comp, unit, convert, m, draw);
+}
+
+
+void lib_render_extra(const struct comp *comp, unsigned unit, unsigned convert,
+    const int m[4])
+{
+	render_lib(comp, unit, convert, m, draw_extra);
 }

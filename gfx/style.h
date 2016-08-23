@@ -22,6 +22,7 @@
 #define	COLOR_BLACK		0
 #define	COLOR_BLUE		1
 #define	COLOR_GREEN		2
+#define	COLOR_CYAN		3
 #define	COLOR_RED		4
 #define	COLOR_YELLOW		6
 #define	COLOR_WHITE		7
@@ -39,6 +40,7 @@
 #define	COLOR_DARK_YELLOW	32	/* user-defined */
 #define	COLOR_LIGHT_GREY	33	/* user-defined, not used by FIG */
 #define	COLOR_LIGHT_YELLOW	34	/* user-defined */
+#define	COLOR_ORANGE		35	/* user-defined */
 
 #define	COLOR_COMP_DWG		COLOR_RED4
 #define	COLOR_COMP_DWG_BG	COLOR_LIGHT_YELLOW
@@ -56,6 +58,7 @@
 #define	COLOR_FIELD		COLOR_CYAN4
 #define	COLOR_PIN_NAME		COLOR_FIELD
 #define	COLOR_PIN_NUMBER	COLOR_RED4
+#define	COLOR_PIN_EXTRA		COLOR_ORANGE
 #define	COLOR_MISSING_FG	COLOR_RED
 #define	COLOR_MISSING_BG	COLOR_PINK4
 
@@ -75,6 +78,7 @@
 #define	LAYER_HSHEET_BOX	70
 #define	LAYER_LINES		100
 #define	LAYER_COMP_DWG		120
+#define	LAYER_PIN_EXTRA		150
 #define	LAYER_COMP_DWG_BG	200
 
 #define	WIDTH_WIRE		2
@@ -98,6 +102,7 @@
 #define	MISSING_HEIGHT		300
 
 #define	PIN_R			25	/* radius and feature step */
+#define	PIN_EXTRA_R		25	/* feature step */
 
 
 extern uint32_t color_rgb[];
