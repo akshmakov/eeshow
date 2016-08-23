@@ -248,9 +248,9 @@ static void write_trailer(struct pdftoc *ctx)
 {
 	unsigned n = ctx->top + 1;
 	const struct object *obj = ctx->objs;
-	const struct object *end = ctx->objs + ctx->top + 1;
 	const struct title *t;
 	unsigned outline, tail;
+	int i;
 
 	/* Outline root */
 
@@ -267,10 +267,12 @@ static void write_trailer(struct pdftoc *ctx)
 	/* Outline items */
 
 	n++;
+	i = 0;
 	for (t = ctx->titles; t; t = t->next) {
-		while (!obj->is_page) {
-			assert(obj != end);
-			obj++;
+		assert(i <= ctx->top);
+		while (!ctx->objs[i].is_page) {
+			i++;
+			assert(i <= ctx->top);
 		}
 		add_object(ctx, n, 0, ctx->pos + tail);
 		tail += fprintf(ctx->file,
@@ -285,11 +287,11 @@ static void write_trailer(struct pdftoc *ctx)
 			tail += fprintf(ctx->file,
 			    "   /Next %u 0 R\n", n + 1);
 		tail += fprintf(ctx->file,
-		    "   /Dest [%u %u R /Fit]\n"
+		    "   /Dest [%d %u R /Fit]\n"
 		    ">>\nendobj\n",
-		    (unsigned) (obj - ctx->objs), obj->gen);
+		    i, ctx->objs[i].gen);
 		n++;
-		obj++;
+		i++;
 	}
 
 	/* xref table */
