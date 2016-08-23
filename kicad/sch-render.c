@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <assert.h>
 
+#include "misc/diag.h"
 #include "gfx/misc.h"
 #include "gfx/style.h"
 #include "gfx/gfx.h"
@@ -173,5 +174,7 @@ void sch_render(const struct sheet *sheet)
 		case sch_obj_sheet:
 			render_sheet(obj, &obj->u.sheet);
 			break;
+		default:
+			BUG("invalid object type \"%d\"", obj->type);
 		}
 }
