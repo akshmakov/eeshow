@@ -204,6 +204,14 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 		free_areas(&areas);
 
 		/* @@@ fix geometry later */
+		if (show_extra) {
+			cro_canvas_draw(ctx->delta_ab.gfx_ctx_extra, cr,
+			    x, y, f);
+			cro_canvas_draw(ctx->delta_a.gfx_ctx_extra, cr,
+			    x, y, f);
+			cro_canvas_draw(ctx->delta_b.gfx_ctx_extra, cr,
+			    x, y, f);
+		}
 		cro_canvas_draw(ctx->delta_ab.gfx_ctx, cr, x, y, f);
 		cro_canvas_draw(ctx->delta_a.gfx_ctx, cr, x, y, f);
 		cro_canvas_draw(ctx->delta_b.gfx_ctx, cr, x, y, f);
@@ -282,6 +290,10 @@ void render_delta(struct gui_ctx *ctx)
 	cro_color_override(ctx->delta_ab.gfx_ctx, COLOR_LIGHT_GREY);
 	cro_color_override(ctx->delta_b.gfx_ctx, COLOR_RED);
 	cro_color_override(ctx->delta_a.gfx_ctx, COLOR_GREEN2);
+
+	cro_color_override(ctx->delta_ab.gfx_ctx_extra, COLOR_LIGHT_GREY);
+	cro_color_override(ctx->delta_b.gfx_ctx_extra, COLOR_RED);
+	cro_color_override(ctx->delta_a.gfx_ctx_extra, COLOR_GREEN2);
 
 	// @@@ clean up when leaving sheet
 #endif
