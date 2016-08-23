@@ -22,6 +22,8 @@ Visualization (dwg.c and such):
 - nesting gfx in diff is a huge kludge, caused by global vars in gfx.c
 
 Rendering:
+- why does "NRESWARM-CPU" (70 mil) on sheet 27 (eMMC) grow outside its box ?
+  None of the others (60 mil) do.
 - better text size guessing also for FIG
 - consider switching to Hershey fonts (that's what eeschema uses, right ?)
   (goal: prevent font geometry from changing when scaling)
@@ -40,7 +42,6 @@ Rendering:
 - PDF has visible rounding errors at the default scale
 
 GUI:
-- fonts grow beyond their bounding boxes when zooming in
 - dragging can be slow. maybe reusing old content and only redrawing new
   will help ?
 - highlight nets ?
