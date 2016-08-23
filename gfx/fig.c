@@ -262,7 +262,7 @@ static void *fig_init(int argc, char *const *argv)
 		if (!strchr(argv[arg], '='))
 		    usage(*argv);
 		n_vars++;
-		vars = realloc(vars, sizeof(const char *) * n_vars);
+		vars = realloc_type_n(vars, const char *, n_vars);
 		vars[n_vars - 1] = argv[arg];
 	}
 

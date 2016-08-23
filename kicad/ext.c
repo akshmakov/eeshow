@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "misc/util.h"
 #include "misc/diag.h"
 #include "kicad/ext.h"
 
@@ -68,10 +69,8 @@ void classify_files(struct file_names *fn, char *const *args,
 			break;
 		case ext_lib:
 			fn->n_libs++;
-			fn->libs = realloc(fn->libs,
-			    fn->n_libs * sizeof(const char *));
-			if (!fn->libs)
-				diag_pfatal("realloc");
+			fn->libs = realloc_type_n(fn->libs, const char *,
+			    fn->n_libs);
 			fn->libs[fn->n_libs - 1] = args[i];
 			break;
 		case ext_pl:

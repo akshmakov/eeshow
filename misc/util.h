@@ -30,6 +30,18 @@
 #define alloc_type(t) ((t *) alloc_size(sizeof(t)))
 #define alloc_type_n(t, n) ((t *) alloc_size(sizeof(t) * (n)))
 
+
+#define realloc_size(p, s)				\
+    ({ void *alloc_size_tmp = realloc((p), (s));	\
+	if (!alloc_size_tmp) {				\
+		perror("realloc");			\
+		exit(1);				\
+	}						\
+	alloc_size_tmp; })
+
+#define realloc_type_n(p, t, n) ((t *) realloc_size((p), sizeof(t) * (n)))
+
+
 #define stralloc(s)					\
     ({	char *stralloc_tmp = strdup(s);			\
 	if (!stralloc_tmp) {				\

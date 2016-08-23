@@ -114,8 +114,7 @@ static void add_object(struct pdftoc *ctx, int id, int gen, unsigned pos)
 	struct object *obj;
 
 	if (id > ctx->top) {
-		ctx->objs = realloc(ctx->objs,
-		    (id + 1) * sizeof(struct object));
+		ctx->objs = realloc_type_n(ctx->objs, struct object, id + 1);
 		memset(ctx->objs + ctx->top + 1 , 0,
 		    (id - ctx->top) * sizeof(struct object));
 		ctx->top = id;

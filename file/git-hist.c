@@ -46,10 +46,8 @@ static struct hist *new_commit(unsigned branch)
 
 static void uplink(struct hist *down, struct hist *up)
 {
-	down->newer = realloc(down->newer,
-	    sizeof(struct hist *) * (down->n_newer + 1));
-	if (!down->newer)
-		diag_pfatal("realloc");
+	down->newer = realloc_type_n(down->newer, struct hist *,
+	    down->n_newer + 1);
 	down->newer[down->n_newer++] = up;
 }
 

@@ -83,9 +83,7 @@ static void add_string(struct sexpr_ctx *ctx, const char *end)
 	if (!new)
 		return;
 
-	e->s = realloc(e->s, old + new + 1);
-	if (!e->s)
-		diag_pfatal("realloc");
+	e->s = realloc_size(e->s, old + new + 1);
 	memcpy(e->s + old, ctx->p, new);
 	e->s[old + new] = 0;
 }

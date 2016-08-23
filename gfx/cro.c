@@ -404,9 +404,7 @@ static void cr_pdf_new_sheet(void *ctx)
 	struct cro_ctx *cc = ctx;
 
 	cc->n_sheets++;
-	cc->sheets = realloc(cc->sheets, sizeof(struct record) * cc->n_sheets);
-	if (!cc->sheets)
-		diag_pfatal("realloc");
+	cc->sheets = realloc_type_n(cc->sheets, struct record, cc->n_sheets);
 	cc->sheets[cc->n_sheets - 1] = cc->record;
 	record_wipe(&cc->record);
 }

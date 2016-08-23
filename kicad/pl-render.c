@@ -109,9 +109,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			break;
 		}
 		len = strlen(x);
-		res = realloc(res, size + p - s + len);
-		if (!res)
-			diag_pfatal("realloc");
+		res = realloc_size(res, size + p - s + len);
 		memcpy(res + size, s, p - s);
 		size += p - s;
 		s = p + 2;
@@ -120,9 +118,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 	}
 
 	len = strlen(s);
-	res = realloc(res, size + len + 1);
-	if (!res)
-		diag_pfatal("realloc");
+	res = realloc_size(res, size + len + 1);
 	memcpy(res + size, s, len + 1);
 	return res;
 }
@@ -134,9 +130,7 @@ static char *increment(char *s, int inc, const char *range)
 	unsigned len = strlen(s);
 	int base, n;
 
-	t = realloc(s, len + 2);
-	if (!t)
-		diag_perror("realloc");
+	t = realloc_size(s, len + 2);
 	t[len + 1] = 0;
 
 	base = range[1] - range[0] + 1;
