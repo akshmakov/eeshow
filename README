@@ -170,7 +170,8 @@ eeshow `sed -n '/pcbnew/q;/^LibName[0-9]*=/{s///;s/$/.lib/p;};d' anelok.pro` \
 Mouse function in GUI mode
 --------------------------
 
-Eeshow uses only the left mouse button and the scroll wheel.
+Eeshow uses only the left and middle mouse button (both are equivalent)
+and the scroll wheel.
 
 Hover			show additional details on revisions, sheets, global
 			labels

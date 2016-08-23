@@ -41,6 +41,7 @@ static struct input {
 	struct input *next;
 } *sp = NULL;
 
+static int buttons = 0;
 static int curr_x, curr_y;		/* last mouse position */
 static double clicked_x, clicked_y;	/* button down position */
 
@@ -218,10 +219,12 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
 static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event,
     gpointer data)
 {
-	if (event->button != 1)
+	if (event->button > 2)
 		return TRUE;
 
 	progress(3, "press %s", state());
+
+	buttons |= 1 << event->button;
 
 	switch (sp->state) {
 	case input_idle:
@@ -253,10 +256,14 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event,
 {
 	const struct input *old_sp = sp;
 
-	if (event->button != 1)
+	if (event->button > 2)
 		return TRUE;
 
 	progress(3, "release %s", state());
+
+	buttons &= ~(1 << event->button);
+	if (buttons)
+		return TRUE;
 
 	switch (sp->state) {
 	case input_idle:
