@@ -392,6 +392,22 @@ static bool related_only_repo(struct vcs_git *vcs_git)
 	if (!tmp)
 		return 0;
 
+	/*
+	 * We now have a new path, but where does it lead ? If it contains a
+	 * symlink, we may end up in an entirely different repo, where new
+	 * adventures await. Let's find out ...
+	 */
+	vcs_git->repo = select_repo(tmp);
+	if (vcs_git->repo) {
+		free((char *) vcs_git->name);
+		vcs_git->name = tmp;
+		if (!strcmp(git_repository_path(vcs_git->related->repo),
+		    git_repository_path(vcs_git->repo)))
+			return related_same_repo(vcs_git);
+		else
+			return related_other_repo(vcs_git);
+	}
+
 	vcs_git->repo = related->repo;
 	vcs_git->tree = related->tree;
 
