@@ -50,7 +50,7 @@ else
 	HELP_TEXT = help.txt
 endif
 
-include ../common/Makefile.c-common
+include Makefile.c-common
 
 .PHONY:		test neo900 sch test testref png pngref pdf diff view newref
 
