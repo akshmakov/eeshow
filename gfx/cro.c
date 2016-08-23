@@ -315,15 +315,18 @@ static struct cro_ctx *init_common(int argc, char *const *argv)
 
 void cro_get_size(const struct cro_ctx *cc, int *w, int *h, int *x, int *y)
 {
+	int bw, bh;
 	int xmin, ymin;
 
-	record_bbox(&cc->record, &xmin, &ymin, w, h);
+	record_bbox(&cc->record, &xmin, &ymin, &bw, &bh);
 
-//	fprintf(stderr, "%dx%d%+d%+d\n", *w, *h, xmin, ymin);
+//	fprintf(stderr, "%dx%d%+d%+d\n", bw, bh, xmin, ymin);
 	*x = xmin;
 	*y = ymin;
-	*w = cd(cc, *w);
-	*h = cd(cc, *h);
+	if (w)
+		*w = cd(cc, bw);
+	if (h)
+		*h = cd(cc, bh);
 //	fprintf(stderr, "%dx%d%+d%+d\n", *w, *h, xmin, ymin);
 }
 
@@ -535,8 +538,10 @@ void cro_img_write(struct cro_ctx *cc, const char *name)
 void cro_canvas_end(struct cro_ctx *cc, int *w, int *h, int *xmin, int *ymin)
 {
 	end_common(cc, w, h, xmin, ymin);
-	*w /= cc->scale;
-	*h /= cc->scale;
+	if (w)
+		*w /= cc->scale;
+	if (h)
+		*h /= cc->scale;
 }
 
 
