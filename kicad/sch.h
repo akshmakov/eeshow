@@ -132,6 +132,7 @@ struct sch_ctx {
 void decode_alignment(struct text *txt, char hor, char vert);
 
 void sch_render(const struct sheet *sheet);
+void sch_render_extra(const struct sheet *sheet);
 bool sch_parse(struct sch_ctx *ctx, struct file *file, const struct lib *lib,
     const struct sch_ctx *prev);
 void sch_init(struct sch_ctx *ctx, bool recurse);
