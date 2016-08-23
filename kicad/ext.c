@@ -84,3 +84,37 @@ void classify_files(struct file_names *fn, char *const *args,
 		}
 	}
 }
+
+
+struct file_names *clone_file_names(const struct file_names *fn)
+{
+	struct file_names *new;
+	unsigned i;
+
+	new = alloc_type(struct file_names);
+	new->pro = fn && fn->pro ? stralloc(fn->pro) : NULL;
+	new->sch = fn && fn->sch ? stralloc(fn->sch) : NULL;
+	new->pl = fn && fn->pl ? stralloc(fn->pl) : NULL;
+	new->n_libs = fn ? fn->n_libs : 0;
+	if (!fn) {
+		new->libs = NULL;
+		return new;
+	}
+	new->libs = alloc_type_n(const char *, fn->n_libs);
+	for (i = 0; i != fn->n_libs; i++)
+		new->libs[i] = stralloc(fn->libs[i]);
+	return new;
+}
+
+
+void free_file_names(struct file_names *fn)
+{
+	unsigned i;
+
+	free((void *) fn->pro);
+	free((void *) fn->sch);
+	free((void *) fn->pl);
+	for (i = 0; i != fn->n_libs; i++)
+		free((void *) fn->libs[i]);
+	free(fn->libs);
+}
