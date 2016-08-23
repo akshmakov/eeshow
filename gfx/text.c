@@ -17,6 +17,7 @@
 #include <string.h>
 
 #include "misc/util.h"
+#include "misc/diag.h"
 #include "gfx/misc.h"
 #include "gfx/style.h"
 #include "gfx/gfx.h"
@@ -64,7 +65,7 @@ enum text_align text_flip(enum text_align align)
 	case text_max:
 		return text_min;
 	default:
-		abort();
+		BUG("invalid alignment %d", align);
 	}
 }
 
@@ -87,7 +88,7 @@ static int align(int dim, enum text_align align)
 	case text_max:
 		return dim;
 	default:
-		abort();
+		BUG("invalid alignment %d", align);
 	}
 }
 

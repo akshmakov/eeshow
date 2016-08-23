@@ -599,7 +599,7 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 	case sch_eof:
 		return 1;
 	default:
-		abort();
+		BUG("invalid state %d", ctx->state);
 	}
 	fatal("%s:%u: cannot parse\n\"%s\"\n", file->name, file->lineno, line);
 }

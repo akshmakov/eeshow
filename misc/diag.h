@@ -23,6 +23,16 @@
 extern unsigned verbose;
 
 
+/* ----- Internal errors --------------------------------------------------- */
+
+
+#define	STRINGIFY(s) #s
+#define	STRINGIFY_EXPAND(s) STRINGIFY(s)
+
+#define	BUG(...) \
+	fatal("BUG " __FILE__ ":" STRINGIFY_EXPAND(__LINE__) ": " __VA_ARGS__)
+
+	
 /* ----- Specialized diagnostic functions ---------------------------------- */
 
 

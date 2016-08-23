@@ -16,6 +16,7 @@
 #include <assert.h>
 
 #include "misc/util.h"
+#include "misc/diag.h"
 #include "file/file.h"
 #include "kicad/ext.h"
 #include "kicad/pro.h"
@@ -77,7 +78,7 @@ static bool pro_parse_line(const struct file *file,
 		}
 		break;
 	default:
-		abort();
+		BUG("invalid state %d", pro->state);
 	}
 	return 1;
 }

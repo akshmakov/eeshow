@@ -220,7 +220,7 @@ static void cr_text(void *ctx, int x, int y, const char *s, unsigned size,
 		cairo_rel_move_to(cc->cr, -ext.width, 0);
 		break;
 	default:
-		abort();
+		BUG("invalid alignment %d", align);
 	}
 
 	cairo_show_text(cc->cr, s);

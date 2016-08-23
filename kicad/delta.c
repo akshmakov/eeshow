@@ -17,6 +17,7 @@
 #include <string.h>
 
 #include "misc/util.h"
+#include "misc/diag.h"
 #include "gfx/text.h"
 #include "kicad/lib.h"
 #include "kicad/sch.h"
@@ -98,7 +99,7 @@ static bool comp_eq_obj(const struct lib_obj *a, const struct lib_obj *b)
 		    !strcmp(a->u.pin.name, b->u.pin.name) &&
 		    !strcmp(a->u.pin.number, b->u.pin.number);
 	default:
-		abort();
+		BUG("invalid type %d", a->type);
 	}
 }
 
@@ -320,7 +321,7 @@ static bool obj_eq(const struct sch_obj *a, const struct sch_obj *b,
 			return 0;
 		return sheet_eq(a->u.sheet.sheet, b->u.sheet.sheet);
 	default:
-		abort();
+		BUG("invalid type %d", a->type);
 	}
 }
 

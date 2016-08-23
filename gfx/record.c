@@ -16,6 +16,7 @@
 #include <math.h>
 
 #include "misc/util.h"
+#include "misc/diag.h"
 #include "gfx/style.h"
 #include "gfx/gfx.h"
 #include "gfx/text.h"
@@ -289,7 +290,7 @@ void record_replay(const struct record *rec)
 				    obj->color, layer->layer);
 				break;
 			default:
-				abort();
+				BUG("invalid object type %d", obj->type);
 			}
 }
 

@@ -173,7 +173,7 @@ static void line(struct pdftoc *ctx, const char *s)
 		}
 		break;
 	case xref:
-		abort();
+		BUG("cannot be in xref");
 	case trailer:
 		if (sscanf(s, "   /Root %d 0 R", &ctx->root) == 1)
 			break;
@@ -181,7 +181,7 @@ static void line(struct pdftoc *ctx, const char *s)
 			break;
 		break;
 	default:
-		abort();
+		BUG("invalid state %d", ctx->state);
 	}
 }
 

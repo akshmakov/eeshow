@@ -99,13 +99,13 @@ static void select_subsheet(void *user)
 				go_to_sheet(ctx, sheet);
 				return;
 			}
-		abort();
+		BUG("new sheet not found");
 	}
 
 	for (sheet = ctx->old_hist->sheets; sheet; sheet = sheet->next)
 		if (sheet->sch == obj->u.sheet.sheet)
 			goto found;
-	abort();
+	BUG("old sheet not found");
 
 found:
 	sheet = find_corresponding_sheet(ctx->new_hist->sheets,

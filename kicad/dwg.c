@@ -18,6 +18,7 @@
 #include <assert.h>
 
 #include "misc/util.h"
+#include "misc/diag.h"
 #include "gfx/misc.h"
 #include "gfx/style.h"
 #include "gfx/text.h"
@@ -74,7 +75,7 @@ static enum box_type flip_box(enum box_type box)
 	case box_both:
 		return box_both;
 	default:
-		abort();
+		BUG("invalid box type %d", box);
 	}
 }
 

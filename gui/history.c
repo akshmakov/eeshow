@@ -18,6 +18,7 @@
 #include <pango/pangocairo.h>
 
 #include "misc/util.h"
+#include "misc/diag.h"
 #include "file/git-hist.h"
 #include "gui/fmt-pango.h"
 #include "gui/style.h"
@@ -60,7 +61,7 @@ static void set_history_style(struct gui_hist *h, bool current)
 		style.frame = COLOR(FRAME_SEL_NEW);
 		break;
 	default:
-		abort();
+		BUG("invalid mode %d", ctx->selecting);
 	}
 
 	if (ctx->new_hist == h || ctx->old_hist == h) {
@@ -170,7 +171,7 @@ static void click_history(void *user)
 		ctx->old_hist = h;
 		break;
 	default:
-		abort();
+		BUG("invalid mode %d", ctx->selecting);
 	}
 
 	ctx->diff_mode = diff_delta;

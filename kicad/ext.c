@@ -46,13 +46,15 @@ void classify_files(struct file_names *fn, char *const *args,
     unsigned n_args)
 {
 	unsigned i;
+	enum ext ext;
 
 	fn->pro = fn->sch = fn->pl = NULL;
 	fn->libs = NULL;
 	fn->n_libs = 0;
 
 	for (i = 0; i != n_args; i++) {
-		switch (identify(args[i])) {
+		ext = identify(args[i]);
+		switch (ext) {
 		case ext_unknown:
 			fatal("%s: unknown file type", args[i]);
 		case ext_project:
@@ -80,7 +82,7 @@ void classify_files(struct file_names *fn, char *const *args,
 			fn->pl = args[i];
 			break;
 		default:
-			abort();
+			BUG("invalid extension code %d", ext);
 		}
 	}
 }

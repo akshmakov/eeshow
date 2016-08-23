@@ -71,7 +71,7 @@ static void draw_poly(const struct lib_poly *poly, const int m[6])
 		    LAYER_COMP_DWG_BG);
 		break;
 	default:
-		abort();
+		BUG("invalid fill '%c'", poly->fill);
 	}
 }
 
@@ -97,7 +97,7 @@ static void draw_rect(const struct lib_rect *rect, const int m[6])
 		    LAYER_COMP_DWG_BG);
 		break;
 	default:
-		abort();
+		BUG("invalid fill '%c'", rect->fill);
 	}
 }
 
@@ -125,7 +125,7 @@ static void draw_circ(const struct lib_circ *circ, const int m[6])
 		    LAYER_COMP_DWG_BG);
 		break;
 	default:
-		abort();
+		BUG("invalid fill '%c'", circ->fill);
 	}
 }
 
@@ -422,7 +422,7 @@ static void draw_pin(const struct comp *comp, const struct lib_pin *pin,
 		hor = text_max;
 		break;
 	default:
-		abort();
+		BUG("invalid orientation '%c'", pin->orient);
 	}
 
 	draw_pin_line(pin, shape, dx, dy, m);
@@ -474,7 +474,7 @@ static void draw_text(const struct lib_text *text, const int m[6])
 			txt.vert = text_flip(txt.vert);
 			break;
 		default:
-			abort();
+			BUG("unknown rotation %d", txt.rot);
 		}
 
 	text_fig(&txt, COLOR_COMP_DWG, WIDTH_COMP_DWG);
@@ -533,7 +533,7 @@ static void draw(const struct comp *comp, const struct lib_obj *obj,
 		draw_pin(comp, &obj->u.pin, m);
 		break;
 	default:
-		abort();
+		BUG("invalid object type %d", obj->type);
 	}
 }
 

@@ -1,7 +1,7 @@
 Parsing and input processing:
 - unify alignment, direction
 - on parse error, politely complain, don't terminate;
-  convert abort / assert(0) to proper error indications
+- convert assert(0) to proper error indications (BUG or such)
 - quoted strings can have embedded double quotes, with \" (see parse_field)
 - check what happens with UTF-8 (c4puter/motherboard)
 

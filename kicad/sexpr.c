@@ -108,7 +108,7 @@ static void end_string(struct sexpr_ctx *ctx, const char *end)
 				*t++ = '\t';
 				continue;
 			case 0:
-				abort();
+				BUG("escaped NUL");
 			default:
 				break;
 			}
@@ -203,7 +203,7 @@ bool sexpr_parse(struct sexpr_ctx *ctx, const char *s)
 		case failed:
 			return 0;
 		default:
-			abort();
+			BUG("invalid state %d", ctx->state);
 		}
 		s++;
 	}

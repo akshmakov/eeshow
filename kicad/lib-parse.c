@@ -313,7 +313,7 @@ static bool lib_parse_line(const struct file *file,
 		}
 		break;
 	default:
-		abort();
+		BUG("invalid state %d", lib->state);
 	}
 	fatal("%u: cannot parse\n\"%s\"\n", file->lineno, line);
 }

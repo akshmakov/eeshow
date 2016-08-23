@@ -65,7 +65,7 @@ static const char *state(void)
 	case input_dragging:
 		return "DRAGGING";
 	default:
-		abort();
+		BUG("invalid state %d", sp->state);
 	}
 }
 
@@ -133,7 +133,7 @@ static void hover_update(int x, int y)
 		break;
 	case input_dragging:
 	default:
-		abort();
+		BUG("invalid state %d", sp->state);
 	}
 
 	if (sp->ops->hover_end)
@@ -164,7 +164,7 @@ void input_update(void)
 	case input_dragging:
 		break;
 	default:
-		abort();
+		BUG("invalid state %d", sp->state);
 	}
 }
 
@@ -210,7 +210,7 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
 		clicked_y = event->y;
 		break;
 	default:
-		abort();
+		BUG("invalid state %d", sp->state);
 	}
 	return TRUE;
 }
@@ -244,7 +244,7 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event,
 		clicked_y = event->y;
 		break;
 	default:
-		abort();
+		BUG("invalid state %d", sp->state);
 	}
 
 	return TRUE;
@@ -294,7 +294,7 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event,
 		}
 		break;
 	default:
-		abort();
+		BUG("invalid state %d", sp->state);
 	}
 
 	return TRUE;
