@@ -25,7 +25,24 @@
 #include "kicad/lib.h"
 
 
-/* ----- Drawing ----------------------------------------------------------- */
+/* ----- Helper functions -------------------------------------------------- */
+
+
+static void transform_poly(unsigned n, int *vx, int *vy, const int m[6])
+{
+	unsigned i;
+	int x, y;
+
+	for (i = 0; i != n; i++) {
+		x = mx(*vx, *vy, m);
+		y = my(*vx, *vy, m);
+		*vx++ = x;
+		*vy++ = y;
+	}
+}
+
+
+/* ----- Polygons and rectangles ------------------------------------------- */
 
 
 static void draw_poly(const struct lib_poly *poly, const int m[6])
@@ -83,6 +100,9 @@ static void draw_rect(const struct lib_rect *rect, const int m[6])
 		abort();
 	}
 }
+
+
+/* ----- Circles and arcs -------------------------------------------------- */
 
 
 static void draw_circ(const struct lib_circ *circ, const int m[6])
@@ -154,6 +174,9 @@ static void draw_arc(const struct lib_arc *arc, const int m[6])
 	gfx_arc(x, y, arc->r, sa, ea,
 	    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 }
+
+
+/* ----- Pin name and number ----------------------------------------------- */
 
 
 static void draw_pin_name(const struct comp *comp, const struct lib_pin *pin,
@@ -269,18 +292,7 @@ static void draw_pin_num(const struct comp *comp, const struct lib_pin *pin,
 }
 
 
-static void transform_poly(unsigned n, int *vx, int *vy, const int m[6])
-{
-	unsigned i;
-	int x, y;
-
-	for (i = 0; i != n; i++) {
-		x = mx(*vx, *vy, m);
-		y = my(*vx, *vy, m);
-		*vx++ = x;
-		*vy++ = y;
-	}
-}
+/* ----- Pin shape --------------------------------------------------------- */
 
 
 static void draw_pin_line(const struct lib_pin *pin, enum pin_shape shape,
@@ -325,6 +337,11 @@ static void draw_pin_line(const struct lib_pin *pin, enum pin_shape shape,
 		gfx_poly(4, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 	}
 
+	/*
+	 * @@@ known bug: pin_input_low and pin_output_low are "stay up" in
+	 * eeschema, while we just rotate them without further ado.
+	 */
+
 	if (shape & pin_input_low) {
 		x[0] = ex;
 		y[0] = ey;
@@ -367,6 +384,9 @@ static void draw_pin_line(const struct lib_pin *pin, enum pin_shape shape,
 		gfx_poly(2, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 	}
 }
+
+
+/* ----- Pin basics -------------------------------------------------------- */
 
 
 static void draw_pin(const struct comp *comp, const struct lib_pin *pin,
@@ -415,6 +435,9 @@ static void draw_pin(const struct comp *comp, const struct lib_pin *pin,
 }
 
 
+/* ----- Text -------------------------------------------------------------- */
+
+
 static void draw_text(const struct lib_text *text, const int m[6])
 {
 	struct text txt = {
@@ -458,6 +481,35 @@ static void draw_text(const struct lib_text *text, const int m[6])
 }
 
 
+/* ----- Lookup and properties --------------------------------------------- */
+
+
+const struct comp *lib_find(const struct lib *lib, const char *name)
+{
+	const struct comp *comp;
+	const struct comp_alias *alias;
+
+	for (comp = lib->comps; comp; comp = comp->next) {
+		if (!strcmp(comp->name, name))
+			return comp;
+		for (alias = comp->aliases; alias; alias = alias->next)
+			if (!strcmp(alias->name, name))
+				return comp;
+	}
+	error("\"%s\" not found", name);
+	return NULL;
+}
+
+
+bool lib_field_visible(const struct comp *comp, int n)
+{
+	return (comp->visible >> n) & 1;
+}
+
+
+/* ----- Rendering --------------------------------------------------------- */
+
+
 static void draw(const struct comp *comp, const struct lib_obj *obj,
     const int m[6])
 {
@@ -483,29 +535,6 @@ static void draw(const struct comp *comp, const struct lib_obj *obj,
 	default:
 		abort();
 	}
-}
-
-
-const struct comp *lib_find(const struct lib *lib, const char *name)
-{
-	const struct comp *comp;
-	const struct comp_alias *alias;
-
-	for (comp = lib->comps; comp; comp = comp->next) {
-		if (!strcmp(comp->name, name))
-			return comp;
-		for (alias = comp->aliases; alias; alias = alias->next)
-			if (!strcmp(alias->name, name))
-				return comp;
-	}
-	error("\"%s\" not found", name);
-	return NULL;
-}
-
-
-bool lib_field_visible(const struct comp *comp, int n)
-{
-	return (comp->visible >> n) & 1;
 }
 
 
