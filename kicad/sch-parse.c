@@ -42,7 +42,7 @@ static enum dwg_shape do_decode_shape(const char *s)
 		return dwg_tri;
 	if (!strcmp(s, "BiDi"))
 		return dwg_bidir;
-	fatal("unknown shape: \"%s\"\n", s);
+	fatal("unknown shape: \"%s\"", s);
 }
 
 
@@ -198,7 +198,7 @@ static enum dwg_shape decode_form(char form)
 	case 'U':
 		return dwg_unspec;
 	default:
-		fatal("unknown form: \"%c\"\n", form);
+		fatal("unknown form: \"%c\"", form);
 	}
 }
 
@@ -215,7 +215,7 @@ static int decode_side(char side)
 	case 'T':
 		return 3;	/* down */
 	default:
-		fatal("unknown side: \"%c\"\n", side);
+		fatal("unknown side: \"%c\"", side);
 	}
 }
 
@@ -601,7 +601,7 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 	default:
 		BUG("invalid state %d", ctx->state);
 	}
-	fatal("%s:%u: cannot parse\n\"%s\"\n", file->name, file->lineno, line);
+	fatal("%s:%u: cannot parse\n\"%s\"", file->name, file->lineno, line);
 }
 
 

@@ -290,7 +290,7 @@ static bool lib_parse_line(const struct file *file,
 		if (n == 12) {
 			if (zero1)
 				fatal("%u: only understand 0 x x\n"
-				    "\"%s\"\n", file->lineno, line);
+				    "\"%s\"", file->lineno, line);
 			obj->u.text.style = decode_style(style);
 			obj->type = lib_obj_text;
 			return 1;
@@ -315,7 +315,7 @@ static bool lib_parse_line(const struct file *file,
 	default:
 		BUG("invalid state %d", lib->state);
 	}
-	fatal("%u: cannot parse\n\"%s\"\n", file->lineno, line);
+	fatal("%u: cannot parse\n\"%s\"", file->lineno, line);
 }
 
 
