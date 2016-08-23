@@ -14,8 +14,9 @@
 #ifndef MISC_UTIL_H
 #define MISC_UTIL_H
 
-#include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 
@@ -62,5 +63,11 @@
 
 #define	unsupported(s) \
 	fprintf(stderr, __FILE__ ":%d: unsupported: " s "\n", __LINE__)
+
+
+static inline bool strbegins(const char *s, const char *prefix)
+{
+	return !strncmp(s, prefix, strlen(prefix));
+}
 
 #endif /* !MISC_UTIL_H */
