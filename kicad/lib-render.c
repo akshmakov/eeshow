@@ -49,8 +49,8 @@ static void transform_poly_md(unsigned n, int *vx, int *vy, const int m[6],
 	int x, y;
 
 	for (i = 0; i != n; i++) {
-		x = xo + dx * *vx + dy * *vy;
-		y = yo + dx * *vy + dy * *vx;
+		x = xo + dx * *vx - dy * *vy;
+		y = yo + dy * *vx + dx * *vy;
 		*vx++ = mx(x, y, m);
 		*vy++ = my(x, y, m);
 	}
@@ -479,27 +479,30 @@ static void draw_pin_etype(const struct lib_pin *pin, enum pin_shape shape,
 		break;
 	case 'W':
 		for (i = 0; i != 2; i++) {
-			x[0] = 0;
+			int off = -i * PIN_EXTRA_R;
+
+			x[0] = off;
 			y[0] = PIN_EXTRA_R;
-			x[1] = PIN_EXTRA_R;
+			x[1] = off + PIN_EXTRA_R;
 			y[1] = 0;
-			x[2] = 0;
+			x[2] = off;
 			y[2] = -PIN_EXTRA_R;
-			transform_poly_md(3, x, y, m, mx - i * PIN_EXTRA_R, my,
-			    dx, dy);
+			transform_poly_md(3, x, y, m, mx, my, dx, dy);
 			gfx_poly(3, x, y,
 			    COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
 		}
 		break;
 	case 'w':
 		for (i = 0; i != 2; i++) {
-			x[0] = 0,
+			int off = -i * PIN_EXTRA_R;
+
+			x[0] = off;
 			y[0] = PIN_EXTRA_R;
-			x[1] = -PIN_EXTRA_R;
+			x[1] = off - PIN_EXTRA_R;
 			y[1] = 0;
-			x[2] = 0;
+			x[2] = off;
 			y[2] = -PIN_EXTRA_R;
-			transform_poly_md(3, x, y, m, mx + i * PIN_EXTRA_R, my,
+			transform_poly_md(3, x, y, m, mx, my,
 			    dx, dy);
 			gfx_poly(3, x, y,
 			    COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
