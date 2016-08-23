@@ -153,7 +153,8 @@ static void line(struct pdftoc *ctx, const char *s)
 			ctx->state = idle;
 			break;
 		}
-		if (strbegins(s, "<< /Type /Page")) {
+		if (strbegins(s, "<< /Type /Page") &&
+		    !strbegins(s, "<< /Type /Pages")) {
 			ctx->curr_obj->is_page = 1;
 			break;
 		}
