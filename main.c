@@ -31,6 +31,7 @@
 #include "kicad/pl.h"
 #include "kicad/lib.h"
 #include "kicad/sch.h"
+#include "kicad/pro.h"
 #include "gui/fmt-pango.h"
 #include "file/git-hist.h"
 #include "gui/gui.h"
@@ -75,7 +76,7 @@ void usage(const char *name)
 "       %s gdb ...\n"
 "\n"
 "  kicad_file  [rev:]file.ext\n"
-"    ext       .lib, .sch, or .kicad_wks\n"
+"    ext       .pro, .lib, .sch, or .kicad_wks\n"
 "    rev       git revision\n"
 "\n"
 "  -r    recurse into sub-sheets\n"
@@ -120,7 +121,7 @@ int main(int argc, char **argv)
 {
 	struct lib lib;
 	struct sch_ctx sch_ctx;
-	struct file sch_file;
+	struct file pro_file, sch_file;
 	bool recurse = 0;
 	const char *cat = NULL;
 	const char *history = NULL;
@@ -132,6 +133,7 @@ int main(int argc, char **argv)
 	unsigned i;
 	bool have_dashdash = 0;
 	struct file_names file_names;
+	struct file_names *fn = &file_names;
 	int gfx_argc;
 	char **gfx_argv;
 	const struct gfx_ops **ops = ops_list;
@@ -221,27 +223,33 @@ int main(int argc, char **argv)
 		usage(*argv);
 
 	classify_files(&file_names, argv + optind, dashdash - optind);
-	if (!file_names.sch)
-		fatal("top sheet name required");
+	if (!file_names.pro && !file_names.sch)
+		fatal("project or top sheet name required");
 
 	if (!have_dashdash) {
 		optind = 0; /* reset getopt */
 		return gui(&file_names, recurse, limit);
 	}
 
+	if (file_names.pro) {
+		if (!file_open(&pro_file, file_names.pro, NULL))
+			return 1;
+		fn = pro_parse_file(&pro_file, &file_names);
+	}
+
 	sch_init(&sch_ctx, recurse);
-	if (!file_open(&sch_file, file_names.sch, NULL))
+	if (!file_open(&sch_file, fn->sch, file_names.pro ? &pro_file : NULL))
 		return 1;
 
 	lib_init(&lib);
-	for (i = 0; i != file_names.n_libs; i++)
-		if (!lib_parse(&lib, file_names.libs[i], &sch_file))
+	for (i = 0; i != fn->n_libs; i++)
+		if (!lib_parse(&lib, fn->libs[i], &sch_file))
 			return 1;
 
-	if (file_names.pl) {
+	if (fn->pl) {
 		struct file file;
 
-		if (!file_open(&file, file_names.pl, &sch_file))
+		if (!file_open(&file, fn->pl, &sch_file))
 			return 1;
 		pl = pl_parse(&file);
 		file_close(&file);
