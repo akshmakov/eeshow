@@ -75,13 +75,13 @@ static inline double dc(const struct cro_ctx *cc, double x)
 }
 
 
-static inline double cx(const struct cro_ctx *cc, int x)
+static inline int cx(const struct cro_ctx *cc, int x)
 {
 	return cc->xo + x * cc->scale;
 }
 
 
-static inline double cy(const struct cro_ctx *cc, int y)
+static inline int cy(const struct cro_ctx *cc, int y)
 {
 	return cc->yo + y * cc->scale;
 }
@@ -381,6 +381,8 @@ static void *cr_pdf_init(int argc, char *const *argv)
 
 	cc = init_common(argc, argv);
 
+	cc->scale *= 16;
+
 	/* cr_text_width needs *something* to work with */
 
 	cc->s = cairo_pdf_surface_create(NULL, 16, 16);
@@ -421,6 +423,9 @@ static void cr_pdf_end(void *ctx)
 
 	end_common(cc, &w, &h, NULL, NULL);
 
+	w = (w + 15) >> 4;
+	h = (h + 15) >> 4;
+
 	if (cc->toc)
 		cc->s = cairo_pdf_surface_create_for_stream(stream_to_pdftoc,
 		    cc, w, h);
@@ -431,6 +436,7 @@ static void cr_pdf_end(void *ctx)
 		    NULL, w, h);
 	cc->cr = cairo_create(cc->s);
 
+	cairo_scale(cc->cr, 1.0 / 16.0, 1.0 / 16);
 	cairo_select_font_face(cc->cr, "Helvetica", CAIRO_FONT_SLANT_NORMAL,
 	    CAIRO_FONT_WEIGHT_BOLD);
 	cairo_set_line_width(cc->cr, 0.5 * cc->scale);
