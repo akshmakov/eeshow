@@ -114,8 +114,8 @@ clean::
 
 #----- Render Neo900 schematics -----------------------------------------------
 
-NEO900_HW = ../../../n9/ee/hw
-KICAD_LIBS = ../../kicad-libs/components
+NEO900_HW = ../../n9/ee/hw
+KICAD_LIBS = ../../qi/kicad-libs/components
 
 SHEET ?= 12
 
