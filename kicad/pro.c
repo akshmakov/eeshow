@@ -102,7 +102,8 @@ struct file_names *pro_parse_file(struct file *file,
 
 		assert(pro.fn->pro);
 		s = stralloc(pro.fn->pro);
-		dot = strchr(s, '.');
+		dot = strrchr(s, '.');
+		assert(!strcmp(dot, ".pro"));
 		strcpy(dot, ".sch");
 		pro.fn->sch = s;
 	}
