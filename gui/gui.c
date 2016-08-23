@@ -34,6 +34,7 @@
 #include "kicad/pl.h"
 #include "kicad/lib.h"
 #include "kicad/sch.h"
+#include "kicad/pro.h"
 #include "kicad/delta.h"
 #include "gui/aoi.h"
 #include "gui/input.h"
@@ -216,9 +217,9 @@ static const struct sheet *parse_files(struct gui_hist *hist,
     const struct file_names *fn, bool recurse, struct gui_hist *prev)
 {
 	char *rev = NULL;
-	struct file sch_file;
-	struct file lib_files[fn->n_libs];
+	struct file pro_file, sch_file;
 	struct file pl_file;
+	const struct file *leader = NULL;
 	unsigned libs_open, i;
 	bool libs_cached = 0;
 	bool ok;
@@ -226,24 +227,47 @@ static const struct sheet *parse_files(struct gui_hist *hist,
 	if (hist->vcs_hist && hist->vcs_hist->commit)
 		rev = vcs_git_get_rev(hist->vcs_hist);
 
+	if (fn->pro) {
+		if (file_open_revision(&pro_file, rev, fn->pro, NULL)) {
+			free(rev);
+			rev = NULL; /* thus sch_file opens as with file_open */
+			fn = pro_parse_file(&pro_file, fn);
+			if (!fn)
+				return NULL;
+			leader = &pro_file;
+		} else {
+			/*
+			 * If we happen to have a top sheet name, we may as
+			 * well try to use it.
+			 */
+			if (!fn->sch) {
+				free(rev);
+				return NULL;
+			}
+		}
+	}
 	sch_init(&hist->sch_ctx, recurse);
-	ok = file_open_revision(&sch_file, rev, fn->sch, NULL);
+	ok = file_open_revision(&sch_file, rev, fn->sch, leader);
 
-	if (rev)
-		free(rev);
+	free(rev);
 	if (!ok) {
 		sch_free(&hist->sch_ctx);
 		return NULL;
 	}
 
+	if (!leader)
+		leader = &sch_file;
+
+	struct file lib_files[fn->n_libs];
+
 	lib_init(&hist->lib);
 	for (libs_open = 0; libs_open != fn->n_libs; libs_open++)
 		if (!file_open(lib_files + libs_open, fn->libs[libs_open],
-		    &sch_file))
+		    leader))
 			goto fail;
 
 	if (fn->pl) {
-		if (!file_open(&pl_file, fn->pl, &sch_file))
+		if (!file_open(&pl_file, fn->pl, leader))
 			goto fail;
  		hist->pl = pl_parse(&pl_file);
 		file_close(&pl_file);
@@ -281,8 +305,10 @@ static const struct sheet *parse_files(struct gui_hist *hist,
 	for (i = 0; i != libs_open; i++)
 		file_close(lib_files + i);
 	file_close(&sch_file);
+	// @@@ close pro_file
 
-	if (prev && sheet_eq(prev->sch_ctx.sheets, hist->sch_ctx.sheets))
+	if (prev && prev->sheets &&
+	    sheet_eq(prev->sch_ctx.sheets, hist->sch_ctx.sheets))
 		prev->identical = 1;
 
 	/*
@@ -300,6 +326,7 @@ fail:
 	sch_free(&hist->sch_ctx);
 	lib_free(&hist->lib);
 	file_close(&sch_file);
+	// @@@ close pro_file
 	return NULL;
 }
 
@@ -432,7 +459,7 @@ int gui(const struct file_names *fn, bool recurse, int limit)
 
 	gtk_widget_show_all(window);
 
-	get_history(&ctx, fn->sch, limit);
+	get_history(&ctx, fn->pro ? fn->pro : fn->sch, limit);
 	if (ctx.hist_size)
 		setup_progress_bar(&ctx, window);
 
