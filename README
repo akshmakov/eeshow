@@ -63,12 +63,15 @@ Invocation
 
 The general form of invocation for rendering is as follows:
 
-eeshow [-r] file.lib ... file.sch -- format [options]
+eeshow [-r] [-e] file.lib ... file.sch -- format [options]
 
 Common if using PDF, the option -r can be used (after "eeshow") to
-recursively process sub-sheets. For PDF and PNG, the options -s scale
-and -o output-file can be used to control the size of the output and
-the output file. By default, eeshow writes to standard output.
+recursively process sub-sheets. -e enables the rendering of additional
+information, e.g., pin types.
+
+For PDF and PNG, the options -s scale and -o output-file can be used to
+control the size of the output and the output file. By default, eeshow
+writes to standard output.
 
 Examples:
 

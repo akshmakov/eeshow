@@ -67,7 +67,7 @@ void usage(const char *name)
 {
 	fprintf(stderr,
 "usage: %s [gtk_flags] [-r] [-N n] kicad_file ...\n"
-"       %s [-r] [-v ...] kicad_file ...\n"
+"       %s [-r] [-e] [-v ...] kicad_file ...\n"
 "       %*s[-- driver_spec]\n"
 "       %s [-v ...] -C [rev:]file\n"
 "       %s [-v ...] -H path_into_repo\n"
@@ -79,6 +79,7 @@ void usage(const char *name)
 "    ext       .pro, .lib, .sch, or .kicad_wks\n"
 "    rev       git revision\n"
 "\n"
+"  -e    show extra information (e.g., pin types)\n"
 "  -r    recurse into sub-sheets\n"
 "  -v    increase verbosity of diagnostic output\n"
 "  -C    'cat' the file to standard output\n"
@@ -122,6 +123,7 @@ int main(int argc, char **argv)
 	struct lib lib;
 	struct sch_ctx sch_ctx;
 	struct file pro_file, sch_file;
+	bool extra = 0;
 	bool recurse = 0;
 	const char *cat = NULL;
 	const char *history = NULL;
@@ -160,8 +162,11 @@ int main(int argc, char **argv)
 	if (!have_dashdash)
 		gtk_init(&argc, &argv);
 
-	while ((c = getopt(dashdash, argv, "rvC:F:H:N:SV")) != EOF)
+	while ((c = getopt(dashdash, argv, "ervC:F:H:N:SV")) != EOF)
 		switch (c) {
+		case 'e':
+			extra = 1;
+			break;
 		case 'r':
 			recurse = 1;
 			break;
@@ -293,6 +298,8 @@ found:
 		for (sheet = sch_ctx.sheets; sheet; sheet = sheet->next) {
 			gfx_sheet_name(sheet->title);
 			sch_render(sheet);
+			if (extra)
+				sch_render_extra(sheet);
 			if (pl)
 				pl_render(pl, sch_ctx.sheets, sheet);
 			if (sheet->next)
@@ -300,6 +307,8 @@ found:
 		}
 	} else {
 		sch_render(sch_ctx.sheets);
+		if (extra)
+			sch_render_extra(sch_ctx.sheets);
 		if (pl)
 			pl_render(pl, sch_ctx.sheets, sch_ctx.sheets);
 	}
