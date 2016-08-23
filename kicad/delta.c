@@ -455,7 +455,7 @@ void delta(const struct sheet *a, const struct sheet *b,
 	init_res(res_b);
 	init_res(res_ab);
 
-	if (!strcmp(a->title, b->title)) {
+	if (a->title && b->title && !strcmp(a->title, b->title)) {
 		res_ab->title = a->title;
 	} else {
 		res_a->title = a->title;
