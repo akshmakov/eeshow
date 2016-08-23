@@ -269,13 +269,116 @@ static void draw_pin_num(const struct comp *comp, const struct lib_pin *pin,
 }
 
 
+static void transform_poly(unsigned n, int *vx, int *vy, const int m[6])
+{
+	unsigned i;
+	int x, y;
+
+	for (i = 0; i != n; i++) {
+		x = mx(*vx, *vy, m);
+		y = my(*vx, *vy, m);
+		*vx++ = x;
+		*vy++ = y;
+	}
+}
+
+
+static void draw_pin_line(const struct lib_pin *pin, enum pin_shape shape,
+    int dx, int dy, const int m[6])
+{
+	int len = pin->length;
+	int x[4], y[4];
+	int ex, ey;
+	if ((shape & pin_inverted) || (shape & pin_falling_edge))
+		len = pin->length - 2 * PIN_R;
+
+	
+	x[0] = pin->x;
+	y[0] = pin->y;
+	x[1] = pin->x + dx * len;
+	y[1] = pin->y + dy * len;
+	transform_poly(2, x, y, m);
+
+	gfx_poly(2, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+
+	if (shape & pin_inverted) {
+		x[0] = pin->x + dx * (len + PIN_R);
+		y[0] = pin->y + dy * (len + PIN_R);
+		transform_poly(1, x, y, m);
+		gfx_circ(x[0], y[0], PIN_R,
+		    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+	}
+
+	ex = pin->x + dx * pin->length;
+	ey = pin->y + dy * pin->length;
+
+	if (shape & pin_clock) {
+		x[0] = ex - dy * PIN_R;
+		y[0] = ey - dx * PIN_R;
+		x[1] = ex + dx * 2 * PIN_R;
+		y[1] = ey + dy * 2 * PIN_R;
+		x[2] = ex + dy * PIN_R;
+		y[2] = ey + dx * PIN_R;
+		x[3] = x[0];
+		y[3] = y[0];
+		transform_poly(4, x, y, m);
+		gfx_poly(4, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+	}
+
+	if (shape & pin_input_low) {
+		x[0] = ex;
+		y[0] = ey;
+		x[1] = ex - (dx - dy) * 2 * PIN_R;
+		y[1] = ey - (dy - dx) * 2 * PIN_R;
+		x[2] = ex - dx * 2 * PIN_R;
+		y[2] = ey - dy * 2 * PIN_R;
+		transform_poly(3, x, y, m);
+		gfx_poly(3, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+	}
+
+	if (shape & pin_output_low) {
+		x[0] = ex + dy * 2 * PIN_R;
+		y[0] = ey + dx * 2 * PIN_R;
+		x[1] = ex - dx * 2 * PIN_R;
+		y[1] = ey - dy * 2 * PIN_R;
+		transform_poly(2, x, y, m);
+		gfx_poly(2, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+	}
+
+	if (shape & pin_falling_edge) {
+		x[0] = ex - dy * PIN_R;
+		y[0] = ey - dx * PIN_R;
+		x[1] = ex - dx * 2 * PIN_R;
+		y[1] = ey - dy * 2 * PIN_R;
+		x[2] = ex + dy * PIN_R;
+		y[2] = ey + dx * PIN_R;
+		transform_poly(3, x, y, m);
+		gfx_poly(3, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+	}
+
+	if (shape & pin_non_logic) {
+		x[0] = ex - PIN_R;
+		y[0] = ey - PIN_R;
+		x[1] = ex + PIN_R;
+		y[1] = ey + PIN_R;
+		transform_poly(2, x, y, m);
+		gfx_poly(2, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+		swap(x[0], x[1]);
+		gfx_poly(2, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+	}
+}
+
+
 static void draw_pin(const struct comp *comp, const struct lib_pin *pin,
     const int m[6])
 {
-	int x[2], y[2];
 	int dx = 0, dy = 0;
 	int rot;
 	enum text_align hor;
+	enum pin_shape shape = pin->shape & ~pin_invisible;
+
+	if (pin->shape & pin_invisible)
+		return;
 
 	switch (pin->orient) {
 	case 'U':
@@ -301,11 +404,8 @@ static void draw_pin(const struct comp *comp, const struct lib_pin *pin,
 	default:
 		abort();
 	}
-	x[0] = mx(pin->x, pin->y, m);
-	y[0] = my(pin->x, pin->y, m);
-	x[1] = mx(pin->x + dx * pin->length, pin->y + dy * pin->length, m);
-	y[1] = my(pin->x + dx * pin->length, pin->y + dy * pin->length, m);
-	gfx_poly(2, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+
+	draw_pin_line(pin, shape, dx, dy, m);
 
 	if (comp->show_pin_name)
 		draw_pin_name(comp, pin, m, dx, dy, rot, hor);

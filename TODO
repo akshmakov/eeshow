@@ -18,7 +18,6 @@ Visualization (dwg.c and such):
 - show open pins / wires
 - check remaining alignment / direction / rotation cases in switch statements
 - support mirroring (and detect-complain if unexpected) [should be done now]
-- pin shapes (inverted, clock, etc.)
 - optionally display pin type
 - record.c (bb_rot): implement bounding boxes for text
 - nesting gfx in diff is a huge kludge, caused by global vars in gfx.c

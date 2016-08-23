@@ -97,6 +97,9 @@
 #define	MISSING_WIDTH		300	// size of missing things indicator box
 #define	MISSING_HEIGHT		300
 
+#define	PIN_R			25	/* radius and feature step */
+
+
 extern uint32_t color_rgb[];
 extern unsigned n_color_rgb;
 
