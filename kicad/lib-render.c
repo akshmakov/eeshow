@@ -494,7 +494,7 @@ static void draw_pin_etype(const struct lib_pin *pin, enum pin_shape shape,
 		break;
 	case 'w':
 		for (i = 0; i != 2; i++) {
-			int off = -i * PIN_EXTRA_R;
+			int off = i * PIN_EXTRA_R;
 
 			x[0] = off;
 			y[0] = PIN_EXTRA_R;
