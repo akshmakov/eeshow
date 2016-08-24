@@ -19,6 +19,7 @@
 
 #include "misc/util.h"
 #include "misc/diag.h"
+#include "gui/timer.h"
 #include "gui/input.h"
 
 
@@ -183,6 +184,8 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
 
 	progress(3, "motion %s", state());
 
+	timer_start();
+
 	switch (sp->state) {
 	case input_idle:
 		hover_consider(event->x, event->y);
@@ -224,6 +227,8 @@ static gboolean button_press_event(GtkWidget *widget, GdkEventButton *event,
 
 	progress(3, "press %s", state());
 
+	timer_start();
+
 	buttons |= 1 << event->button;
 
 	switch (sp->state) {
@@ -260,6 +265,8 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event,
 		return TRUE;
 
 	progress(3, "release %s", state());
+
+	timer_start();
 
 	buttons &= ~(1 << event->button);
 	if (buttons)
@@ -307,6 +314,8 @@ static gboolean button_release_event(GtkWidget *widget, GdkEventButton *event,
 static gboolean scroll_event(GtkWidget *widget, GdkEventScroll *event,
     gpointer data)
 {
+	timer_start();
+
 	if (!sp || !sp->ops->scroll)
 		return TRUE;
 	switch (event->direction) {
@@ -329,6 +338,8 @@ static gboolean scroll_event(GtkWidget *widget, GdkEventScroll *event,
 static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
     gpointer data)
 {
+	timer_start();
+
 	if (sp && sp->ops->key)
 		sp->ops->key(sp->user, curr_x, curr_y, event->keyval);
 	return TRUE;

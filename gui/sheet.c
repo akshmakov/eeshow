@@ -26,6 +26,7 @@
 #include "gui/input.h"
 #include "gui/help.h"
 #include "gui/icons.h"
+#include "gui/timer.h"
 #include "gui/common.h"
 
 
@@ -575,6 +576,11 @@ static void sheet_key(void *user, int x, int y, int keyval)
 
 	case GDK_KEY_h:
 		help();
+		break;
+
+	case GDK_KEY_t:
+		timer_toggle();
+		redraw(ctx);
 		break;
 
 	case GDK_KEY_q:

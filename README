@@ -201,6 +201,7 @@ Esc			cancel current action (exit history, close pop-up,
 			de-highlight glabel, close help)
 E			show/hide extra information (pin types)
 H			show/hide help window
+T			toggle performance timer
 D			when comparing revisions, show difference (default)
 N			show newer sheet
 O			show older sheet

@@ -29,6 +29,7 @@
 #include "gfx/diff.h"
 #include "gui/aoi.h"
 #include "gui/over.h"
+#include "gui/timer.h"
 #include "gui/common.h"
 
 
@@ -240,6 +241,8 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 
 	if (ctx->mode == showing_index)
 		index_draw_event(ctx, cr);
+
+	timer_show(cr);
 
 	return FALSE;
 }
