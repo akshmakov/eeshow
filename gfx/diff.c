@@ -27,6 +27,7 @@
 #include "kicad/sch.h"
 #include "kicad/lib.h"
 #include "gfx/record.h"
+#include "gfx/gfx.h"
 #include "gfx/diff.h"
 
 
@@ -48,7 +49,7 @@
 
 
 struct diff {
-	void *cr_ctx;
+	struct gfx *gfx;
 	uint32_t *new_img;
 	int w, h, stride;
 	const char *output_name;
@@ -65,7 +66,7 @@ static void diff_line(void *ctx, int sx, int sy, int ex, int ey,
 {
 	const struct diff *diff = ctx;
 
-	cro_img_ops.line(diff->cr_ctx, sx, sy, ex, ey, color, layer);
+	gfx_line(diff->gfx, sx, sy, ex, ey, color, layer);
 }
 
 
@@ -75,7 +76,7 @@ static void diff_poly(void *ctx,
 {
 	const struct diff *diff = ctx;
 
-	cro_img_ops.poly(diff->cr_ctx, points, x, y, color, fill_color, layer);
+	gfx_poly(diff->gfx, points, x, y, color, fill_color, layer);
 }
 
 
@@ -84,7 +85,7 @@ static void diff_circ(void *ctx, int x, int y, int r,
 {
 	const struct diff *diff = ctx;
 
-	cro_img_ops.circ(diff->cr_ctx, x, y, r, color, fill_color, layer);
+	gfx_circ(diff->gfx, x, y, r, color, fill_color, layer);
 }
 
 
@@ -93,8 +94,7 @@ static void diff_arc(void *ctx, int x, int y, int r, int sa, int ea,
 {
 	const struct diff *diff = ctx;
 
-	cro_img_ops.arc(diff->cr_ctx, x, y, r, sa, ea,
-	    color, fill_color, layer);
+	gfx_arc(diff->gfx, x, y, r, sa, ea, color, fill_color, layer);
 }
 
 
@@ -103,8 +103,7 @@ static void diff_text(void *ctx, int x, int y, const char *s, unsigned size,
 {
 	const struct diff *diff = ctx;
 
-	cro_img_ops.text(diff->cr_ctx, x, y, s, size, align, rot,
-	    color, layer);
+	gfx_text(diff->gfx, x, y, s, size, align, rot, color, layer);
 }
 
 
@@ -112,7 +111,7 @@ static unsigned diff_text_width(void *ctx, const char *s, unsigned size)
 {
 	const struct diff *diff = ctx;
 
-	return cro_img_ops.text_width(diff->cr_ctx, s, size);
+	return gfx_text_width(diff->gfx, s, size);
 }
 
 
@@ -161,14 +160,14 @@ static void *diff_init(int argc, char *const *argv)
 	file_close(&sch_file);
 
 	optind = 0;
-	gfx_init(&cro_img_ops, argc, argv);
-	diff->cr_ctx = gfx_ctx;
-	sch_render(new_sch.sheets);
-	diff->new_img = cro_img_end(gfx_ctx,
+	diff->gfx = gfx_init(&cro_img_ops, argc, argv);
+	sch_render(new_sch.sheets, diff->gfx);
+	diff->new_img = cro_img_end(gfx_user(diff->gfx),
 	    &diff->w, &diff->h, &diff->stride);
 
 	optind = 0;
-	diff->cr_ctx = cro_img_ops.init(argc, argv);
+	diff->gfx = gfx_init(&cro_img_ops, argc, argv);
+	//diff->gfx = cro_img_ops.init(argc, argv);
 
 	return diff;
 
@@ -308,7 +307,7 @@ static void diff_end(void *ctx)
 	uint32_t *old_img;
 	int w, h, stride;
 
-	old_img = cro_img_end(diff->cr_ctx, &w, &h, &stride);
+	old_img = cro_img_end(gfx_user(diff->gfx), &w, &h, &stride);
 	if (diff->w != w || diff->h != h)
 		fatal("%d x %d vs. %d x %d image\n", w, h, diff->w, diff->h);
 
@@ -316,7 +315,7 @@ static void diff_end(void *ctx)
 	show_areas(diff, old_img);
 	free_areas(&diff->areas);
 
-	cro_img_write(diff->cr_ctx, diff->output_name);
+	cro_img_write(gfx_user(diff->gfx), diff->output_name);
 }
 
 

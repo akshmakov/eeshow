@@ -18,6 +18,7 @@
 #include <gtk/gtk.h>
 
 #include "gfx/cro.h"
+#include "gfx/gfx.h"
 #include "file/git-hist.h"
 #include "kicad/lib.h"
 #include "kicad/sch.h"
@@ -32,8 +33,8 @@ struct gui_sheet {
 	const struct sheet *sch;
 	struct gui_ctx *ctx;	/* back link */
 	struct gui_hist *hist;	/* back link */
-	struct cro_ctx *gfx_ctx;
-	struct cro_ctx *gfx_ctx_extra;
+	struct gfx *gfx;
+	struct gfx *gfx_extra;
 
 	int w, h;		/* in eeschema coordinates */
 	int xmin, ymin;
@@ -44,7 +45,7 @@ struct gui_sheet {
 	struct aoi *aois;	/* areas of interest; in schematics coord  */
 
 	/* thumbnails, for index */
-	struct cro_ctx *gfx_ctx_thumb;	/* NULL if not yet rendered */
+	struct gfx *gfx_thumb;		/* NULL if not yet rendered */
 	cairo_surface_t *thumb_surf;	/* for caching */
 	unsigned thumb_w, thumb_h;	/* size for which we cached */
 	struct overlay *thumb_over;	/* thumb overlay */

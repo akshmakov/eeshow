@@ -14,6 +14,9 @@
 #ifndef KICAD_DWG_H
 #define	KICAD_DWG_H
 
+#include "gfx/gfx.h"
+
+
 enum dwg_shape {
 	dwg_unspec,	// UnSpc
 	dwg_in,		// Input
@@ -28,21 +31,21 @@ struct dwg_bbox {
 };
 
 
-void dwg_label(int x, int y, const char *s, int dir, int dim,
+void dwg_label(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
     enum dwg_shape shape, struct dwg_bbox *bbox);
-void dwg_hlabel(int x, int y, const char *s, int dir, int dim,
+void dwg_hlabel(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
     enum dwg_shape shape, struct dwg_bbox *bbox);
-void dwg_glabel(int x, int y, const char *s, int dir, int dim,
+void dwg_glabel(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
     enum dwg_shape shape, struct dwg_bbox *bbox);
-void dwg_text(int x, int y, const char *s, int dir, int dim,
+void dwg_text(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
     enum dwg_shape shape, struct dwg_bbox *bbox);
 
-void dwg_junction(int x, int y);
-void dwg_noconn(int x, int y);
+void dwg_junction(struct gfx *gfx, int x, int y);
+void dwg_noconn(struct gfx *gfx, int x, int y);
 
-void dwg_line(int sx, int sy, int ex, int ey);
+void dwg_line(struct gfx *gfx, int sx, int sy, int ex, int ey);
 
-void dwg_wire(int sx, int sy, int ex, int ey);
-void dwg_bus(int sx, int sy, int ex, int ey);
+void dwg_wire(struct gfx *gfx, int sx, int sy, int ex, int ey);
+void dwg_bus(struct gfx *gfx, int sx, int sy, int ex, int ey);
 
 #endif /* !KICAD_DWG_H */

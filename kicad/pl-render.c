@@ -142,7 +142,7 @@ static char *increment(char *s, int inc, const char *range)
 
 
 static void render_text(const struct pl_ctx *pl, const struct pl_obj *obj,
-    int x, int y, int inc,
+    struct gfx *gfx, int x, int y, int inc,
     const struct sheet *sheets, const struct sheet *sheet)
 {
 	char *s = expand(pl, obj->s, sheets, sheet);
@@ -173,13 +173,13 @@ static void render_text(const struct pl_ctx *pl, const struct pl_obj *obj,
 		}
 	}
 	txt.s = s;
-	text_fig(&txt, COLOR_COMP_DWG, LAYER_COMP_DWG);
+	text_fig(&txt, gfx, COLOR_COMP_DWG, LAYER_COMP_DWG);
 	free(s);
 }
 
 
 static void render_obj(const struct pl_ctx *pl, const struct pl_obj *obj,
-    unsigned inc,
+    struct gfx *gfx, unsigned inc,
     const struct sheet *sheets, const struct sheet *sheet)
 {
 	int w = sheet->w;
@@ -207,19 +207,19 @@ static void render_obj(const struct pl_ctx *pl, const struct pl_obj *obj,
 
 	switch (obj->type) {
 	case pl_obj_rect:
-		gfx_rect(x, y, ex, ey,
+		gfx_rect(gfx, x, y, ex, ey,
 		    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 		break;
 	case pl_obj_line: {
 			int vx[] = { x, ex };
 			int vy[] = { y, ey };
 
-			gfx_poly(2, vx, vy,
+			gfx_poly(gfx, 2, vx, vy,
 			    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 		}
 		break;
 	case pl_obj_text:
-		render_text(pl, obj, x, y, inc, sheets, sheet);
+		render_text(pl, obj, gfx, x, y, inc, sheets, sheet);
 		break;
 	default:
 		break;
@@ -227,7 +227,7 @@ static void render_obj(const struct pl_ctx *pl, const struct pl_obj *obj,
 }
 
 
-void pl_render(struct pl_ctx *pl, const struct sheet *sheets,
+void pl_render(struct pl_ctx *pl, struct gfx *gfx, const struct sheet *sheets,
     const struct sheet *sheet)
 {
 	const struct pl_obj *obj;
@@ -235,5 +235,5 @@ void pl_render(struct pl_ctx *pl, const struct sheet *sheets,
 
 	for (obj = pl->objs; obj; obj = obj->next)
 		for (i = 0; i != obj->repeat; i++)
-			render_obj(pl, obj, i, sheets, sheet);
+			render_obj(pl, obj, gfx, i, sheets, sheet);
 }

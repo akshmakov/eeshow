@@ -14,6 +14,7 @@
 #ifndef KICAD_PL_H
 #define	KICAD_PL_H
 
+#include "gfx/gfx.h"
 #include "file/file.h"
 #include "kicad/sch.h"
 
@@ -21,8 +22,8 @@
 struct pl_ctx;
 
 
-void pl_render(struct pl_ctx *pl, const struct sheet *sheets,
-    const struct sheet *sheet);
+void pl_render(struct pl_ctx *pl, struct gfx *gfx,
+    const struct sheet *sheets, const struct sheet *sheet);
 
 struct pl_ctx *pl_parse(struct file *file);
 void pl_free(struct pl_ctx *pl);

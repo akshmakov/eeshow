@@ -266,13 +266,13 @@ static void index_render_sheet(const struct gui_ctx *ctx,
 	uint32_t *data;
 	int stride;
 
-	if (!sheet->gfx_ctx_thumb) {
+	if (!sheet->gfx_thumb) {
 		char *argv[] = { "index", NULL };
 
-		gfx_init(&cro_canvas_ops, 1, argv);
-		sch_render(sheet->sch);
-		cro_canvas_end(gfx_ctx, NULL, NULL, NULL, NULL);
-       		sheet->gfx_ctx_thumb = gfx_ctx;
+		sheet->gfx_thumb = gfx_init(&cro_canvas_ops, 1, argv);
+		sch_render(sheet->sch, sheet->gfx_thumb);
+		cro_canvas_end(gfx_user(sheet->gfx_thumb),
+		    NULL, NULL, NULL, NULL);
 	}
 
 	if (ctx->old_hist && ctx->diff_mode == diff_delta) {
@@ -295,7 +295,7 @@ static void index_render_sheet(const struct gui_ctx *ctx,
 		sheet->thumb_surf = NULL;
 	}
 
-	record_bbox((const struct record *) sheet->gfx_ctx_thumb,
+	record_bbox((const struct record *) gfx_user(sheet->gfx_thumb),
 	    &xmin, &ymin, &w, &h);
 	if (!w || !h)
 		return;
@@ -306,13 +306,13 @@ static void index_render_sheet(const struct gui_ctx *ctx,
 
 	xo = -(xmin + w / 2) * f + thumb_w / 2;
 	yo = -(ymin + h / 2) * f + thumb_h / 2;
-	data = cro_img(sheet->gfx_ctx_thumb, NULL, xo, yo, thumb_w, thumb_h,  f,
-	    NULL, &stride);
+	data = cro_img(gfx_user(sheet->gfx_thumb), NULL,
+	    xo, yo, thumb_w, thumb_h,  f, NULL, &stride);
 
 	if (yellow)
 		paint_yellow(data, thumb_w, thumb_h, stride);
 
-	sheet->thumb_surf = cro_img_surface(sheet->gfx_ctx_thumb);
+	sheet->thumb_surf = cro_img_surface(gfx_user(sheet->gfx_thumb));
 	sheet->thumb_w = thumb_w;
 	sheet->thumb_h = thumb_h;
 	sheet->thumb_yellow = yellow;

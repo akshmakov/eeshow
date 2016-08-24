@@ -169,7 +169,7 @@ static struct gui_sheet *get_sheets(struct gui_ctx *ctx, struct gui_hist *hist,
 		new->sch = sheet;
 		new->ctx = ctx;
 		new->hist = hist;
-		new->gfx_ctx_thumb = NULL;
+		new->gfx_thumb = NULL;
 		new->thumb_surf = NULL;
 		new->rendered = 0;
 

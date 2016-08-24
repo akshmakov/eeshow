@@ -60,7 +60,8 @@ static void transform_poly_md(unsigned n, int *vx, int *vy, const int m[6],
 /* ----- Polygons and rectangles ------------------------------------------- */
 
 
-static void draw_poly(const struct lib_poly *poly, const int m[6])
+static void draw_poly(const struct lib_poly *poly, struct gfx *gfx,
+    const int m[6])
 {
 	int n = poly->points;
 	int x[n];
@@ -72,17 +73,17 @@ static void draw_poly(const struct lib_poly *poly, const int m[6])
 		y[i] = my(poly->x[i], poly->y[i], m);
 	}
 
-	gfx_poly(n, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+	gfx_poly(gfx, n, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 
 	switch (poly->fill) {
 	case 'N':
 		break;
 	case 'F':
-		gfx_poly(n, x, y, COLOR_NONE, COLOR_COMP_DWG,
+		gfx_poly(gfx, n, x, y, COLOR_NONE, COLOR_COMP_DWG,
 		    LAYER_COMP_DWG_BG);
 		break;
 	case 'f':
-		gfx_poly(n, x, y, COLOR_NONE, COLOR_COMP_DWG_BG,
+		gfx_poly(gfx, n, x, y, COLOR_NONE, COLOR_COMP_DWG_BG,
 		    LAYER_COMP_DWG_BG);
 		break;
 	default:
@@ -91,24 +92,26 @@ static void draw_poly(const struct lib_poly *poly, const int m[6])
 }
 
 
-static void draw_rect(const struct lib_rect *rect, const int m[6])
+static void draw_rect(const struct lib_rect *rect, struct gfx *gfx,
+    const int m[6])
 {
 	int sx = mx(rect->sx, rect->sy, m);
 	int sy = my(rect->sx, rect->sy, m);
 	int ex = mx(rect->ex, rect->ey, m);
 	int ey = my(rect->ex, rect->ey, m);
 
-	gfx_rect(sx, sy, ex, ey, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+	gfx_rect(gfx, sx, sy, ex, ey,
+	    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 
 	switch (rect->fill) {
 	case 'N':
 		break;
 	case 'F':
-		gfx_rect(sx, sy, ex, ey, COLOR_NONE, COLOR_COMP_DWG,
+		gfx_rect(gfx, sx, sy, ex, ey, COLOR_NONE, COLOR_COMP_DWG,
 		    LAYER_COMP_DWG_BG);
 		break;
 	case 'f':
-		gfx_rect(sx, sy, ex, ey, COLOR_NONE, COLOR_COMP_DWG_BG,
+		gfx_rect(gfx, sx, sy, ex, ey, COLOR_NONE, COLOR_COMP_DWG_BG,
 		    LAYER_COMP_DWG_BG);
 		break;
 	default:
@@ -120,24 +123,25 @@ static void draw_rect(const struct lib_rect *rect, const int m[6])
 /* ----- Circles and arcs -------------------------------------------------- */
 
 
-static void draw_circ(const struct lib_circ *circ, const int m[6])
+static void draw_circ(const struct lib_circ *circ, struct gfx *gfx,
+    const int m[6])
 {
 	int x = mx(circ->x, circ->y, m);
 	int y = my(circ->x, circ->y, m);
 	int r = circ->r;
 
-	gfx_circ(x, y, r, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+	gfx_circ(gfx, x, y, r, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 
 	switch (circ->fill) {
 	case 'N':
 		break;
 	case 'F':
-		gfx_circ(x, y, r, COLOR_NONE, COLOR_COMP_DWG,
-		    LAYER_COMP_DWG_BG);
+		gfx_circ(gfx, x, y, r,
+		    COLOR_NONE, COLOR_COMP_DWG, LAYER_COMP_DWG_BG);
 		break;
 	case 'f':
-		gfx_circ(x, y, r, COLOR_NONE, COLOR_COMP_DWG_BG,
-		    LAYER_COMP_DWG_BG);
+		gfx_circ(gfx, x, y, r,
+		    COLOR_NONE, COLOR_COMP_DWG_BG, LAYER_COMP_DWG_BG);
 		break;
 	default:
 		BUG("invalid fill '%c'", circ->fill);
@@ -145,7 +149,7 @@ static void draw_circ(const struct lib_circ *circ, const int m[6])
 }
 
 
-static void draw_arc(const struct lib_arc *arc, const int m[6])
+static void draw_arc(const struct lib_arc *arc, struct gfx *gfx, const int m[6])
 {
 	int a = matrix_to_angle(m);
 	int x = mx(arc->x, arc->y, m);
@@ -175,18 +179,18 @@ static void draw_arc(const struct lib_arc *arc, const int m[6])
 	case 'N':
 		break;
 	case 'F':
-		gfx_arc(x, y, arc->r, sa, ea,
+		gfx_arc(gfx, x, y, arc->r, sa, ea,
 		    COLOR_COMP_DWG, COLOR_COMP_DWG, LAYER_COMP_DWG_BG);
 		break;
 	case 'f':
-		gfx_arc(x, y, arc->r, sa, ea,
+		gfx_arc(gfx, x, y, arc->r, sa, ea,
 		    COLOR_COMP_DWG_BG, COLOR_COMP_DWG_BG, LAYER_COMP_DWG_BG);
 		break;
 	default:
 		assert(0);
 	}
 
-	gfx_arc(x, y, arc->r, sa, ea,
+	gfx_arc(gfx, x, y, arc->r, sa, ea,
 	    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 }
 
@@ -195,7 +199,8 @@ static void draw_arc(const struct lib_arc *arc, const int m[6])
 
 
 static void draw_pin_name(const struct comp *comp, const struct lib_pin *pin,
-    const int m[6], int dx, int dy, int rot, enum text_align hor)
+    struct gfx *gfx, const int m[6], int dx, int dy, int rot,
+    enum text_align hor)
 {
 	int ox, oy, sx, sy;
 
@@ -244,12 +249,13 @@ static void draw_pin_name(const struct comp *comp, const struct lib_pin *pin,
 		break;
 	}
 
-	text_fig(&txt, COLOR_PIN_NAME, LAYER_PIN_NAME);
+	text_fig(&txt, gfx, COLOR_PIN_NAME, LAYER_PIN_NAME);
 }
 
 
 static void draw_pin_num(const struct comp *comp, const struct lib_pin *pin,
-    const int m[6], int dx, int dy, int rot, enum text_align hor)
+    struct gfx *gfx, const int m[6], int dx, int dy, int rot,
+    enum text_align hor)
 {
 	int ox, oy, sx, sy;
 
@@ -303,15 +309,15 @@ static void draw_pin_num(const struct comp *comp, const struct lib_pin *pin,
 		break;
 	}
 
-	text_fig(&txt, COLOR_PIN_NUMBER, LAYER_PIN_NUMBER);
+	text_fig(&txt, gfx, COLOR_PIN_NUMBER, LAYER_PIN_NUMBER);
 }
 
 
 /* ----- Pin shape --------------------------------------------------------- */
 
 
-static void draw_pin_line(const struct lib_pin *pin, enum pin_shape shape,
-    int dx, int dy, const int m[6])
+static void draw_pin_line(const struct lib_pin *pin, struct gfx *gfx,
+    enum pin_shape shape, int dx, int dy, const int m[6])
 {
 	int len = pin->length;
 	int x[4], y[4];
@@ -326,13 +332,13 @@ static void draw_pin_line(const struct lib_pin *pin, enum pin_shape shape,
 	y[1] = pin->y + dy * len;
 	transform_poly(2, x, y, m);
 
-	gfx_poly(2, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+	gfx_poly(gfx, 2, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 
 	if (shape & pin_inverted) {
 		x[0] = pin->x + dx * (len + PIN_R);
 		y[0] = pin->y + dy * (len + PIN_R);
 		transform_poly(1, x, y, m);
-		gfx_circ(x[0], y[0], PIN_R,
+		gfx_circ(gfx, x[0], y[0], PIN_R,
 		    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 	}
 
@@ -349,7 +355,8 @@ static void draw_pin_line(const struct lib_pin *pin, enum pin_shape shape,
 		x[3] = x[0];
 		y[3] = y[0];
 		transform_poly(4, x, y, m);
-		gfx_poly(4, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+		gfx_poly(gfx, 4, x, y,
+		    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 	}
 
 	/*
@@ -365,7 +372,8 @@ static void draw_pin_line(const struct lib_pin *pin, enum pin_shape shape,
 		x[2] = ex - dx * 2 * PIN_R;
 		y[2] = ey - dy * 2 * PIN_R;
 		transform_poly(3, x, y, m);
-		gfx_poly(3, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+		gfx_poly(gfx, 3, x, y,
+		    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 	}
 
 	if (shape & pin_output_low) {
@@ -374,7 +382,8 @@ static void draw_pin_line(const struct lib_pin *pin, enum pin_shape shape,
 		x[1] = ex - dx * 2 * PIN_R;
 		y[1] = ey - dy * 2 * PIN_R;
 		transform_poly(2, x, y, m);
-		gfx_poly(2, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+		gfx_poly(gfx, 2, x, y,
+		    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 	}
 
 	if (shape & pin_falling_edge) {
@@ -385,7 +394,8 @@ static void draw_pin_line(const struct lib_pin *pin, enum pin_shape shape,
 		x[2] = ex + dy * PIN_R;
 		y[2] = ey + dx * PIN_R;
 		transform_poly(3, x, y, m);
-		gfx_poly(3, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+		gfx_poly(gfx, 3, x, y,
+		    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 	}
 
 	if (shape & pin_non_logic) {
@@ -394,9 +404,11 @@ static void draw_pin_line(const struct lib_pin *pin, enum pin_shape shape,
 		x[1] = ex + PIN_R;
 		y[1] = ey + PIN_R;
 		transform_poly(2, x, y, m);
-		gfx_poly(2, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+		gfx_poly(gfx, 2, x, y,
+		    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 		swap(x[0], x[1]);
-		gfx_poly(2, x, y, COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+		gfx_poly(gfx, 2, x, y,
+		    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 	}
 }
 
@@ -404,8 +416,8 @@ static void draw_pin_line(const struct lib_pin *pin, enum pin_shape shape,
 /* ----- Pin etype --------------------------------------------------------- */
 
 
-static void draw_pin_etype(const struct lib_pin *pin, enum pin_shape shape,
-    int dx, int dy, const int m[6])
+static void draw_pin_etype(const struct lib_pin *pin, struct gfx *gfx,
+    enum pin_shape shape, int dx, int dy, const int m[6])
 {
 	int mx, my;
 	int x[6], y[6];
@@ -423,7 +435,8 @@ static void draw_pin_etype(const struct lib_pin *pin, enum pin_shape shape,
 		x[2] = -PIN_EXTRA_R / 2;
 		y[2] = -PIN_EXTRA_R;
 		transform_poly_md(3, x, y, m, mx, my, dx, dy);
-		gfx_poly(3, x, y, COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		gfx_poly(gfx, 3, x, y,
+		    COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
 		break;
 	case 'O':
 		x[0] = PIN_EXTRA_R / 2;
@@ -433,7 +446,8 @@ static void draw_pin_etype(const struct lib_pin *pin, enum pin_shape shape,
 		x[2] = PIN_EXTRA_R / 2;
 		y[2] = -PIN_EXTRA_R;
 		transform_poly_md(3, x, y, m, mx, my, dx, dy);
-		gfx_poly(3, x, y, COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		gfx_poly(gfx, 3, x, y,
+		    COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
 		break;
 	case 'B':
 	bidir:
@@ -448,7 +462,8 @@ static void draw_pin_etype(const struct lib_pin *pin, enum pin_shape shape,
 		x[4] = x[0];
 		y[4] = y[0];
 		transform_poly_md(5, x, y, m, mx, my, dx, dy);
-		gfx_poly(5, x, y, COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		gfx_poly(gfx, 5, x, y,
+		    COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
 		break;
 	case 'T':
 		x[0] = 0;
@@ -464,7 +479,8 @@ static void draw_pin_etype(const struct lib_pin *pin, enum pin_shape shape,
 		x[5] = 0;
 		y[5] = -PIN_EXTRA_R;
 		transform_poly_md(6, x, y, m, mx, my, dx, dy);
-		gfx_poly(6, x, y, COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		gfx_poly(gfx, 6, x, y,
+		    COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
 		break;
 	case 'P':
 		x[0] = mx - PIN_EXTRA_R;
@@ -472,7 +488,7 @@ static void draw_pin_etype(const struct lib_pin *pin, enum pin_shape shape,
 		x[1] = mx + PIN_EXTRA_R;
 		y[1] = my + PIN_EXTRA_R;
 		transform_poly(2, x, y, m);
-		gfx_rect(x[0], y[0], x[1], y[1],
+		gfx_rect(gfx, x[0], y[0], x[1], y[1],
 		    COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
 		break;
 	case 'U':
@@ -488,7 +504,7 @@ static void draw_pin_etype(const struct lib_pin *pin, enum pin_shape shape,
 			x[2] = off;
 			y[2] = -PIN_EXTRA_R;
 			transform_poly_md(3, x, y, m, mx, my, dx, dy);
-			gfx_poly(3, x, y,
+			gfx_poly(gfx, 3, x, y,
 			    COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
 		}
 		break;
@@ -504,7 +520,7 @@ static void draw_pin_etype(const struct lib_pin *pin, enum pin_shape shape,
 			y[2] = -PIN_EXTRA_R;
 			transform_poly_md(3, x, y, m, mx, my,
 			    dx, dy);
-			gfx_poly(3, x, y,
+			gfx_poly(gfx, 3, x, y,
 			    COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
 		}
 		break;
@@ -514,7 +530,8 @@ static void draw_pin_etype(const struct lib_pin *pin, enum pin_shape shape,
 		x[1] = PIN_EXTRA_R;
 		y[1] = PIN_EXTRA_R;
 		transform_poly_md(2, x, y, m, mx, my, dx, dy);
-		gfx_poly(2, x, y, COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		gfx_poly(gfx, 2, x, y,
+		    COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
 		goto bidir;
 	case 'E':
 		x[0] = -PIN_EXTRA_R;
@@ -522,7 +539,8 @@ static void draw_pin_etype(const struct lib_pin *pin, enum pin_shape shape,
 		x[1] = PIN_EXTRA_R;
 		y[1] = -PIN_EXTRA_R;
 		transform_poly_md(2, x, y, m, mx, my, dx, dy);
-		gfx_poly(2, x, y, COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		gfx_poly(gfx, 2, x, y,
+		    COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
 		goto bidir;
 	case 'N':
 		x[0] = -PIN_EXTRA_R;
@@ -530,9 +548,11 @@ static void draw_pin_etype(const struct lib_pin *pin, enum pin_shape shape,
 		x[1] = PIN_EXTRA_R;
 		y[1] = PIN_EXTRA_R;
 		transform_poly_md(2, x, y, m, mx, my, dx, dy);
-		gfx_poly(2, x, y, COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		gfx_poly(gfx, 2, x, y,
+		    COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
 		swap(x[0], x[1]);
-		gfx_poly(2, x, y, COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
+		gfx_poly(gfx, 2, x, y,
+		    COLOR_PIN_EXTRA, COLOR_NONE, LAYER_PIN_EXTRA);
 		break;
 	default:
 		BUG("unrecognized etype '%c'", pin->etype);
@@ -544,7 +564,7 @@ static void draw_pin_etype(const struct lib_pin *pin, enum pin_shape shape,
 
 
 static void draw_pin(const struct comp *comp, const struct lib_pin *pin,
-    const int m[6])
+    struct gfx *gfx, const int m[6])
 {
 	int dx = 0, dy = 0;
 	int rot;
@@ -579,13 +599,13 @@ static void draw_pin(const struct comp *comp, const struct lib_pin *pin,
 		BUG("invalid orientation '%c'", pin->orient);
 	}
 
-	draw_pin_line(pin, shape, dx, dy, m);
+	draw_pin_line(pin, gfx, shape, dx, dy, m);
 
 	if (comp->show_pin_name)
-		draw_pin_name(comp, pin, m, dx, dy, rot, hor);
+		draw_pin_name(comp, pin, gfx, m, dx, dy, rot, hor);
 
 	if (comp->show_pin_num)
-		draw_pin_num(comp, pin, m, dx, dy, rot, hor);
+		draw_pin_num(comp, pin, gfx, m, dx, dy, rot, hor);
 }
 
 
@@ -593,7 +613,7 @@ static void draw_pin(const struct comp *comp, const struct lib_pin *pin,
 
 
 static void draw_pin_extra(const struct comp *comp, const struct lib_pin *pin,
-    const int m[6])
+    struct gfx *gfx, const int m[6])
 {
 	int dx = 0, dy = 0;
 
@@ -617,14 +637,15 @@ static void draw_pin_extra(const struct comp *comp, const struct lib_pin *pin,
 		BUG("invalid orientation '%c'", pin->orient);
 	}
 
-	draw_pin_etype(pin, pin->etype, dx, dy, m);
+	draw_pin_etype(pin, gfx, pin->etype, dx, dy, m);
 }
 
 
 /* ----- Text -------------------------------------------------------------- */
 
 
-static void draw_text(const struct lib_text *text, const int m[6])
+static void draw_text(const struct lib_text *text, struct gfx *gfx,
+    const int m[6])
 {
 	struct text txt = {
 		.s = text->s,
@@ -663,7 +684,7 @@ static void draw_text(const struct lib_text *text, const int m[6])
 			BUG("unknown rotation %d", txt.rot);
 		}
 
-	text_fig(&txt, COLOR_COMP_DWG, WIDTH_COMP_DWG);
+	text_fig(&txt, gfx, COLOR_COMP_DWG, WIDTH_COMP_DWG);
 }
 
 
@@ -697,26 +718,26 @@ bool lib_field_visible(const struct comp *comp, int n)
 
 
 static void draw(const struct comp *comp, const struct lib_obj *obj,
-    const int m[6])
+    struct gfx *gfx, const int m[6])
 {
 	switch (obj->type) {
 	case lib_obj_poly:
-		draw_poly(&obj->u.poly, m);
+		draw_poly(&obj->u.poly, gfx, m);
 		break;
 	case lib_obj_rect:
-		draw_rect(&obj->u.rect, m);
+		draw_rect(&obj->u.rect, gfx, m);
 		break;
 	case lib_obj_circ:
-		draw_circ(&obj->u.circ, m);
+		draw_circ(&obj->u.circ, gfx, m);
 		break;
 	case lib_obj_arc:
-		draw_arc(&obj->u.arc, m);
+		draw_arc(&obj->u.arc, gfx, m);
 		break;
 	case lib_obj_text:
-		draw_text(&obj->u.text, m);
+		draw_text(&obj->u.text, gfx, m);
 		break;
 	case lib_obj_pin:
-		draw_pin(comp, &obj->u.pin, m);
+		draw_pin(comp, &obj->u.pin, gfx, m);
 		break;
 	default:
 		BUG("invalid object type %d", obj->type);
@@ -725,7 +746,7 @@ static void draw(const struct comp *comp, const struct lib_obj *obj,
 
 
 static void draw_extra(const struct comp *comp, const struct lib_obj *obj,
-    const int m[6])
+    struct gfx *gfx, const int m[6])
 {
 	switch (obj->type) {
 	case lib_obj_poly:
@@ -735,7 +756,7 @@ static void draw_extra(const struct comp *comp, const struct lib_obj *obj,
 	case lib_obj_text:
 		break;
 	case lib_obj_pin:
-		draw_pin_extra(comp, &obj->u.pin, m);
+		draw_pin_extra(comp, &obj->u.pin, gfx, m);
 		break;
 	default:
 		BUG("invalid object type %d", obj->type);
@@ -743,27 +764,27 @@ static void draw_extra(const struct comp *comp, const struct lib_obj *obj,
 }
 
 
-static void missing_component(const int m[4])
+static void missing_component(struct gfx *gfx, const int m[4])
 {
 	int sx = mx(0, 0, m);
 	int sy = my(0, 0, m);
 	int ex = mx(MISSING_WIDTH, MISSING_HEIGHT, m);
 	int ey = my(MISSING_WIDTH, MISSING_HEIGHT, m);
 
-	gfx_rect(sx, sy, ex, ey, COLOR_MISSING_FG, COLOR_MISSING_BG,
+	gfx_rect(gfx, sx, sy, ex, ey, COLOR_MISSING_FG, COLOR_MISSING_BG,
 	    LAYER_COMP_DWG);
 }
 
 
-static void render_lib(const struct comp *comp, unsigned unit, unsigned convert,
-    const int m[4],
+static void render_lib(const struct comp *comp, struct gfx *gfx,
+    unsigned unit, unsigned convert, const int m[4],
     void (*draw_fn)(const struct comp *comp, const struct lib_obj *obj,
-    const int m[4]))
+    struct gfx *gfx, const int m[4]))
 {
 	const struct lib_obj *obj;
 
 	if (!comp) {
-		missing_component(m);
+		missing_component(gfx, m);
 		return;
 	}
 	if (!unit)
@@ -773,20 +794,20 @@ static void render_lib(const struct comp *comp, unsigned unit, unsigned convert,
 			continue;
 		if (obj->convert && obj->convert != convert)
 			continue;
-		draw_fn(comp, obj, m);
+		draw_fn(comp, obj, gfx, m);
 	}
 }
 
 
-void lib_render(const struct comp *comp, unsigned unit, unsigned convert,
-    const int m[4])
+void lib_render(const struct comp *comp, struct gfx *gfx,
+   unsigned unit, unsigned convert, const int m[4])
 {
-	render_lib(comp, unit, convert, m, draw);
+	render_lib(comp, gfx, unit, convert, m, draw);
 }
 
 
-void lib_render_extra(const struct comp *comp, unsigned unit, unsigned convert,
-    const int m[4])
+void lib_render_extra(const struct comp *comp, struct gfx *gfx,
+    unsigned unit, unsigned convert, const int m[4])
 {
-	render_lib(comp, unit, convert, m, draw_extra);
+	render_lib(comp, gfx, unit, convert, m, draw_extra);
 }

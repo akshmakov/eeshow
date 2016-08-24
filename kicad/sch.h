@@ -18,6 +18,7 @@
 
 #include "kicad/dwg.h"
 #include "gfx/text.h"
+#include "gfx/gfx.h"
 #include "file/file.h"
 #include "kicad/lib.h"
 
@@ -49,11 +50,13 @@ struct sch_obj {
 
 	union {
 		struct sch_wire {
-			void (*fn)(int sx, int sy, int ex, int ey);
+			void (*fn)(struct gfx *gfx,
+			    int sx, int sy, int ex, int ey);
 			int ex, ey;
 		} wire;
 		struct sch_text {
-			void (*fn)(int x, int y, const char *s,
+			void (*fn)(struct gfx *gfx,
+			    int x, int y, const char *s,
 			    int dir, int dim, enum dwg_shape shape,
 			    struct dwg_bbox *bbox);
 			const char *s;
@@ -131,8 +134,8 @@ struct sch_ctx {
 
 void decode_alignment(struct text *txt, char hor, char vert);
 
-void sch_render(const struct sheet *sheet);
-void sch_render_extra(const struct sheet *sheet);
+void sch_render(const struct sheet *sheet, struct gfx *gfx);
+void sch_render_extra(const struct sheet *sheet, struct gfx *gfx);
 bool sch_parse(struct sch_ctx *ctx, struct file *file, const struct lib *lib,
     const struct sch_ctx *prev);
 void sch_init(struct sch_ctx *ctx, bool recurse);

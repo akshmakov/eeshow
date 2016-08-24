@@ -80,7 +80,7 @@ static enum box_type flip_box(enum box_type box)
 }
 
 
-void dwg_label(int x, int y, const char *s, int dir, int dim,
+void dwg_label(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
     enum dwg_shape shape, struct dwg_bbox *bbox)
 {
 	struct text txt = {
@@ -121,11 +121,11 @@ void dwg_label(int x, int y, const char *s, int dir, int dim,
 
 	txt.y -= dy * LABEL_OFFSET;
 	txt.x += dx * LABEL_OFFSET;
-	text_fig(&txt, COLOR_LABEL, LAYER_LABEL);
+	text_fig(&txt, gfx, COLOR_LABEL, LAYER_LABEL);
 }
 
 
-void dwg_glabel(int x, int y, const char *s, int dir, int dim,
+void dwg_glabel(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
     enum dwg_shape shape, struct dwg_bbox *bbox)
 {
 	struct text txt = {
@@ -198,75 +198,75 @@ void dwg_glabel(int x, int y, const char *s, int dir, int dim,
 	switch (box) {
 	case box_simple:
 		n = 5;
-		text_shift(&txt, txt.hor, text_mid, shift_flat, 0);
-		text_rel(&txt, text_min, text_min,
+		text_shift(&txt, gfx, txt.hor, text_mid, shift_flat, 0);
+		text_rel(&txt, gfx, text_min, text_min,
 		    -GLABEL_OFFSET, GLABEL_OFFSET, vx + 1, vy + 1);
-		text_rel(&txt, text_max, text_min,
+		text_rel(&txt, gfx, text_max, text_min,
 		    GLABEL_OFFSET, GLABEL_OFFSET, vx + 2, vy + 2);
-		text_rel(&txt, text_max, text_max,
+		text_rel(&txt, gfx, text_max, text_max,
 		    GLABEL_OFFSET, -GLABEL_OFFSET, vx + 3, vy + 3);
-		text_rel(&txt, text_min, text_max,
+		text_rel(&txt, gfx, text_min, text_max,
 		    -GLABEL_OFFSET, -GLABEL_OFFSET, vx + 4, vy + 4);
 		break;
 	case box_right:
-		text_shift(&txt, txt.hor, text_mid,
+		text_shift(&txt, gfx, txt.hor, text_mid,
 		    anchor_right ? shift_tip : shift_flat, 0);
-		text_rel(&txt, text_min, text_min,
+		text_rel(&txt, gfx, text_min, text_min,
 		    -GLABEL_OFFSET, GLABEL_OFFSET, vx + 1, vy + 1);
-		text_rel(&txt, text_max, text_min,
+		text_rel(&txt, gfx, text_max, text_min,
 		    GLABEL_OFFSET, GLABEL_OFFSET, vx + 2, vy + 2);
-		text_rel(&txt, text_max, text_mid, GLABEL_OFFSET + half, 0,
+		text_rel(&txt, gfx, text_max, text_mid, GLABEL_OFFSET + half, 0,
 		    vx + 3, vy + 3);
-		text_rel(&txt, text_max, text_max,
+		text_rel(&txt, gfx, text_max, text_max,
 		    GLABEL_OFFSET, -GLABEL_OFFSET, vx + 4, vy + 4);
-		text_rel(&txt, text_min, text_max,
+		text_rel(&txt, gfx, text_min, text_max,
 		    -GLABEL_OFFSET, -GLABEL_OFFSET, vx + 5, vy + 5);
 		break;
 	case box_left:
-		text_shift(&txt, txt.hor, text_mid,
+		text_shift(&txt, gfx, txt.hor, text_mid,
 		    anchor_right ? shift_flat : shift_tip, 0);
-		text_rel(&txt, text_min, text_min,
+		text_rel(&txt, gfx, text_min, text_min,
 		    -GLABEL_OFFSET, GLABEL_OFFSET, vx + 1, vy + 1);
-		text_rel(&txt, text_max, text_min,
+		text_rel(&txt, gfx, text_max, text_min,
 		    GLABEL_OFFSET, GLABEL_OFFSET, vx + 2, vy + 2);
-		text_rel(&txt, text_max, text_max,
+		text_rel(&txt, gfx, text_max, text_max,
 		    GLABEL_OFFSET, -GLABEL_OFFSET, vx + 3, vy + 3);
-		text_rel(&txt, text_min, text_max,
+		text_rel(&txt, gfx, text_min, text_max,
 		    -GLABEL_OFFSET, -GLABEL_OFFSET, vx + 4, vy + 4);
-		text_rel(&txt, text_min, text_mid, -GLABEL_OFFSET- half, 0,
+		text_rel(&txt, gfx, text_min, text_mid, -GLABEL_OFFSET- half, 0,
 		    vx + 5, vy + 5);
 		break;
 	case box_both:
 		n = 7;
-		text_shift(&txt, txt.hor, text_mid, shift_tip, 0);
-		text_rel(&txt, text_min, text_min,
+		text_shift(&txt, gfx, txt.hor, text_mid, shift_tip, 0);
+		text_rel(&txt, gfx, text_min, text_min,
 		    -GLABEL_OFFSET, GLABEL_OFFSET, vx + 1, vy + 1);
-		text_rel(&txt, text_max, text_min,
+		text_rel(&txt, gfx, text_max, text_min,
 		    GLABEL_OFFSET, GLABEL_OFFSET, vx + 2, vy + 2);
-		text_rel(&txt, text_max, text_mid, GLABEL_OFFSET + half, 0,
+		text_rel(&txt, gfx, text_max, text_mid, GLABEL_OFFSET + half, 0,
 		    vx + 3, vy + 3);
-		text_rel(&txt, text_max, text_max,
+		text_rel(&txt, gfx, text_max, text_max,
 		    GLABEL_OFFSET, -GLABEL_OFFSET, vx + 4, vy + 4);
-		text_rel(&txt, text_min, text_max,
+		text_rel(&txt, gfx, text_min, text_max,
 		    -GLABEL_OFFSET, -GLABEL_OFFSET, vx + 5, vy + 5);
-		text_rel(&txt, text_min, text_mid, -GLABEL_OFFSET- half, 0,
+		text_rel(&txt, gfx, text_min, text_mid, -GLABEL_OFFSET- half, 0,
 		    vx + 6, vy + 6);
 		break;
 	default:
 		assert(0);
 	}
 
-	text_fig(&txt, COLOR_GLABEL, LAYER_GLABEL);
+	text_fig(&txt, gfx, COLOR_GLABEL, LAYER_GLABEL);
 
 	vx[0] = vx[n - 1];
 	vy[0] = vy[n - 1];
-	gfx_poly(n, vx, vy, COLOR_GLABEL, COLOR_NONE, LAYER_GLABEL);
+	gfx_poly(gfx, n, vx, vy, COLOR_GLABEL, COLOR_NONE, LAYER_GLABEL);
 
 	if (bbox)
 		bbox_from_poly(bbox, n, vx, vy);
 
 	if (asprintf(&tag, "G:%s", s)) {}
-	gfx_tag(tag, n, vx, vy);
+	gfx_tag(gfx, tag, n, vx, vy);
 }
 
 
@@ -325,7 +325,7 @@ static int make_box(enum box_type box, int h, int *vx, int *vy)
 }
 
 
-void dwg_hlabel(int x, int y, const char *s, int dir, int dim,
+void dwg_hlabel(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
     enum dwg_shape shape, struct dwg_bbox *bbox)
 {
 	struct text txt = {
@@ -396,15 +396,15 @@ void dwg_hlabel(int x, int y, const char *s, int dir, int dim,
 
 	txt.rot = rot % 180;
 
-	text_fig(&txt, COLOR_HLABEL, LAYER_HLABEL);
-	gfx_poly(n + 1, vx, vy, COLOR_HLABEL, COLOR_NONE, LAYER_HLABEL);
+	text_fig(&txt, gfx, COLOR_HLABEL, LAYER_HLABEL);
+	gfx_poly(gfx, n + 1, vx, vy, COLOR_HLABEL, COLOR_NONE, LAYER_HLABEL);
 }
 
 
 /* ----- Text -------------------------------------------------------------- */
 
 
-void dwg_text(int x, int y, const char *s, int dir, int dim,
+void dwg_text(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
     enum dwg_shape shape, struct dwg_bbox *bbox)
 {
 	struct text txt = {
@@ -434,27 +434,27 @@ void dwg_text(int x, int y, const char *s, int dir, int dim,
 		assert(2 + 2 == 5);
 	}
 
-	text_fig(&txt, COLOR_TEXT, LAYER_TEXT);
+	text_fig(&txt, gfx, COLOR_TEXT, LAYER_TEXT);
 }
 
 
 /* ----- Connections ------------------------------------------------------- */
 
 
-void dwg_junction(int x, int y)
+void dwg_junction(struct gfx *gfx, int x, int y)
 {
-	gfx_circ(x, y, JUNCTION_R, COLOR_NONE, COLOR_WIRE, LAYER_WIRES);
+	gfx_circ(gfx, x, y, JUNCTION_R, COLOR_NONE, COLOR_WIRE, LAYER_WIRES);
 }
 
 
-void dwg_noconn(int x, int y)
+void dwg_noconn(struct gfx *gfx, int x, int y)
 {
 	int vx[2] = { x - NOCONN_LEN, x + NOCONN_LEN };
 	int vy[2] = { y - NOCONN_LEN, y + NOCONN_LEN };
 
-	gfx_poly(2, vx, vy, COLOR_NOCONN, COLOR_NONE, LAYER_NOCONN);
+	gfx_poly(gfx, 2, vx, vy, COLOR_NOCONN, COLOR_NONE, LAYER_NOCONN);
 	swap(vy[0], vy[1]);
-	gfx_poly(2, vx, vy, COLOR_NOCONN, COLOR_NONE, LAYER_NOCONN);
+	gfx_poly(gfx, 2, vx, vy, COLOR_NOCONN, COLOR_NONE, LAYER_NOCONN);
 }
 
 
@@ -469,33 +469,33 @@ void dwg_noconn(int x, int y)
  * treat reversed lines as still equal.
  */
 
-void dwg_line(int sx, int sy, int ex, int ey)
+void dwg_line(struct gfx *gfx, int sx, int sy, int ex, int ey)
 {
 	if (sx < ex || (sx == ex && sy < ey))
-		gfx_line(sx, sy, ex, ey, COLOR_SHEET_DWG, LAYER_LINES);
+		gfx_line(gfx, sx, sy, ex, ey, COLOR_SHEET_DWG, LAYER_LINES);
 	else
-		gfx_line(ex, ey, sx, sy, COLOR_SHEET_DWG, LAYER_LINES);
+		gfx_line(gfx, ex, ey, sx, sy, COLOR_SHEET_DWG, LAYER_LINES);
 }
 
 
 /* ----- Wires and busses -------------------------------------------------- */
 
 
-void dwg_wire(int sx, int sy, int ex, int ey)
+void dwg_wire(struct gfx *gfx, int sx, int sy, int ex, int ey)
 {
 	int vx[] = { sx, ex };
 	int vy[] = { sy, ey };
 
 	// WIDTH_WIRE
-	gfx_poly(2, vx, vy, COLOR_WIRE, COLOR_NONE, LAYER_WIRES);
+	gfx_poly(gfx, 2, vx, vy, COLOR_WIRE, COLOR_NONE, LAYER_WIRES);
 }
 
 
-void dwg_bus(int sx, int sy, int ex, int ey)
+void dwg_bus(struct gfx *gfx, int sx, int sy, int ex, int ey)
 {
 	int vx[] = { sx, ex };
 	int vy[] = { sy, ey };
 
 	// WIDTH_BUS
-	gfx_poly(2, vx, vy, COLOR_BUS, COLOR_NONE, LAYER_BUSSES);
+	gfx_poly(gfx, 2, vx, vy, COLOR_BUS, COLOR_NONE, LAYER_BUSSES);
 }

@@ -14,6 +14,8 @@
 #ifndef GFX_TEXT_H
 #define GFX_TEXT_H
 
+struct gfx;	/* don't recurse */
+
 
 /* use constants of FIG text sub_type */
 
@@ -45,15 +47,20 @@ void text_rot(struct text *txt, int deg);
 void text_flip_x(struct text *txt);
 enum text_align text_flip(enum text_align align);
 
-void text_fig(const struct text *txt, int color, unsigned layer);
+void text_fig(const struct text *txt, struct gfx *gfx,
+    int color, unsigned layer);
 
-void text_rel(const struct text *txt, enum text_align xr, enum text_align yr,
+void text_rel(const struct text *txt, struct gfx *gfx,
+    enum text_align xr, enum text_align yr,
     int dx, int dy, int *res_x, int *res_y);
-void text_shift(struct text *txt, enum text_align xr, enum text_align yr,
+void text_shift(struct text *txt, struct gfx *gfx,
+    enum text_align xr, enum text_align yr,
     int dx, int dy);
-int text_rel_x(const struct text *txt, enum text_align xr, enum text_align yr,
+int text_rel_x(const struct text *txt, struct gfx *gfx,
+    enum text_align xr, enum text_align yr,
     int dx, int dy);
-int text_rel_y(const struct text *txt, enum text_align xr, enum text_align yr,
+int text_rel_y(const struct text *txt, struct gfx *gfx,
+    enum text_align xr, enum text_align yr,
     int dx, int dy);
 
 #endif /* !GFX_TEXT_H */

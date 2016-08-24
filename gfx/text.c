@@ -93,7 +93,8 @@ static int align(int dim, enum text_align align)
 }
 
 
-void text_fig(const struct text *txt, int color, unsigned layer)
+void text_fig(const struct text *txt, struct gfx *gfx,
+    int color, unsigned layer)
 {
 	char *buf = stralloc(txt->s);
 	char *tmp = buf;
@@ -114,7 +115,8 @@ void text_fig(const struct text *txt, int color, unsigned layer)
 		if (!s)
 			break;
 		tmp = NULL;
-		gfx_text(x, y, s, txt->size, txt->hor, txt->rot, color, layer);
+		gfx_text(gfx, x, y, s, txt->size, txt->hor, txt->rot, color,
+		    layer);
 		x += rx(0, NEWLINE_SKIP * txt->size, txt->rot);
 		y += ry(0, NEWLINE_SKIP * txt->size, txt->rot);
 	}
@@ -122,10 +124,11 @@ void text_fig(const struct text *txt, int color, unsigned layer)
 }
 
 
-void text_rel(const struct text *txt, enum text_align xr, enum text_align yr,
+void text_rel(const struct text *txt, struct gfx *gfx,
+    enum text_align xr, enum text_align yr,
     int dx, int dy, int *res_x, int *res_y)
 {
-	int width = gfx_text_width(txt->s, txt->size);
+	int width = gfx_text_width(gfx, txt->s, txt->size);
 
 	dx -= align(width, txt->hor);
 	dy += align(txt->size, txt->vert);
@@ -138,28 +141,28 @@ void text_rel(const struct text *txt, enum text_align xr, enum text_align yr,
 }
 
 
-void text_shift(struct text *txt, enum text_align xr, enum text_align yr,
-    int dx, int dy)
+void text_shift(struct text *txt, struct gfx *gfx,
+    enum text_align xr, enum text_align yr, int dx, int dy)
 {
-	text_rel(txt, xr, yr, dx, dy, &txt->x, &txt->y);
+	text_rel(txt, gfx, xr, yr, dx, dy, &txt->x, &txt->y);
 }
 
 
-int text_rel_x(const struct text *txt, enum text_align xr, enum text_align yr,
-    int dx, int dy)
+int text_rel_x(const struct text *txt, struct gfx *gfx,
+    enum text_align xr, enum text_align yr, int dx, int dy)
 {
 	int x;
 
-	text_rel(txt, xr, yr, dx, dy, &x, NULL);
+	text_rel(txt, gfx, xr, yr, dx, dy, &x, NULL);
 	return x;
 }
 
 
-int text_rel_y(const struct text *txt, enum text_align xr, enum text_align yr,
-    int dx, int dy)
+int text_rel_y(const struct text *txt, struct gfx *gfx,
+    enum text_align xr, enum text_align yr, int dx, int dy)
 {
 	int y;
 
-	text_rel(txt, xr, yr, dx, dy, NULL, &y);
+	text_rel(txt, gfx, xr, yr, dx, dy, NULL, &y);
 	return y;
 }

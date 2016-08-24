@@ -27,7 +27,8 @@
 /* ----- Rendering --------------------------------------------------------- */
 
 
-static void dump_field(const struct comp_field *field, const int m[6])
+static void dump_field(const struct comp_field *field, struct gfx *gfx,
+    const int m[6])
 {
 	struct text txt = field->txt;
 	int dx, dy;
@@ -61,12 +62,12 @@ static void dump_field(const struct comp_field *field, const int m[6])
 			txt.vert = text_flip(txt.vert);
 	}
 
-	text_fig(&txt, COLOR_FIELD, LAYER_FIELD);
+	text_fig(&txt, gfx, COLOR_FIELD, LAYER_FIELD);
 }
 
 
 static void do_hsheet_text(const struct sch_obj *obj,
-    const struct sch_sheet *sheet)
+    const struct sch_sheet *sheet, struct gfx *gfx)
 {
 	char *s;
 
@@ -105,8 +106,8 @@ static void do_hsheet_text(const struct sch_obj *obj,
 		file_txt.y += sheet->h + HSHEET_FIELD_OFFSET;
 	}
 
-	text_fig(&sheet_txt, COLOR_HSHEET_SHEET, LAYER_HSHEET_FIELD);
-	text_fig(&file_txt, COLOR_HSHEET_FILE, LAYER_HSHEET_FIELD);
+	text_fig(&sheet_txt, gfx, COLOR_HSHEET_SHEET, LAYER_HSHEET_FIELD);
+	text_fig(&file_txt, gfx, COLOR_HSHEET_FILE, LAYER_HSHEET_FIELD);
 
 //	free((void *) ctx->sheet);
 //	free((void *) ctx->file);
@@ -114,24 +115,24 @@ static void do_hsheet_text(const struct sch_obj *obj,
 
 
 static void render_sheet(const struct sch_obj *obj,
-    const struct sch_sheet *sheet)
+    const struct sch_sheet *sheet, struct gfx *gfx)
 {
 	const struct sheet_field *field;
 
-	gfx_rect(obj->x, obj->y, obj->x + sheet->w, obj->y + sheet->h,
+	gfx_rect(gfx, obj->x, obj->y, obj->x + sheet->w, obj->y + sheet->h,
 	    COLOR_HSHEET_BOX, sheet->error ? COLOR_MISSING_BG : COLOR_NONE,
 	    LAYER_HSHEET_BOX);
-	do_hsheet_text(obj, sheet);
+	do_hsheet_text(obj, sheet, gfx);
 
 	for (field = sheet->fields; field; field = field->next)
-		dwg_hlabel(field->x, field->y, field->s,
+		dwg_hlabel(gfx, field->x, field->y, field->s,
 		    field->side, field->dim,
 		    field->shape, NULL);
 	// free(field->s)
 }
 
 
-void sch_render(const struct sheet *sheet)
+void sch_render(const struct sheet *sheet, struct gfx *gfx)
 {
 	struct sch_obj *obj;
 
@@ -141,21 +142,23 @@ void sch_render(const struct sheet *sheet)
 			{
 				const struct sch_wire *wire = &obj->u.wire;
 
-				wire->fn(obj->x, obj->y, wire->ex, wire->ey);
+				wire->fn(gfx, obj->x, obj->y,
+				    wire->ex, wire->ey);
 			}
 			break;
 		case sch_obj_junction:
-			dwg_junction(obj->x, obj->y);
+			dwg_junction(gfx, obj->x, obj->y);
 			break;
 		case sch_obj_noconn:
-			dwg_noconn(obj->x, obj->y);
+			dwg_noconn(gfx, obj->x, obj->y);
 			break;
 		case sch_obj_glabel:
 		case sch_obj_text:
 			{
 				struct sch_text *text = &obj->u.text;
 
-				text->fn(obj->x, obj->y, text->s, text->dir,
+				text->fn(gfx, obj->x, obj->y,
+				    text->s, text->dir,
 				    text->dim, text->shape, &text->bbox);
 			}
 			break;
@@ -164,15 +167,15 @@ void sch_render(const struct sheet *sheet)
 				const struct sch_comp *comp = &obj->u.comp;
 				const struct comp_field *field;
 
-				lib_render(comp->comp, comp->unit,
+				lib_render(comp->comp, gfx, comp->unit,
 				    comp->convert, comp->m);
 				for (field = comp->fields; field;
 				    field = field->next)
-					dump_field(field, comp->m);
+					dump_field(field, gfx, comp->m);
 			}
 			break;
 		case sch_obj_sheet:
-			render_sheet(obj, &obj->u.sheet);
+			render_sheet(obj, &obj->u.sheet, gfx);
 			break;
 		default:
 			BUG("invalid object type \"%d\"", obj->type);
@@ -180,7 +183,7 @@ void sch_render(const struct sheet *sheet)
 }
 
 
-void sch_render_extra(const struct sheet *sheet)
+void sch_render_extra(const struct sheet *sheet, struct gfx *gfx)
 {
 	struct sch_obj *obj;
 
@@ -197,7 +200,7 @@ void sch_render_extra(const struct sheet *sheet)
 			{
 				const struct sch_comp *comp = &obj->u.comp;
 
-				lib_render_extra(comp->comp, comp->unit,
+				lib_render_extra(comp->comp, gfx, comp->unit,
 				    comp->convert, comp->m);
 			}
 			break;

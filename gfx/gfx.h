@@ -19,6 +19,8 @@
 #include "gfx/text.h"
 
 
+struct gfx;
+
 struct gfx_ops {
 	const char *name;
 	void (*line)(void *ctx, int sx, int sy, int ex, int ey,
@@ -44,31 +46,33 @@ struct gfx_ops {
 };
 
 
-extern void *gfx_ctx;
-
-
 /* wrappers */
 
-void gfx_line(int sx, int sy, int ex, int ey, int color, unsigned layer);
-void gfx_rect(int sx, int sy, int ex, int ey,
+void gfx_line(struct gfx *gfx,
+    int sx, int sy, int ex, int ey, int color, unsigned layer);
+void gfx_rect(struct gfx *gfx, int sx, int sy, int ex, int ey,
     int color, int fill_color, unsigned layer);
-void gfx_poly(int points, const int x[points], const int y[points],
+void gfx_poly(struct gfx *gfx,
+    int points, const int x[points], const int y[points],
     int color, int fill_color, unsigned layer);
-void gfx_circ(int x, int y, int r, int color, int fill_color, unsigned layer);
-void gfx_arc(int x, int y, int r, int sa, int ea,
+void gfx_circ(struct gfx *gfx,
+    int x, int y, int r, int color, int fill_color, unsigned layer);
+void gfx_arc(struct gfx *gfx, int x, int y, int r, int sa, int ea,
     int color, int fill_color, unsigned layer);
-void gfx_text(int x, int y, const char *s, unsigned size,
+void gfx_text(struct gfx *gfx, int x, int y, const char *s, unsigned size,
     enum text_align align, int rot, unsigned color, unsigned layer);
-void gfx_tag(const char *s,
+void gfx_tag(struct gfx *gfx, const char *s,
     unsigned points, const int x[points], int const y[points]);
-unsigned gfx_text_width(const char *s, unsigned size);
+unsigned gfx_text_width(struct gfx *gfx, const char *s, unsigned size);
 
 /* inititalization and termination */
 
-void gfx_init(const struct gfx_ops *ops, int argc, char *const *argv);
-void gfx_sheet_name(const char *name);
-void gfx_new_sheet(void);
-bool gfx_multi_sheet(void);
-void gfx_end(void);
+struct gfx *gfx_init(const struct gfx_ops *ops,
+    int argc, char *const *argv);
+void gfx_sheet_name(struct gfx *gfx, const char *name);
+void gfx_new_sheet(struct gfx *gfx);
+bool gfx_multi_sheet(struct gfx *gfx);
+void *gfx_user(struct gfx *gfx);	/* transitional kludge */
+void gfx_end(struct gfx *gfx);
 
 #endif /* !GFX_GFX_H */

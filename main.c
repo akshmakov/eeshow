@@ -139,6 +139,7 @@ int main(int argc, char **argv)
 	int gfx_argc;
 	char **gfx_argv;
 	const struct gfx_ops **ops = ops_list;
+	struct gfx *gfx;
 
 	if (argc > 1 && !strcmp(argv[1], "gdb")) {
 		char **args;
@@ -289,30 +290,30 @@ found:
 		return 1;
 	file_close(&sch_file);
 
-	gfx_init(*ops, gfx_argc, gfx_argv);
+	gfx = gfx_init(*ops, gfx_argc, gfx_argv);
 	if (recurse) {
 		const struct sheet *sheet;
 
-		if (!gfx_multi_sheet())
+		if (!gfx_multi_sheet(gfx))
 			fatal("graphics backend only supports single sheet\n");
 		for (sheet = sch_ctx.sheets; sheet; sheet = sheet->next) {
-			gfx_sheet_name(sheet->title);
-			sch_render(sheet);
+			gfx_sheet_name(gfx, sheet->title);
+			sch_render(sheet, gfx);
 			if (extra)
-				sch_render_extra(sheet);
+				sch_render_extra(sheet, gfx);
 			if (pl)
-				pl_render(pl, sch_ctx.sheets, sheet);
+				pl_render(pl, gfx, sch_ctx.sheets, sheet);
 			if (sheet->next)
-				gfx_new_sheet();
+				gfx_new_sheet(gfx);
 		}
 	} else {
-		sch_render(sch_ctx.sheets);
+		sch_render(sch_ctx.sheets, gfx);
 		if (extra)
-			sch_render_extra(sch_ctx.sheets);
+			sch_render_extra(sch_ctx.sheets, gfx);
 		if (pl)
-			pl_render(pl, sch_ctx.sheets, sch_ctx.sheets);
+			pl_render(pl, gfx, sch_ctx.sheets, sch_ctx.sheets);
 	}
-	gfx_end();
+	gfx_end(gfx);
 
 	sch_free(&sch_ctx);
 	lib_free(&lib);
