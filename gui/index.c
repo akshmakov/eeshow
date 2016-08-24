@@ -28,6 +28,7 @@
 #define	SHEET_ASPECT	1.4146	/* width / height */
 #define	SHEET_PAD	3
 #define	SHEET_GAP	12	/* not counting the padding ! */
+#define	INDEX_MARGIN	10	/* margin on each side */
 
 
 static unsigned thumb_rows, thumb_cols;
@@ -138,15 +139,14 @@ static bool thumb_hover(void *user, bool on, int dx, int dy)
 static void best_ratio(const struct gui_ctx *ctx)
 {
 	GtkAllocation alloc;
-	float screen_aspect, aspect;
 	const struct gui_sheet *sheet;
 	unsigned n = 0;
 	unsigned r, c;
-	float ratio, best_ratio = 0;
+	float size, best_size = 0;
+	int aw, ah;	/* available size */
 	int w, h;
 
 	gtk_widget_get_allocation(ctx->da, &alloc);
-	screen_aspect = (float) alloc.width / alloc.height;
 
 	for (sheet = sheets(ctx); sheet; sheet = sheet->next)
 		n++;
@@ -154,20 +154,24 @@ static void best_ratio(const struct gui_ctx *ctx)
 
 	for (r = 1; r <= n; r++) {
 		c = (n + r - 1) / r;
-		w = (alloc.width - (c - 1) * SHEET_GAP) / c;
-		h = (alloc.height - (r - 1) * SHEET_GAP) / r;
+		aw = alloc.width - (c - 1) * SHEET_GAP - 2 * INDEX_MARGIN;
+		ah = alloc.height - (r - 1) * SHEET_GAP - 2 * INDEX_MARGIN;
+		if (aw < 0 || ah < 0)
+			continue;
+		w = aw / c;
+		h = ah / r;
 		if (w > SHEET_MAX_W)
 			w = SHEET_MAX_W;
-		if (h * SHEET_ASPECT > thumb_w)
+		if (h * SHEET_ASPECT > w)
 			 h = w / SHEET_ASPECT;
 		if (w / SHEET_ASPECT > h)
 			w = h * SHEET_ASPECT;
-		aspect = ((c - 1) * SHEET_GAP + c * w) /
-		    ((r - 1) * SHEET_GAP + r * h);
-		ratio = aspect > screen_aspect ?
-		    screen_aspect / aspect : aspect / screen_aspect;
-		if (ratio > best_ratio) {
-			best_ratio = ratio;
+		if (!w || !h)
+			continue;
+		size = ((c - 1) * (w + SHEET_GAP) + w) *
+		    ((r - 1) * (h + SHEET_GAP) + h);
+		if (size > best_size) {
+			best_size = size;
 			thumb_cols = c;
 			thumb_rows = r;
 			thumb_w = w;
