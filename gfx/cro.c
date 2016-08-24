@@ -624,6 +624,14 @@ uint32_t *cro_img(struct cro_ctx *ctx, struct cro_ctx *ctx_extra,
 }
 
 
+/* @@@ redesign this when we get a bit more serious about cleaning up */
+
+cairo_surface_t *cro_img_surface(struct cro_ctx *ctx)
+{
+	return ctx->s;
+}
+
+
 /* ----- Operations -------------------------------------------------------- */
 
 
