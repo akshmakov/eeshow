@@ -100,6 +100,38 @@ static void thumb_click(void *user)
 }
 
 
+static void thumb_set_style(struct gui_sheet *sheet, bool selected)
+{
+	struct overlay_style style = overlay_style_dense;
+
+	style.radius = 3;
+	style.pad = SHEET_PAD;
+	style.bg = RGBA(1, 1, 1, 0.8);
+
+	if (selected) {
+		style.width = 2;
+		style.frame = RGBA(0, 0, 0, 1);
+		style.bg = RGBA(1, 1, 1, 1);
+	}
+
+	overlay_style(sheet->thumb_over, &style);
+}
+
+
+static bool thumb_hover(void *user, bool on, int dx, int dy)
+{
+	struct gui_sheet *sheet = user;
+	struct gui_ctx *ctx = sheet->ctx;
+
+	if (on)
+		thumb_set_style(sheet, 1);
+	else
+		thumb_set_style(sheet, 0);
+	redraw(ctx);
+	return 1;
+}
+
+
 /* ----- Rendering to cache ------------------------------------------------ */
 
 
@@ -191,22 +223,12 @@ static void index_render_sheet(const struct gui_ctx *ctx,
 }
 
 
-static struct overlay *index_add_overlay(struct gui_ctx *ctx,
-    struct gui_sheet *sheet)
+static void index_add_overlay(struct gui_ctx *ctx, struct gui_sheet *sheet)
 {
-	struct overlay *over;
-	struct overlay_style style = overlay_style_dense;
-
-	style.radius = 3;
-	style.pad = SHEET_PAD;
-	style.bg = RGBA(1, 1, 1, 0.8);
-
-	over = overlay_add(&ctx->thumb_overlays, &ctx->aois,
-	    NULL, thumb_click, sheet);
-	overlay_icon(over, sheet->thumb_surf);
-	overlay_style(over, &style);
-
-	return over;
+	sheet->thumb_over = overlay_add(&ctx->thumb_overlays, &ctx->aois,
+	    thumb_hover, thumb_click, sheet);
+	overlay_icon(sheet->thumb_over, sheet->thumb_surf);
+	thumb_set_style(sheet, 0);
 }
 
 
@@ -216,7 +238,7 @@ static void index_render_sheets(struct gui_ctx *ctx)
 
 	for (sheet = sheets(ctx); sheet; sheet = sheet->next) {
 		index_render_sheet(ctx, sheet);
-		sheet->thumb_over = index_add_overlay(ctx, sheet);
+		index_add_overlay(ctx, sheet);
 	}
 }
 
@@ -224,15 +246,14 @@ static void index_render_sheets(struct gui_ctx *ctx)
 /* ----- Input ------------------------------------------------------------- */
 
 
-#if 0
-static bool index_hover_begin(void *user, int x, int y)
+static bool index_hover_update(void *user, int x, int y)
 {
 	struct gui_ctx *ctx = user;
 
-	pick_sheet(ctx, x, y);
+	if (aoi_hover(&ctx->aois, x, y))
+		return 1;
 	return 0;
 }
-#endif
 
 
 static bool index_click(void *user, int x, int y)
@@ -269,7 +290,9 @@ static void index_key(void *user, int x, int y, int keyval)
 
 static const struct input_ops index_input_ops = {
 	.click		= index_click,
-//	.hover_begin	= index_hover_begin,
+	.hover_begin	= index_hover_update,
+	.hover_update	= index_hover_update,
+	.hover_click	= index_click,
 	.key		= index_key,
 };
 
