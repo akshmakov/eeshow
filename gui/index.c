@@ -136,7 +136,7 @@ static bool thumb_hover(void *user, bool on, int dx, int dy)
 /* ----- Rendering to cache ------------------------------------------------ */
 
 
-static void best_ratio(const struct gui_ctx *ctx)
+static bool best_ratio(const struct gui_ctx *ctx)
 {
 	GtkAllocation alloc;
 	const struct gui_sheet *sheet;
@@ -178,6 +178,8 @@ static void best_ratio(const struct gui_ctx *ctx)
 			thumb_h = h;
 		}
 	}
+
+	return best_size;
 }
 
 
@@ -307,8 +309,10 @@ static const struct input_ops index_input_ops = {
 void index_resize(struct gui_ctx *ctx)
 {
 	overlay_remove_all(&ctx->thumb_overlays);
-	best_ratio(ctx);
-	index_render_sheets(ctx);
+	if (best_ratio(ctx))
+		index_render_sheets(ctx);
+	else
+		close_index(ctx);
 	redraw(ctx);
 }
 
