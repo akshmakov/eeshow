@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <assert.h>
 
 #include <cairo/cairo.h>
 
@@ -118,23 +119,33 @@ static unsigned diff_text_width(void *ctx, const char *s, unsigned size)
 /* ----- Initialization ---------------------------------------------------- */
 
 
-static void *diff_init(int argc, char *const *argv)
+static void *diff_init(void)
 {
 	struct diff *diff;
+
+	diff = alloc_type(struct diff);
+	diff->areas = NULL;
+
+	diff->output_name = NULL;
+	diff->frame_radius = DEFAULT_FRAME_RADIUS;
+	diff->gfx = NULL;
+
+	return diff;
+}
+
+
+static bool diff_args(void *ctx, int argc, char *const *argv)
+{
+	struct diff *diff = ctx;
 	char c;
 	int arg;
 	struct sch_ctx new_sch;
 	struct file sch_file;
 	struct lib new_lib;
 
-	diff = alloc_type(struct diff);
-	diff->areas = NULL;
-
 	sch_init(&new_sch, 0);
 	lib_init(&new_lib);
 
-	diff->output_name = NULL;
-	diff->frame_radius = DEFAULT_FRAME_RADIUS;
 	while ((c = getopt(argc, argv, "o:s:")) != EOF)
 		switch (c) {
 		case 'o':
@@ -160,24 +171,27 @@ static void *diff_init(int argc, char *const *argv)
 	file_close(&sch_file);
 
 	optind = 0;
-	diff->gfx = gfx_init(&cro_img_ops, argc, argv);
+	diff->gfx = gfx_init(&cro_img_ops);
+	if (!gfx_args(diff->gfx, argc, argv))
+		goto fail_open;
 	sch_render(new_sch.sheets, diff->gfx);
 	diff->new_img = cro_img_end(gfx_user(diff->gfx),
 	    &diff->w, &diff->h, &diff->stride);
 
 	optind = 0;
-	diff->gfx = gfx_init(&cro_img_ops, argc, argv);
+	diff->gfx = gfx_init(&cro_img_ops);
+	if (!gfx_args(diff->gfx, argc, argv))
+		goto fail_open;
 	//diff->gfx = cro_img_ops.init(argc, argv);
 
-	return diff;
+	return 1;
 
 fail_parse:
 	file_close(&sch_file);
 fail_open:
 	sch_free(&new_sch);
 	lib_free(&new_lib);
-	free(diff);
-	return NULL;
+	return 0;
 }
 
 
@@ -307,6 +321,7 @@ static void diff_end(void *ctx)
 	uint32_t *old_img;
 	int w, h, stride;
 
+	assert(diff->gfx);
 	old_img = cro_img_end(gfx_user(diff->gfx), &w, &h, &stride);
 	if (diff->w != w || diff->h != h)
 		fatal("%d x %d vs. %d x %d image\n", w, h, diff->w, diff->h);
@@ -415,5 +430,6 @@ const struct gfx_ops diff_ops = {
 	.text		= diff_text,
 	.text_width	= diff_text_width,
 	.init		= diff_init,
+	.args		= diff_args,
 	.end		= diff_end,
 };

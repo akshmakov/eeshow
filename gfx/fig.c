@@ -237,7 +237,14 @@ static bool apply_vars(char *buf, int n_vars, const char **vars)
 
 
 
-static void *fig_init(int argc, char *const *argv)
+static void *fig_init(void)
+{
+	/* @@@ this is asking for trouble ... */
+	return NULL;
+}
+
+
+static bool fig_args(void *ctx, int argc, char *const *argv)
 {
 	static char *buf = NULL;
 	static size_t n = 0;
@@ -269,7 +276,7 @@ static void *fig_init(int argc, char *const *argv)
 	if (!template) {
 		fig_header();
 		fig_colors();
-		return NULL;
+		return 1;
 	}
 
 	file = fopen(template, "r");
@@ -289,7 +296,7 @@ static void *fig_init(int argc, char *const *argv)
 	}
 	fclose(file);
 
-	return NULL;
+	return 1;
 }
 
 
@@ -307,4 +314,5 @@ const struct gfx_ops fig_ops = {
 	.tag		= fig_tag,
 	.text_width	= fig_text_width,
 	.init		= fig_init,
+	.args		= fig_args,
 };

@@ -46,7 +46,7 @@ struct cro_ctx {
 	struct record record;	/* must be first */
 
 	int xo, yo;		/* offset in target (e.g., canvas) coord */
-	float scale;
+	float scale, default_scale;
 
 	cairo_t *cr;
 	cairo_surface_t *s;
@@ -268,7 +268,7 @@ static struct cro_ctx *new_cc(void)
 
 	cc = alloc_type(struct cro_ctx);
 	cc->xo = cc->yo = 0;
-	cc->scale = DEFAULT_SCALE;
+	cc->scale = cc->default_scale = DEFAULT_SCALE;
 
 	cc->sheets = NULL;
 	cc->n_sheets = 0;
@@ -289,9 +289,9 @@ static struct cro_ctx *new_cc(void)
 }
 
 
-static struct cro_ctx *init_common(int argc, char *const *argv)
+static bool cr_args(void *ctx, int argc, char *const *argv)
 {
-	struct cro_ctx *cc = new_cc();
+	struct cro_ctx *cc = ctx;
 	char c;
 
 	while ((c = getopt(argc, argv, "o:s:T")) != EOF)
@@ -300,7 +300,7 @@ static struct cro_ctx *init_common(int argc, char *const *argv)
 			cc->output_name = optarg;
 			break;
 		case 's':
-			cc->scale = atof(optarg) * DEFAULT_SCALE;
+			cc->scale = atof(optarg) * cc->default_scale;
 			break;
 		case 'T':
 			cc->add_toc = 0;
@@ -309,7 +309,7 @@ static struct cro_ctx *init_common(int argc, char *const *argv)
 			usage(*argv);
 		}
 
-	return cc;
+	return 1;
 }
 
 
@@ -375,13 +375,12 @@ static cairo_status_t stream_to_pdftoc(void *closure,
 }
 
 
-static void *cr_pdf_init(int argc, char *const *argv)
+static void *cr_pdf_init(void)
 {
-	struct cro_ctx *cc;
-
-	cc = init_common(argc, argv);
+	struct cro_ctx *cc = new_cc();
 
 	cc->scale *= 16;
+	cc->default_scale *= 16;
 
 	/* cr_text_width needs *something* to work with */
 
@@ -389,9 +388,21 @@ static void *cr_pdf_init(int argc, char *const *argv)
 	cc->cr = cairo_create(cc->s);
 
 	if (cc->add_toc)
-		cc->toc = pdftoc_begin(cc->output_name);
+		cc->toc = pdftoc_begin();
 
 	return cc;
+}
+
+
+static bool cr_pdf_args(void *ctx, int argc, char *const *argv)
+{
+	struct cro_ctx *cc = ctx;
+
+	if (!cr_args(cc, argc, argv))
+		return 0;
+	if (cc->add_toc && cc->output_name)
+		return pdftoc_set_file(cc->toc, cc->output_name);
+	return 1;
 }
 
 
@@ -469,11 +480,9 @@ static void cr_pdf_end(void *ctx)
 /* ----- PNG (auto-sizing, using redraw) ----------------------------------- */
 
 
-static void *cr_png_init(int argc, char *const *argv)
+static void *cr_png_init(void)
 {
-	struct cro_ctx *cc;
-
-	cc = init_common(argc, argv);
+	struct cro_ctx *cc = new_cc();
 
 	/* cr_text_width needs *something* to work with */
 
@@ -644,6 +653,7 @@ const struct gfx_ops cro_png_ops = {
 	.text		= record_text,
 	.text_width	= cr_text_width,
 	.init		= cr_png_init,
+	.args		= cr_args,
 	.end		= cr_png_end,
 };
 
@@ -656,6 +666,7 @@ const struct gfx_ops cro_pdf_ops = {
 	.text		= record_text,
 	.text_width	= cr_text_width,
 	.init		= cr_pdf_init,
+	.args		= cr_pdf_args,
 	.sheet_name	= cr_pdf_sheet_name,
 	.new_sheet	= cr_pdf_new_sheet,
 	.end		= cr_pdf_end,

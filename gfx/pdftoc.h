@@ -19,7 +19,8 @@
 
 struct pdftoc;
 
-struct pdftoc *pdftoc_begin(const char *file);
+struct pdftoc *pdftoc_begin(void);
+bool pdftoc_set_file(struct pdftoc *ctx, const char *file);
 bool pdftoc_write(struct pdftoc *ctx, const void *data, unsigned length);
 void pdftoc_title(struct pdftoc *ctx, const char *title);
 void pdftoc_end(struct pdftoc *ctx);

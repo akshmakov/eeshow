@@ -41,7 +41,7 @@ struct object {
 };
 
 struct pdftoc {
-	FILE *file;
+	FILE *file;	/* NULL if not set / stdout */
 
 	enum state {
 		idle,	/* between objects */
@@ -69,19 +69,12 @@ struct pdftoc {
 };
 
 
-struct pdftoc *pdftoc_begin(const char *file)
+struct pdftoc *pdftoc_begin(void)
 {
 	struct pdftoc *ctx;
 
 	ctx = alloc_type(struct pdftoc);
-	if (file) {
-		ctx->file = fopen(file, "w");
-		if (!ctx->file)
-			diag_pfatal(file);
-	} else {
-		ctx->file = stdout;
-	}
-
+	ctx->file = NULL;
 	ctx->state = idle;
 
 	ctx->titles = NULL;
@@ -100,6 +93,17 @@ struct pdftoc *pdftoc_begin(const char *file)
 	ctx->info = 0;
 
 	return ctx;
+}
+
+
+bool pdftoc_set_file(struct pdftoc *ctx, const char *file)
+{
+	assert(!ctx->file);
+	ctx->file = fopen(file, "w");
+	if (ctx->file)
+		return 1;
+	diag_perror(file);
+	return 0;
 }
 
 
@@ -136,6 +140,7 @@ static bool parse_object(struct pdftoc *ctx, const char *s)
 
 static void line(struct pdftoc *ctx, const char *s)
 {
+	FILE *file = ctx->file ? ctx->file : stdout;
 
 	switch (ctx->state) {
 	case idle:
@@ -166,7 +171,7 @@ static void line(struct pdftoc *ctx, const char *s)
 	case catalog:
 		if (strbegins(s, ">>")) {
 			ctx->state = object;
-			ctx->pos += fprintf(ctx->file,
+			ctx->pos += fprintf(file,
 			    "   /Outlines %u 0 R\n",
 			    ctx->top + 1);
 			break;
@@ -188,6 +193,7 @@ static void line(struct pdftoc *ctx, const char *s)
 
 static void parse_buffer(struct pdftoc *ctx, bool do_write)
 {
+	FILE *file = ctx->file ? ctx->file : stdout;
 	unsigned size, wrote;
 	char *nl;
 
@@ -203,7 +209,7 @@ static void parse_buffer(struct pdftoc *ctx, bool do_write)
 			break;
 		if (do_write) {
 			wrote = fwrite(ctx->buf + ctx->offset, 1, size + 1,
-			    ctx->file);
+			    file);
 			if (wrote != size + 1)
 				diag_pfatal("fwrite");
 			ctx->pos += size + 1;
@@ -247,6 +253,7 @@ void pdftoc_title(struct pdftoc *ctx, const char *title)
 
 static void write_trailer(struct pdftoc *ctx)
 {
+	FILE *file = ctx->file ? ctx->file : stdout;
 	unsigned n = ctx->top + 1;
 	const struct object *obj = ctx->objs;
 	const struct title *t;
@@ -257,7 +264,7 @@ static void write_trailer(struct pdftoc *ctx)
 
 	outline = n;
 	add_object(ctx, n, 0, ctx->pos);
-	tail = fprintf(ctx->file,
+	tail = fprintf(file,
 	    "%u 0 obj\n<<\n"
 	    "   /Count %u\n"
 	    "   /First %u 0 R\n"
@@ -276,18 +283,18 @@ static void write_trailer(struct pdftoc *ctx)
 			assert(i <= ctx->top);
 		}
 		add_object(ctx, n, 0, ctx->pos + tail);
-		tail += fprintf(ctx->file,
+		tail += fprintf(file,
 		    "%u 0 obj\n<<\n"
 		    "   /Title (%s)\n"
 		    "   /Parent %u 0 R\n",
 		    n, t->s, outline);
 		if (t != ctx->titles)
-			tail += fprintf(ctx->file,
+			tail += fprintf(file,
 			    "   /Prev %u 0 R\n", n - 1);
 		if (t->next)
-			tail += fprintf(ctx->file,
+			tail += fprintf(file,
 			    "   /Next %u 0 R\n", n + 1);
-		tail += fprintf(ctx->file,
+		tail += fprintf(file,
 		    "   /Dest [%d %u R /Fit]\n"
 		    ">>\nendobj\n",
 		    i, ctx->objs[i].gen);
@@ -297,25 +304,26 @@ static void write_trailer(struct pdftoc *ctx)
 
 	/* xref table */
 
-	fprintf(ctx->file, "xref\n0 %u\n", n);
+	fprintf(file, "xref\n0 %u\n", n);
 	for (obj = ctx->objs; obj != ctx->objs + ctx->top + 1; obj++)
-		fprintf(ctx->file,
+		fprintf(file,
 		    "%010u %05u %c \n",
 		    obj->pos, obj->pos ? 0 : 65535, obj->pos ? 'n' : 'f');
 
-	fprintf(ctx->file,
+	fprintf(file,
 	    "trailer\n"
 	    "<< /Size %u\n"
 	    "   /Root %u 0 R\n",
 	    n, ctx->root);
 	if (ctx->info)
-		fprintf(ctx->file, "   /Info %u 0 R\n", ctx->info);
-	fprintf(ctx->file, ">>\nstartxref\n%u\n%%%%EOF\n", ctx->pos + tail);
+		fprintf(file, "   /Info %u 0 R\n", ctx->info);
+	fprintf(file, ">>\nstartxref\n%u\n%%%%EOF\n", ctx->pos + tail);
 }
 
 
 void pdftoc_end(struct pdftoc *ctx)
 {
+	FILE *file = ctx->file ? ctx->file : stdout;
 	struct title *next;
 
 	assert(ctx->state == xref);
@@ -328,7 +336,7 @@ void pdftoc_end(struct pdftoc *ctx)
 
 	write_trailer(ctx);
 
-	if (fclose(ctx->file) < 0)
+	if (fclose(file) < 0)
 		diag_pfatal("fclose");
 
 	while (ctx->titles) {

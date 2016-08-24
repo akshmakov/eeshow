@@ -250,9 +250,7 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 
 void render_sheet(struct gui_sheet *sheet)
 {
-	char *argv[] = { "gui", NULL };
-
-	sheet->gfx = gfx_init(&cro_canvas_ops, 1, argv);
+	sheet->gfx = gfx_init(&cro_canvas_ops);
 	if (sheet->hist && sheet->hist->pl) /* @@@ no pl_render for delta */
 		pl_render(sheet->hist->pl, sheet->gfx,
 		    sheet->hist->sch_ctx.sheets, sheet->sch);
@@ -260,7 +258,7 @@ void render_sheet(struct gui_sheet *sheet)
 	cro_canvas_end(gfx_user(sheet->gfx),
 	    &sheet->w, &sheet->h, &sheet->xmin, &sheet->ymin);
 
-	sheet->gfx_extra = gfx_init(&cro_canvas_ops, 1, argv);
+	sheet->gfx_extra = gfx_init(&cro_canvas_ops);
 	sch_render_extra(sheet->sch, sheet->gfx_extra);
 	cro_canvas_end(gfx_user(sheet->gfx_extra), NULL, NULL, NULL, NULL);
 

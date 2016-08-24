@@ -100,15 +100,20 @@ unsigned gfx_text_width(struct gfx *gfx, const char *s, unsigned size)
 }
 
 
-struct gfx *gfx_init(const struct gfx_ops *ops,
-    int argc, char *const *argv)
+struct gfx *gfx_init(const struct gfx_ops *ops)
 {
 	struct gfx *new;
 
 	new = alloc_type(struct gfx);
-	new->user = ops->init(argc, argv);
+	new->user = ops->init();
 	new->ops = ops;
 	return new;
+}
+
+
+bool gfx_args(struct gfx *gfx, int argc, char *const *argv)
+{
+	return gfx->ops->args && gfx->ops->args(gfx->user, argc, argv);
 }
 
 

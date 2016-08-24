@@ -267,9 +267,7 @@ static void index_render_sheet(const struct gui_ctx *ctx,
 	int stride;
 
 	if (!sheet->gfx_thumb) {
-		char *argv[] = { "index", NULL };
-
-		sheet->gfx_thumb = gfx_init(&cro_canvas_ops, 1, argv);
+		sheet->gfx_thumb = gfx_init(&cro_canvas_ops);
 		sch_render(sheet->sch, sheet->gfx_thumb);
 		cro_canvas_end(gfx_user(sheet->gfx_thumb),
 		    NULL, NULL, NULL, NULL);

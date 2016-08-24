@@ -39,7 +39,8 @@ struct gfx_ops {
 	void (*tag)(void *ctx,  const char *s,
 	    int points, const int x[points], const int y[points]);
 	unsigned (*text_width)(void *ctx, const char *s, unsigned size);
-	void *(*init)(int argc, char *const *argv);
+	void *(*init)(void);
+	bool (*args)(void *ctx, int argc, char *const *argv);
 	void (*sheet_name)(void *ctx, const char *name);
 	void (*new_sheet)(void *ctx);
 	void (*end)(void *ctx);
@@ -67,8 +68,8 @@ unsigned gfx_text_width(struct gfx *gfx, const char *s, unsigned size);
 
 /* inititalization and termination */
 
-struct gfx *gfx_init(const struct gfx_ops *ops,
-    int argc, char *const *argv);
+struct gfx *gfx_init(const struct gfx_ops *ops);
+bool gfx_args(struct gfx *gfx, int argc, char *const *argv);
 void gfx_sheet_name(struct gfx *gfx, const char *name);
 void gfx_new_sheet(struct gfx *gfx);
 bool gfx_multi_sheet(struct gfx *gfx);

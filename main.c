@@ -290,7 +290,9 @@ found:
 		return 1;
 	file_close(&sch_file);
 
-	gfx = gfx_init(*ops, gfx_argc, gfx_argv);
+	gfx = gfx_init(*ops);
+	if (!gfx_args(gfx, gfx_argc, gfx_argv))
+		return 1;
 	if (recurse) {
 		const struct sheet *sheet;
 
