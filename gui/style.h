@@ -18,6 +18,7 @@
 
 #define	NORMAL_FONT	"Helvetica 10"
 #define	BOLD_FONT	"Helvetica Bold 10"
+#define	BOLD_FONT_LARGE	"Helvetica Bold 12"
 
 #define	FRAME_SEL_ONLY	0.0, 0.0, 0.0, 0.9
 #define	FRAME_SEL_OLD	0.8, 0.2, 0.2, 0.9
