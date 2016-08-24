@@ -21,6 +21,7 @@
 
 #include <cairo/cairo.h>
 #include <cairo/cairo-pdf.h>
+#include <pango/pangocairo.h>
 
 #include "misc/util.h"
 #include "misc/diag.h"
@@ -42,6 +43,9 @@
 #define	DEFAULT_SCALE	(72.0 / 1200)
 
 
+bool use_pango = 0;
+
+
 struct cro_ctx {
 	struct record record;	/* must be first */
 
@@ -50,6 +54,9 @@ struct cro_ctx {
 
 	cairo_t *cr;
 	cairo_surface_t *s;
+
+	PangoFontDescription *pango_desc;
+	PangoLayout *pango_layout;
 
 	struct record *sheets;	/* for PDF */
 	unsigned n_sheets;
@@ -193,7 +200,7 @@ static void cr_arc(void *ctx, int x, int y, int r, int sa, int ea,
 #define	TEXT_STRETCH	1.3
 
 
-static void cr_text(void *ctx, int x, int y, const char *s, unsigned size,
+static void cr_text_cairo(void *ctx, int x, int y, const char *s, unsigned size,
     enum text_align align, int rot, unsigned color, unsigned layer)
 {
 	struct cro_ctx *cc = ctx;
@@ -225,6 +232,62 @@ static void cr_text(void *ctx, int x, int y, const char *s, unsigned size,
 
 	cairo_show_text(cc->cr, s);
 	cairo_set_matrix(cc->cr, &m);
+}
+
+
+static void cr_text_pango(void *ctx, int x, int y, const char *s, unsigned size,
+    enum text_align align, int rot, unsigned color, unsigned layer)
+{
+	struct cro_ctx *cc = ctx;
+	PangoRectangle ink;
+
+	pango_font_description_set_absolute_size(cc->pango_desc,
+//	pango_font_description_set_size(cc->pango_desc,
+	    cd(cc, size) * TEXT_STRETCH * PANGO_SCALE);
+	pango_layout_set_text(cc->pango_layout, s, -1);
+	pango_layout_set_font_description(cc->pango_layout, cc->pango_desc);
+	pango_layout_get_extents(cc->pango_layout, &ink, NULL);
+
+	set_color(cc, color);
+
+	cairo_move_to(cc->cr, cx(cc, x), cy(cc, y));
+
+	cairo_save(cc->cr);
+	cairo_rotate(cc->cr, -rot / 180.0 * M_PI);
+
+	switch (align) {
+	case text_min:
+		cairo_rel_move_to(cc->cr,
+		    -ink.x / PANGO_SCALE,
+		    -(ink.y + ink.height) / PANGO_SCALE);
+		break;
+	case text_mid:
+		cairo_rel_move_to(cc->cr,
+		    -(ink.x + ink.width / 2.0) / PANGO_SCALE,
+		    -(ink.y + ink.height) / PANGO_SCALE);
+		break;
+	case text_max:
+		cairo_rel_move_to(cc->cr,
+		    -(ink.x + ink.width) / PANGO_SCALE,
+		    -(ink.y + + ink.height) / PANGO_SCALE);
+		break;
+	default:
+		BUG("invalid alignment %d", align);
+	}
+
+	pango_cairo_update_layout(cc->cr, cc->pango_layout);
+	pango_cairo_show_layout(cc->cr, cc->pango_layout);
+	cairo_restore(cc->cr);
+}
+
+
+static void cr_text(void *ctx, int x, int y, const char *s, unsigned size,
+    enum text_align align, int rot, unsigned color, unsigned layer)
+{
+	if (use_pango)
+		cr_text_pango(ctx, x, y, s, size, align, rot, color, layer);
+	else
+		cr_text_cairo(ctx, x, y, s, size, align, rot, color, layer);
 }
 
 
@@ -286,6 +349,22 @@ static struct cro_ctx *new_cc(void)
 	record_init(&cc->record, &real_cro_ops, cc);
 
 	return cc;
+}
+
+
+static void setup_pango(struct cro_ctx *cc)
+{
+	if (use_pango) {
+		cc->pango_desc =
+		    pango_font_description_from_string("Helvetica Bold");
+		cc->pango_layout = pango_cairo_create_layout(cc->cr);
+		// pango_font_description_free(cc->pango_desc);
+	} else {
+		cairo_select_font_face(cc->cr, "Helvetica",
+		    CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+	}
+
+	// @@@ to destroy pango_layout, g_object_unref(layout);
 }
 
 
@@ -448,8 +527,7 @@ static void cr_pdf_end(void *ctx)
 	cc->cr = cairo_create(cc->s);
 
 	cairo_scale(cc->cr, 1.0 / 16.0, 1.0 / 16);
-	cairo_select_font_face(cc->cr, "Helvetica", CAIRO_FONT_SLANT_NORMAL,
-	    CAIRO_FONT_WEIGHT_BOLD);
+	setup_pango(cc);
 	cairo_set_line_width(cc->cr, 0.5 * cc->scale);
 	/* @@@ CAIRO_LINE_CAP_ROUND makes all non-dashed lines disappear */
 	cairo_set_line_cap(cc->cr, CAIRO_LINE_CAP_SQUARE);
@@ -522,8 +600,7 @@ uint32_t *cro_img_end(struct cro_ctx *cc, int *w, int *h, int *stride)
 	set_color(cc, COLOR_WHITE);
 	cairo_paint(cc->cr);
 
-	cairo_select_font_face(cc->cr, "Helvetica", CAIRO_FONT_SLANT_NORMAL,
-	    CAIRO_FONT_WEIGHT_BOLD);
+	setup_pango(cc);
 	cairo_set_line_width(cc->cr, 2);
 	cairo_set_line_cap(cc->cr, CAIRO_LINE_CAP_ROUND);
 
@@ -564,9 +641,6 @@ void cro_canvas_prepare(cairo_t *cr)
 	cairo_set_source_rgb(cr, 1, 1, 1);
 	cairo_paint(cr);
 
-	cairo_select_font_face(cr, "Helvetica", CAIRO_FONT_SLANT_NORMAL,
-	    CAIRO_FONT_WEIGHT_BOLD);
-
 	cairo_set_line_width(cr, 2);
 	cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
 }
@@ -576,6 +650,8 @@ void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr, int xo, int yo,
     float scale)
 {
 	cc->cr = cr;
+
+	setup_pango(cc);
 
 	cc->scale = scale;
 	cc->xo = xo;
@@ -606,8 +682,6 @@ uint32_t *cro_img(struct cro_ctx *ctx, struct cro_ctx *ctx_extra,
 	cairo_set_source_rgb(cr, 1, 1, 1);
 	cairo_paint(cr);
 
-	cairo_select_font_face(cr, "Helvetica", CAIRO_FONT_SLANT_NORMAL,
-	    CAIRO_FONT_WEIGHT_BOLD);
 	cairo_set_line_width(cr, 2);
 	cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
 
@@ -617,6 +691,8 @@ uint32_t *cro_img(struct cro_ctx *ctx, struct cro_ctx *ctx_extra,
 	ctx->yo = yo;
 	ctx->scale = scale;
 	ctx->color_override = COLOR_NONE;
+
+	setup_pango(ctx);
 
 	if (ctx_extra) {
 		ctx_extra->record.user = ctx->record.user;  /* @@@ eww ! */

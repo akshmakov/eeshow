@@ -14,6 +14,7 @@
 #ifndef GFX_CRO_H
 #define	GFX_CRO_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <cairo/cairo.h>
@@ -23,6 +24,8 @@
 
 struct cro_ctx;
 
+
+extern bool use_pango;
 
 extern const struct gfx_ops cro_png_ops;
 extern const struct gfx_ops cro_pdf_ops;
