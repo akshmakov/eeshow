@@ -242,10 +242,9 @@ static void cr_text_pango(void *ctx, int x, int y, const char *s, unsigned size,
 	PangoRectangle ink;
 
 	pango_font_description_set_absolute_size(cc->pango_desc,
-//	pango_font_description_set_size(cc->pango_desc,
 	    cd(cc, size) * TEXT_STRETCH * PANGO_SCALE);
-	pango_layout_set_text(cc->pango_layout, s, -1);
 	pango_layout_set_font_description(cc->pango_layout, cc->pango_desc);
+	pango_layout_set_text(cc->pango_layout, s, -1);
 	pango_layout_get_extents(cc->pango_layout, &ink, NULL);
 
 	set_color(cc, color);
