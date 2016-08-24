@@ -118,7 +118,7 @@ static void curr_sheet_size(struct gui_ctx *ctx, int *w, int *h)
 }
 
 
-static void zoom_to_extents(struct gui_ctx *ctx)
+void zoom_to_extents(struct gui_ctx *ctx)
 {
 	GtkAllocation alloc;
 	int w, h;
@@ -596,24 +596,10 @@ static const struct input_ops sheet_input_ops = {
 };
 
 
-/* ----- Event handlers ---------------------------------------------------- */
-
-
-static void size_allocate_event(GtkWidget *widget, GdkRectangle *allocation,
-    gpointer data)
-{
-	struct gui_ctx *ctx = data;
-
-	zoom_to_extents(ctx);
-}
-
-
 /* ----- Initialization ---------------------------------------------------- */
 
 
 void sheet_setup(struct gui_ctx *ctx)
 {
-	g_signal_connect(G_OBJECT(ctx->da), "size_allocate",
-	    G_CALLBACK(size_allocate_event), ctx);
 	input_push(&sheet_input_ops, ctx);
 }

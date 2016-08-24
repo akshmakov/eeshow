@@ -157,6 +157,7 @@ void add_glabel_aoi(struct gui_sheet *sheet, const struct sch_obj *obj);
 /* sheet.c */
 
 void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet);
+void zoom_to_extents(struct gui_ctx *ctx);
 void do_revision_overlays(struct gui_ctx *ctx);
 void sheet_setup(struct gui_ctx *ctx);
 
@@ -167,6 +168,7 @@ void show_history(struct gui_ctx *ctx, enum selecting sel);
 /* index.c */
 
 void index_draw_event(const struct gui_ctx *ctx, cairo_t *cr);
+void index_resize(struct gui_ctx *ctx);
 void show_index(struct gui_ctx *ctx);
 
 /* gui.c */

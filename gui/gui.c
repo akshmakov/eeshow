@@ -424,6 +424,20 @@ static void get_history(struct gui_ctx *ctx, const char *sch_name, int limit)
 }
 
 
+/* ----- Resizing ---------------------------------------------------------- */
+
+
+static void size_allocate_event(GtkWidget *widget, GdkRectangle *allocation,
+    gpointer data)
+{
+	struct gui_ctx *ctx = data;
+
+	zoom_to_extents(ctx);
+	if (ctx->mode == showing_index)
+		index_resize(ctx);
+}
+
+
 /* ----- Initialization ---------------------------------------------------- */
 
 
@@ -475,6 +489,8 @@ int gui(const struct file_names *fn, bool recurse, int limit)
 	if (!ctx.new_hist)
 		fatal("no valid sheets\n");
 
+	g_signal_connect(G_OBJECT(ctx.da), "size_allocate",
+	    G_CALLBACK(size_allocate_event), &ctx);
 	g_signal_connect(window, "destroy",
 	    G_CALLBACK(gtk_main_quit), NULL);
 

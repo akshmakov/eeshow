@@ -274,6 +274,18 @@ static const struct input_ops index_input_ops = {
 };
 
 
+/* ----- Resizing ---------------------------------------------------------- */
+
+
+void index_resize(struct gui_ctx *ctx)
+{
+	overlay_remove_all(&ctx->thumb_overlays);
+	best_ratio(ctx);
+	index_render_sheets(ctx);
+	redraw(ctx);
+}
+
+
 /* ----- Initialization ---------------------------------------------------- */
 
 
@@ -281,7 +293,5 @@ void show_index(struct gui_ctx *ctx)
 {
 	input_push(&index_input_ops, ctx);
 	ctx->mode = showing_index;
-	best_ratio(ctx);
-	index_render_sheets(ctx);
-	redraw(ctx);
+	index_resize(ctx);
 }
