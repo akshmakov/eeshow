@@ -16,6 +16,7 @@
 #include <gtk/gtk.h>
 
 #include "gfx/record.h"
+#include "kicad/delta.h"
 #include "gui/aoi.h"
 #include "gui/style.h"
 #include "gui/over.h"
@@ -130,7 +131,9 @@ static void thumb_click(void *user)
 
 static void thumb_set_style(struct gui_sheet *sheet, bool selected)
 {
+	struct gui_ctx *ctx = sheet->ctx;
 	struct overlay_style style = overlay_style_dense;
+	const struct gui_sheet *old;
 
 	style.radius = 3;
 	style.pad = SHEET_PAD;
@@ -140,6 +143,13 @@ static void thumb_set_style(struct gui_sheet *sheet, bool selected)
 		style.width = 2;
 		style.frame = RGBA(0, 0, 0, 1);
 		style.bg = RGBA(1, 1, 1, 1);
+	}
+
+	if (ctx->old_hist && ctx->diff_mode == diff_delta) {
+		old = find_corresponding_sheet(ctx->old_hist->sheets,
+		    ctx->new_hist->sheets, sheet);
+		if (!sheet_eq(sheet->sch, old->sch))
+			style.bg = RGBA(1.0, 1.0, 0, 1);
 	}
 
 	overlay_style(sheet->thumb_over, &style);
