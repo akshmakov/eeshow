@@ -171,6 +171,9 @@ static struct gui_sheet *get_sheets(struct gui_ctx *ctx, struct gui_hist *hist,
 		new->hist = hist;
 		new->rendered = 0;
 
+		new->over = NULL;
+		new->aois = NULL;
+
 		*next = new;
 		next = &new->next;
 	}
