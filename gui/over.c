@@ -186,7 +186,7 @@ fprintf(stderr, "%u(%d) %u %.60s\n", ty, ink_rect.y / PANGO_SCALE, ink_h, over->
  * since we're currently only concerned about horizontal clipping anyway.
  */
 
-		cairo_rectangle(cr, tx, ty, ink_w, ink_h + 20);
+		cairo_rectangle(cr, tx, ty, ink_w + 1, ink_h + 20);
 		cairo_clip(cr);
 	}
 
