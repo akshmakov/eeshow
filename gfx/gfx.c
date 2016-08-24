@@ -13,6 +13,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <unistd.h>	/* for optind */
 
 #include "misc/util.h"
 #include "gfx/style.h"
@@ -113,6 +114,7 @@ struct gfx *gfx_init(const struct gfx_ops *ops)
 
 bool gfx_args(struct gfx *gfx, int argc, char *const *argv)
 {
+	optind = 0;
 	return gfx->ops->args && gfx->ops->args(gfx->user, argc, argv);
 }
 

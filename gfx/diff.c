@@ -170,7 +170,6 @@ static bool diff_args(void *ctx, int argc, char *const *argv)
 		goto fail_parse;
 	file_close(&sch_file);
 
-	optind = 0;
 	diff->gfx = gfx_init(&cro_img_ops);
 	if (!gfx_args(diff->gfx, argc, argv))
 		goto fail_open;
@@ -178,7 +177,6 @@ static bool diff_args(void *ctx, int argc, char *const *argv)
 	diff->new_img = cro_img_end(gfx_user(diff->gfx),
 	    &diff->w, &diff->h, &diff->stride);
 
-	optind = 0;
 	diff->gfx = gfx_init(&cro_img_ops);
 	if (!gfx_args(diff->gfx, argc, argv))
 		goto fail_open;
