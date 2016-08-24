@@ -131,9 +131,7 @@ static void thumb_click(void *user)
 
 static void thumb_set_style(struct gui_sheet *sheet, bool selected)
 {
-	struct gui_ctx *ctx = sheet->ctx;
 	struct overlay_style style = overlay_style_dense;
-	const struct gui_sheet *old;
 
 	style.radius = 3;
 	style.pad = SHEET_PAD;
@@ -145,12 +143,8 @@ static void thumb_set_style(struct gui_sheet *sheet, bool selected)
 		style.bg = RGBA(1, 1, 1, 1);
 	}
 
-	if (ctx->old_hist && ctx->diff_mode == diff_delta) {
-		old = find_corresponding_sheet(ctx->old_hist->sheets,
-		    ctx->new_hist->sheets, sheet);
-		if (!sheet_eq(sheet->sch, old->sch))
+	if (sheet->thumb_yellow)
 			style.bg = RGBA(1.0, 1.0, 0, 1);
-	}
 
 	overlay_style(sheet->thumb_over, &style);
 }
@@ -236,12 +230,41 @@ static bool best_ratio(const struct gui_ctx *ctx)
 }
 
 
+/*
+ * @@@ We should use Cairo's alpha blending instead of manipulating pixels.
+ * The idea would be to make an ARGB32 surface for the thumbnail and then
+ * pre-fill it with alpha = 0. Then we make a solid background and paint the
+ * thumbnail over it. Alas, this produces artefacts, spots where background
+ * color shines through.
+ */
+
+#define	MASK 0xffffff
+
+
+static void paint_yellow(uint32_t *data, int w, int h, int stride)
+{
+	uint32_t *p;
+	int line = stride >> 2;
+	int x, y;
+
+	for (y = 0; y != h; y++) {
+		p = data + y * line;
+		for (x = 0; x != w; x++)
+			if ((p[x] & MASK) == MASK)
+				p[x] = 0xffff00;
+	}
+}
+
+
 static void index_render_sheet(const struct gui_ctx *ctx,
     struct gui_sheet *sheet)
 {
 	int xmin, ymin, w, h;
 	float fw, fh, f;
+	bool yellow = 0;
 	int xo, yo;
+	uint32_t *data;
+	int stride;
 
 	if (!sheet->gfx_ctx_thumb) {
 		char *argv[] = { "index", NULL };
@@ -252,8 +275,18 @@ static void index_render_sheet(const struct gui_ctx *ctx,
        		sheet->gfx_ctx_thumb = gfx_ctx;
 	}
 
+	if (ctx->old_hist && ctx->diff_mode == diff_delta) {
+		const struct gui_sheet *old;
+
+		old = find_corresponding_sheet(ctx->old_hist->sheets,
+		    ctx->new_hist->sheets, sheet);
+		if (!sheet_eq(sheet->sch, old->sch))
+			yellow = 1;
+	}
+
 	if (sheet->thumb_surf &&
-	    sheet->thumb_w == thumb_w && sheet->thumb_h == thumb_h)
+	    sheet->thumb_w == thumb_w && sheet->thumb_h == thumb_h &&
+	    sheet->thumb_yellow == yellow)
 		return;
 
 	if (sheet->thumb_surf) {
@@ -273,12 +306,16 @@ static void index_render_sheet(const struct gui_ctx *ctx,
 
 	xo = -(xmin + w / 2) * f + thumb_w / 2;
 	yo = -(ymin + h / 2) * f + thumb_h / 2;
-	cro_img(sheet->gfx_ctx_thumb, NULL, xo, yo, thumb_w, thumb_h,  f,
-	    NULL, NULL);
+	data = cro_img(sheet->gfx_ctx_thumb, NULL, xo, yo, thumb_w, thumb_h,  f,
+	    NULL, &stride);
+
+	if (yellow)
+		paint_yellow(data, thumb_w, thumb_h, stride);
 
 	sheet->thumb_surf = cro_img_surface(sheet->gfx_ctx_thumb);
 	sheet->thumb_w = thumb_w;
 	sheet->thumb_h = thumb_h;
+	sheet->thumb_yellow = yellow;
 }
 
 

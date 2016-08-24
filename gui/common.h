@@ -48,6 +48,7 @@ struct gui_sheet {
 	cairo_surface_t *thumb_surf;	/* for caching */
 	unsigned thumb_w, thumb_h;	/* size for which we cached */
 	struct overlay *thumb_over;	/* thumb overlay */
+	bool thumb_yellow;		/* change mark */
 
 	struct gui_sheet *next;
 };
