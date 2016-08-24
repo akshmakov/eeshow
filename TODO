@@ -8,6 +8,7 @@ Parsing and input processing:
 - test immunity to deletions more thoroughly (top sheet, sub-sheet, library,
   component, project, page layout)
 - implement related_other_repo
+- diff.c still doesn't use struct file_names
 
 Data model:
 - implement destructors
@@ -23,7 +24,7 @@ Visualization (dwg.c and such):
 - check remaining alignment / direction / rotation cases in switch statements
 - support mirroring (and detect-complain if unexpected) [should be done now]
 - record.c (bb_rot): implement bounding boxes for text
-- nesting gfx in diff is a huge kludge, caused by global vars in gfx.c
+- should get rid of gfx_user()
 
 Rendering:
 - why does "NRESWARM-CPU" (70 mil) on sheet 27 (eMMC) grow outside its box ?
