@@ -57,6 +57,7 @@ struct cro_ctx {
 
 	PangoFontDescription *pango_desc;
 	PangoLayout *pango_layout;
+	double pango_size;
 
 	struct record *sheets;	/* for PDF */
 	unsigned n_sheets;
@@ -240,10 +241,15 @@ static void cr_text_pango(void *ctx, int x, int y, const char *s, unsigned size,
 {
 	struct cro_ctx *cc = ctx;
 	PangoRectangle ink;
+	double pango_size = cd(cc, size) * TEXT_STRETCH * PANGO_SCALE;
 
-	pango_font_description_set_absolute_size(cc->pango_desc,
-	    cd(cc, size) * TEXT_STRETCH * PANGO_SCALE);
-	pango_layout_set_font_description(cc->pango_layout, cc->pango_desc);
+	if (pango_size != cc->pango_size) {
+		pango_font_description_set_absolute_size(cc->pango_desc,
+		    pango_size);
+		pango_layout_set_font_description(cc->pango_layout,
+		    cc->pango_desc);
+		cc->pango_size = pango_size;
+	}
 	pango_layout_set_text(cc->pango_layout, s, -1);
 	pango_layout_get_extents(cc->pango_layout, &ink, NULL);
 
@@ -331,6 +337,8 @@ static struct cro_ctx *new_cc(void)
 	cc = alloc_type(struct cro_ctx);
 	cc->xo = cc->yo = 0;
 	cc->scale = cc->default_scale = DEFAULT_SCALE;
+
+	cc->pango_size = 0;
 
 	cc->sheets = NULL;
 	cc->n_sheets = 0;
