@@ -43,6 +43,12 @@ struct gui_sheet {
 	struct overlay *over;	/* current overlay */
 	struct aoi *aois;	/* areas of interest; in schematics coord  */
 
+	/* thumbnails, for index */
+	struct cro_ctx *gfx_ctx_thumb;	/* NULL if not yet rendered */
+	cairo_surface_t *thumb_surf;	/* for caching */
+	unsigned thumb_w, thumb_h;	/* size for which we cached */
+	struct overlay *thumb_over;	/* thumb overlay */
+
 	struct gui_sheet *next;
 };
 
@@ -74,7 +80,12 @@ struct gui_ctx {
 	struct gui_hist *hist;	/* revision history; NULL if none */
 	struct hist *vcs_hist;	/* underlying VCS data; NULL if none */
 
-	bool showing_history;
+	enum gui_mode {
+		showing_sheet,
+		showing_history,
+		showing_index,
+	} mode;
+
 	enum selecting {
 		sel_only,	/* select the only revision we show */
 		sel_split,	/* select revision to compare with */
@@ -84,6 +95,7 @@ struct gui_ctx {
 
 	struct overlay *sheet_overlays;
 	struct overlay *hist_overlays;
+	struct overlay *thumb_overlays;
 
 	struct overlay *pop_overlays; /* pop-up dialogs */
 	struct overlay *pop_underlays;
@@ -151,6 +163,11 @@ void sheet_setup(struct gui_ctx *ctx);
 /* history.c */
 
 void show_history(struct gui_ctx *ctx, enum selecting sel);
+
+/* index.c */
+
+void index_draw_event(const struct gui_ctx *ctx, cairo_t *cr);
+void show_index(struct gui_ctx *ctx);
 
 /* gui.c */
 

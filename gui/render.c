@@ -18,6 +18,7 @@
 #include <gtk/gtk.h>
 
 #include "misc/util.h"
+#include "misc/diag.h"
 #include "gfx/style.h"
 #include "gfx/cro.h"
 #include "gfx/gfx.h"
@@ -169,7 +170,7 @@ static void hack(const struct gui_ctx *ctx, cairo_t *cr,
 static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
     gpointer user_data)
 {
-	const struct gui_ctx *ctx = user_data;
+	struct gui_ctx *ctx = user_data;
 	const struct gui_sheet *sheet = ctx->curr_sheet;
 	GtkAllocation alloc;
 	float f = ctx->scale;
@@ -224,7 +225,8 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	    SHEET_OVERLAYS_X, SHEET_OVERLAYS_Y);
 	overlay_draw_all_d(ctx->hist_overlays, cr,
 	    VCS_OVERLAYS_X,
-	    VCS_OVERLAYS_Y + (ctx->showing_history ? ctx->hist_y_offset : 0),
+	    VCS_OVERLAYS_Y +
+	    (ctx->mode == showing_history ? ctx->hist_y_offset : 0),
 	    0, 1);
 	overlay_draw_all_d(ctx->pop_underlays, cr, ctx->pop_x, ctx->pop_y,
 	    ctx->pop_dx, ctx->pop_dy);
@@ -232,6 +234,9 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	    ctx->pop_x + ctx->pop_dx * GLABEL_STACK_PADDING,
 	    ctx->pop_y + ctx->pop_dy * GLABEL_STACK_PADDING,
 	    ctx->pop_dx, ctx->pop_dy);
+
+	if (ctx->mode == showing_index)
+		index_draw_event(ctx, cr);
 
 	return FALSE;
 }

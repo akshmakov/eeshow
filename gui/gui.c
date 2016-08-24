@@ -169,6 +169,8 @@ static struct gui_sheet *get_sheets(struct gui_ctx *ctx, struct gui_hist *hist,
 		new->sch = sheet;
 		new->ctx = ctx;
 		new->hist = hist;
+		new->gfx_ctx_thumb = NULL;
+		new->thumb_surf = NULL;
 		new->rendered = 0;
 
 		new->over = NULL;
@@ -433,9 +435,10 @@ int gui(const struct file_names *fn, bool recurse, int limit)
 		.scale		= 1 / 16.0,
 		.hist		= NULL,
 		.vcs_hist	= NULL,
-		.showing_history= 0,
+		.mode		= showing_sheet,
 		.sheet_overlays	= NULL,
 		.hist_overlays	= NULL,
+		.thumb_overlays	= NULL,
 		.pop_overlays	= NULL,
 		.pop_underlays	= NULL,
 		.pop_origin	= NULL,

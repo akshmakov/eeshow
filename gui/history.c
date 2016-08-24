@@ -32,7 +32,7 @@ static void hide_history(struct gui_ctx *ctx)
 {
 	input_pop();
 
-	ctx->showing_history = 0;
+	ctx->mode = showing_sheet;
 	do_revision_overlays(ctx);
 	redraw(ctx);
 }
@@ -303,7 +303,7 @@ void show_history(struct gui_ctx *ctx, enum selecting sel)
 
 	input_push(&history_input_ops, ctx);
 
-	ctx->showing_history = 1;
+	ctx->mode = showing_history;
 	ctx->hist_y_offset = 0;
 	ctx->selecting = sel;
 	overlay_remove_all(&ctx->hist_overlays);

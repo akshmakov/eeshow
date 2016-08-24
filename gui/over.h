@@ -44,6 +44,8 @@ struct overlay_style {
 struct overlay;
 
 
+unsigned overlay_draw(struct overlay *over, cairo_t *cr,
+    int x, int y, int dx, int dy);
 void overlay_draw_all_d(struct overlay *overlays, cairo_t *cr,
     int x, int y, int dx, int dy);
 void overlay_draw_all(struct overlay *overlays, cairo_t *cr, int x, int y);

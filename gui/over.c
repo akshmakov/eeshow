@@ -248,7 +248,7 @@ static unsigned overlay_draw_icon(struct overlay *over, cairo_t *cr,
 /* ----- Drawing interfaces ------------------------------------------------ */
 
 
-static unsigned overlay_draw(struct overlay *over, cairo_t *cr,
+unsigned overlay_draw(struct overlay *over, cairo_t *cr,
     int x, int y, int dx, int dy)
 {
 	if (over->s)

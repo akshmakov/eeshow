@@ -272,12 +272,32 @@ void do_revision_overlays(struct gui_ctx *ctx)
 /* ----- Sheet selection overlays ------------------------------------------ */
 
 
+static struct gui_sheet *find_parent_sheet(struct gui_sheet *sheets,
+    const struct gui_sheet *ref)
+{
+	struct gui_sheet *parent;
+	const struct sch_obj *obj;
+
+	for (parent = sheets; parent; parent = parent->next)
+		for (obj = parent->sch->objs; obj; obj = obj->next)
+			if (obj->type == sch_obj_sheet &&
+			    obj->u.sheet.sheet == ref->sch)
+				return parent;
+	return NULL;
+}
+
+
 static void close_subsheet(void *user)
 {
 	struct gui_sheet *sheet = user;
 	struct gui_ctx *ctx = sheet->ctx;
+	struct gui_sheet *parent;
 
-	go_to_sheet(ctx, sheet);
+	parent = find_parent_sheet(ctx->new_hist->sheets, sheet);
+	if (parent)
+		go_to_sheet(ctx, parent);
+	else
+		show_index(ctx);
 }
 
 
@@ -305,21 +325,6 @@ static bool hover_sheet(void *user, bool on, int dx, int dy)
 	}
 	redraw(ctx);
 	return 1;
-}
-
-
-static struct gui_sheet *find_parent_sheet(struct gui_sheet *sheets,
-    const struct gui_sheet *ref)
-{
-	struct gui_sheet *parent;
-	const struct sch_obj *obj;
-
-	for (parent = sheets; parent; parent = parent->next)
-		for (obj = parent->sch->objs; obj; obj = obj->next)
-			if (obj->type == sch_obj_sheet &&
-			    obj->u.sheet.sheet == ref->sch)
-				return parent;
-	return NULL;
 }
 
 
