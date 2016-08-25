@@ -89,7 +89,7 @@ Text Label 2800 2600 2    60   ~ 12
 LOCAL_LEFT_BOLD
 Wire Wire Line
 	3400 1800 3400 2900
-Text Label 3400 2900 1    60   ~ 12
+Text Label 3400 2900 1    60   Italic 0
 LOCAL_UP_ITALIC
 Wire Wire Line
 	3700 1800 3700 2900
