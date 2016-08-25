@@ -25,8 +25,10 @@
 #include "main.h"
 #include "gfx/cro.h"
 #include "file/file.h"
-#include "kicad/sch.h"
+#include "kicad/ext.h"
 #include "kicad/lib.h"
+#include "kicad/sch.h"
+#include "kicad/pro.h"
 #include "gfx/record.h"
 #include "gfx/gfx.h"
 #include "gfx/diff.h"
@@ -138,8 +140,11 @@ static bool diff_args(void *ctx, int argc, char *const *argv)
 {
 	struct diff *diff = ctx;
 	char c;
-	int arg;
+	unsigned i;
+	struct file_names file_names;
+	struct file_names *fn = &file_names;
 	struct sch_ctx new_sch;
+	struct file pro_file;
 	struct file sch_file;
 	struct lib new_lib;
 
@@ -161,14 +166,35 @@ static bool diff_args(void *ctx, int argc, char *const *argv)
 	if (argc - optind < 1)
 		usage(*argv);
 
-	if (!file_open(&sch_file, argv[argc - 1], NULL)) 
+	classify_files(&file_names, argv + optind, argc - optind);
+	if (!file_names.pro && !file_names.sch)
+		fatal("project or top sheet name required");
+	if (file_names.pro) {
+		if (!file_open(&pro_file, file_names.pro, NULL))
+			return 0;
+		fn = pro_parse_file(&pro_file, &file_names);
+		if (!fn) {
+			file_close(&pro_file);
+			free_file_names(&file_names);
+			return 0;
+		}
+        }
+
+	if (!file_open(&sch_file, fn->sch,  file_names.pro ? &pro_file : NULL)) 
 		goto fail_open;
-	for (arg = optind; arg != argc - 1; arg++)
-		if (!lib_parse(&new_lib, argv[arg], &sch_file))
+	for (i = 0 ; i != fn->n_libs; i++)
+		if (!lib_parse(&new_lib, fn->libs[i], &sch_file))
 			goto fail_parse;
 	if (!sch_parse(&new_sch, &sch_file, &new_lib, NULL))
 		goto fail_parse;
 	file_close(&sch_file);
+	if (file_names.pro)
+		file_close(&pro_file);
+	if (fn != &file_names) {
+		free_file_names(fn);
+		free(fn);
+	}
+	free_file_names(&file_names);
 
 	diff->gfx = gfx_init(&cro_img_ops);
 	if (!gfx_args(diff->gfx, argc, argv))

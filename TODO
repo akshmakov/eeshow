@@ -8,7 +8,6 @@ Parsing and input processing:
 - test immunity to deletions more thoroughly (top sheet, sub-sheet, library,
   component, project, page layout)
 - implement related_other_repo
-- diff.c still doesn't use struct file_names
 
 Data model:
 - implement destructors
