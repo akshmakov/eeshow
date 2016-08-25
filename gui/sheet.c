@@ -505,12 +505,16 @@ static void sheet_key(void *user, int x, int y, int keyval)
 	switch (keyval) {
 	case '+':
 	case '=':
+	case GDK_KEY_KP_Add:
+	case GDK_KEY_KP_Equal:
 		zoom_in(ctx, x, y);
 		break;
 	case '-':
+	case GDK_KEY_KP_Subtract:
 		zoom_out(ctx, x, y);
 		break;
 	case '*':
+	case GDK_KEY_KP_Multiply:
 		zoom_to_extents(ctx);
 		break;
 
@@ -575,6 +579,7 @@ static void sheet_key(void *user, int x, int y, int keyval)
 		break;
 
 	case GDK_KEY_h:
+	case GDK_KEY_Help:
 		help();
 		break;
 
