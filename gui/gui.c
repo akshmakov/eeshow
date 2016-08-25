@@ -78,7 +78,7 @@ struct gui_sheet *find_corresponding_sheet(struct gui_sheet *pick_from,
 
 
 struct sheet_aoi_ctx {
-	struct gui_ctx *gui_ctx;
+	struct gui *gui;
 	const struct sch_obj *obj;
 };
 
@@ -86,7 +86,7 @@ struct sheet_aoi_ctx {
 static void select_subsheet(void *user)
 {
 	const struct sheet_aoi_ctx *aoi_ctx = user;
-	struct gui_ctx *gui = aoi_ctx->gui_ctx;
+	struct gui *gui = aoi_ctx->gui;
 	const struct sch_obj *obj = aoi_ctx->obj;
 	struct gui_sheet *sheet;
 
@@ -114,12 +114,12 @@ found:
 }
 
 
-static void add_sheet_aoi(struct gui_ctx *gui, struct gui_sheet *parent,
+static void add_sheet_aoi(struct gui *gui, struct gui_sheet *parent,
     const struct sch_obj *obj)
 {
 	struct sheet_aoi_ctx *aoi_ctx = alloc_type(struct sheet_aoi_ctx);
 
-	aoi_ctx->gui_ctx = gui;
+	aoi_ctx->gui = gui;
 	aoi_ctx->obj = obj;
 
 	struct aoi aoi = {
@@ -138,7 +138,7 @@ static void add_sheet_aoi(struct gui_ctx *gui, struct gui_sheet *parent,
 /* ----- Load revisions ---------------------------------------------------- */
 
 
-void mark_aois(struct gui_ctx *gui, struct gui_sheet *sheet)
+void mark_aois(struct gui *gui, struct gui_sheet *sheet)
 {
 	const struct sch_obj *obj;
 
@@ -156,7 +156,7 @@ void mark_aois(struct gui_ctx *gui, struct gui_sheet *sheet)
 }
 
 
-static struct gui_sheet *get_sheets(struct gui_ctx *gui, struct gui_hist *hist,
+static struct gui_sheet *get_sheets(struct gui *gui, struct gui_hist *hist,
     const struct sheet *sheets)
 {
 	const struct sheet *sheet;
@@ -337,7 +337,7 @@ fail:
 
 
 struct add_hist_ctx {
-	struct gui_ctx *gui;
+	struct gui *gui;
 	const struct file_names *fn;
 	bool recurse;
 	unsigned limit;
@@ -347,7 +347,7 @@ struct add_hist_ctx {
 static void add_hist(void *user, struct hist *h)
 {
 	struct add_hist_ctx *ahc = user;
-	struct gui_ctx *gui = ahc->gui;
+	struct gui *gui = ahc->gui;
 	struct gui_hist **anchor, *hist, *prev;
 	const struct sheet *sch;
 	unsigned age = 0;
@@ -381,7 +381,7 @@ static void add_hist(void *user, struct hist *h)
 }
 
 
-static void get_revisions(struct gui_ctx *gui, const struct file_names *fn,
+static void get_revisions(struct gui *gui, const struct file_names *fn,
     bool recurse, int limit)
 {
 	struct add_hist_ctx add_hist_ctx = {
@@ -403,13 +403,13 @@ static void get_revisions(struct gui_ctx *gui, const struct file_names *fn,
 
 static void count_history(void *user, struct hist *h)
 {
-	struct gui_ctx *gui = user;
+	struct gui *gui = user;
 
 	gui->hist_size++;
 }
 
 
-static void get_history(struct gui_ctx *gui, const char *sch_name, int limit)
+static void get_history(struct gui *gui, const char *sch_name, int limit)
 {
 	if (!vcs_git_try(sch_name)) {
 		gui->vcs_hist = NULL;
@@ -430,7 +430,7 @@ static void get_history(struct gui_ctx *gui, const char *sch_name, int limit)
 static void size_allocate_event(GtkWidget *widget, GdkRectangle *allocation,
     gpointer data)
 {
-	struct gui_ctx *gui = data;
+	struct gui *gui = data;
 
 	zoom_to_extents(gui);
 	if (gui->mode == showing_index)
@@ -445,7 +445,7 @@ int run_gui(const struct file_names *fn, bool recurse, int limit)
 {
 	GtkWidget *window;
 	char *title;
-	struct gui_ctx gui = {
+	struct gui gui = {
 		.scale		= 1 / 16.0,
 		.hist		= NULL,
 		.vcs_hist	= NULL,

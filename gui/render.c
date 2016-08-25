@@ -49,7 +49,7 @@ bool show_extra = 0;
 /* ----- Helper functions -------------------------------------------------- */
 
 
-void redraw(const struct gui_ctx *gui)
+void redraw(const struct gui *gui)
 {
 	gtk_widget_queue_draw(gui->da);
 }
@@ -82,7 +82,7 @@ static inline int cy(int y, int yo, float scale)
 }
 
 
-static void highlight_glabel(const struct gui_ctx *gui,
+static void highlight_glabel(const struct gui *gui,
     const struct gui_sheet *sheet,  cairo_t *cr, int xo, int yo, float f)
 {
 	const struct sch_obj *obj;
@@ -119,7 +119,7 @@ static void highlight_glabel(const struct gui_ctx *gui,
  * delta.
  */
 
-static struct area *changed_sheets(const struct gui_ctx *gui,
+static struct area *changed_sheets(const struct gui *gui,
     int xo, int yo, float f)
 {
 	const struct gui_sheet *new = gui->curr_sheet;
@@ -152,7 +152,7 @@ static struct area *changed_sheets(const struct gui_ctx *gui,
 }
 
 
-static void hack(const struct gui_ctx *gui, cairo_t *cr,
+static void hack(const struct gui *gui, cairo_t *cr,
     int xo, int yo, float f)
 {
 	const struct gui_sheet *new = gui->curr_sheet;
@@ -172,7 +172,7 @@ static void hack(const struct gui_ctx *gui, cairo_t *cr,
 static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
     gpointer user_data)
 {
-	struct gui_ctx *gui = user_data;
+	struct gui *gui = user_data;
 	const struct gui_sheet *sheet = gui->curr_sheet;
 	GtkAllocation alloc;
 	float f = gui->scale;
@@ -270,7 +270,7 @@ void render_sheet(struct gui_sheet *sheet)
 }
 
 
-void render_delta(struct gui_ctx *gui)
+void render_delta(struct gui *gui)
 {
 #if 1
 	/* @@@ needs updating for curr/last vs. new/old */
@@ -316,7 +316,7 @@ void render_delta(struct gui_ctx *gui)
 /* ----- Setup ------------------------------------------------------------- */
 
 
-void render_setup(struct gui_ctx *gui)
+void render_setup(struct gui *gui)
 {
 	g_signal_connect(G_OBJECT(gui->da), "draw",
 	    G_CALLBACK(on_draw_event), gui);

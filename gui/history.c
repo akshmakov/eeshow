@@ -28,7 +28,7 @@
 #include "gui/common.h"
 
 
-static void hide_history(struct gui_ctx *gui)
+static void hide_history(struct gui *gui)
 {
 	input_pop();
 
@@ -40,7 +40,7 @@ static void hide_history(struct gui_ctx *gui)
 
 static void set_history_style(struct gui_hist *h, bool current)
 {
-	struct gui_ctx *gui = h->gui;
+	struct gui *gui = h->gui;
 	struct overlay_style style = overlay_style_dense;
 	const struct gui_hist *new = gui->new_hist;
 	const struct gui_hist *old = gui->old_hist;
@@ -109,7 +109,7 @@ static void set_history_style(struct gui_hist *h, bool current)
 static bool hover_history(void *user, bool on, int dx, int dy)
 {
 	struct gui_hist *h = user;
-	struct gui_ctx *gui = h->gui;
+	struct gui *gui = h->gui;
 	char *s;
 	int before, after;
 
@@ -142,7 +142,7 @@ static bool hover_history(void *user, bool on, int dx, int dy)
 static void click_history(void *user)
 {
 	struct gui_hist *h = user;
-	struct gui_ctx *gui = h->gui;
+	struct gui *gui = h->gui;
 	struct gui_sheet *sheet, *old_sheet;
 
 	hide_history(gui);
@@ -208,7 +208,7 @@ static void ignore_click(void *user)
 }
 
 
-static struct gui_hist *skip_history(struct gui_ctx *gui, struct gui_hist *h)
+static struct gui_hist *skip_history(struct gui *gui, struct gui_hist *h)
 {
 	struct overlay_style style = overlay_style_dense;
 	unsigned n;
@@ -243,7 +243,7 @@ static struct gui_hist *skip_history(struct gui_ctx *gui, struct gui_hist *h)
 
 static bool history_click(void *user, int x, int y)
 {
-	struct gui_ctx *gui = user;
+	struct gui *gui = user;
 
 	if (aoi_click(&gui->aois, x, y))
 		return 1;
@@ -254,7 +254,7 @@ static bool history_click(void *user, int x, int y)
 
 static bool history_hover_update(void *user, int x, int y)
 {
-	struct gui_ctx *gui = user;
+	struct gui *gui = user;
 
 	return aoi_hover(&gui->aois, x, y);
 }
@@ -262,7 +262,7 @@ static bool history_hover_update(void *user, int x, int y)
 
 static void history_drag_move(void *user, int dx, int dy)
 {
-	struct gui_ctx *gui = user;
+	struct gui *gui = user;
 
 	gui->hist_y_offset += dy;
 	redraw(gui);
@@ -271,7 +271,7 @@ static void history_drag_move(void *user, int dx, int dy)
 
 static void history_key(void *user, int x, int y, int keyval)
 {
-	struct gui_ctx *gui = user;
+	struct gui *gui = user;
 
 	switch (keyval) {
 	case GDK_KEY_Escape:
@@ -297,7 +297,7 @@ static const struct input_ops history_input_ops = {
 /* ----- Invocation -------------------------------------------------------- */
 
 
-void show_history(struct gui_ctx *gui, enum selecting sel)
+void show_history(struct gui *gui, enum selecting sel)
 {
 	struct gui_hist *h = gui->hist;
 

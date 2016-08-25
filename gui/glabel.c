@@ -43,7 +43,7 @@ struct glabel_aoi_ctx {
 /* ----- Tools ------------------------------------------------------------- */
 
 
-static void eeschema_coord(const struct gui_ctx *gui,
+static void eeschema_coord(const struct gui *gui,
     int x, int y, int *rx, int *ry)
 {
 	GtkAllocation alloc;
@@ -65,7 +65,7 @@ static void glabel_dest_click(void *user)
 }
 
 
-void dehover_glabel(struct gui_ctx *gui)
+void dehover_glabel(struct gui *gui)
 {
 	overlay_remove_all(&gui->pop_overlays);
 	overlay_remove_all(&gui->pop_underlays);
@@ -74,7 +74,7 @@ void dehover_glabel(struct gui_ctx *gui)
 }
 
 
-static void add_dest_header(struct gui_ctx *gui, const char *label)
+static void add_dest_header(struct gui *gui, const char *label)
 {
 	struct overlay_style style = {
 		.font	= BOLD_FONT,
@@ -96,7 +96,7 @@ static void add_dest_header(struct gui_ctx *gui, const char *label)
 }
 
 
-static void add_dest_overlay(struct gui_ctx *gui, const char *label,
+static void add_dest_overlay(struct gui *gui, const char *label,
     struct gui_sheet *sheet, unsigned n)
 {
 	struct overlay_style style = {
@@ -134,7 +134,7 @@ static void add_dest_overlay(struct gui_ctx *gui, const char *label,
 
 static bool pop_hover(void *user, bool on, int dx, int dy)
 {
-	struct gui_ctx *gui = user;
+	struct gui *gui = user;
 
 	if (!on)
 		dehover_glabel(gui);
@@ -142,7 +142,7 @@ static bool pop_hover(void *user, bool on, int dx, int dy)
 }
 
 
-static void add_dest_frame(struct gui_ctx *gui)
+static void add_dest_frame(struct gui *gui)
 {
 	int w, h;
 
@@ -187,7 +187,7 @@ static void add_dest_frame(struct gui_ctx *gui)
 static bool hover_glabel(void *user, bool on, int dx, int dy)
 {
 	struct glabel_aoi_ctx *aoi_ctx = user;
-	struct gui_ctx *gui = aoi_ctx->sheet->gui;
+	struct gui *gui = aoi_ctx->sheet->gui;
 	const struct gui_sheet *curr_sheet = gui->curr_sheet;
 	const struct dwg_bbox *bbox = &aoi_ctx->bbox;
 

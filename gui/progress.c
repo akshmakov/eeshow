@@ -36,7 +36,7 @@ static void progress_draw_event(GtkWidget *widget, cairo_t *cr,
     gpointer user_data)
 {
 	GtkAllocation alloc;
-	struct gui_ctx *gui = user_data;
+	struct gui *gui = user_data;
 	unsigned w, x;
 
 	x = gui->progress >> gui->progress_scale;
@@ -67,7 +67,7 @@ static void progress_draw_event(GtkWidget *widget, cairo_t *cr,
 }
 
 
-void setup_progress_bar(struct gui_ctx *gui, GtkWidget *window)
+void setup_progress_bar(struct gui *gui, GtkWidget *window)
 {
 	GtkAllocation alloc;
 
@@ -86,7 +86,7 @@ void setup_progress_bar(struct gui_ctx *gui, GtkWidget *window)
 }
 
 
-void progress_update(struct gui_ctx *gui)
+void progress_update(struct gui *gui)
 {
 	unsigned mask = (1 << gui->progress_scale) - 1;
 

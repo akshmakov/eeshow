@@ -39,7 +39,7 @@
 /* ----- Tools ------------------------------------------------------------- */
 
 
-static void canvas_coord(const struct gui_ctx *gui,
+static void canvas_coord(const struct gui *gui,
     int ex, int ey, int *x, int *y)
 {
 	GtkAllocation alloc;
@@ -56,7 +56,7 @@ static void canvas_coord(const struct gui_ctx *gui,
 /* ----- Zoom -------------------------------------------------------------- */
 
 
-static bool zoom_in(struct gui_ctx *gui, int x, int y)
+static bool zoom_in(struct gui *gui, int x, int y)
 {
 	float old = gui->scale;
 
@@ -72,7 +72,7 @@ static bool zoom_in(struct gui_ctx *gui, int x, int y)
 }
 
 
-static bool zoom_out(struct gui_ctx *gui, int x, int y)
+static bool zoom_out(struct gui *gui, int x, int y)
 {
 	float old = gui->scale;
 
@@ -90,7 +90,7 @@ static bool zoom_out(struct gui_ctx *gui, int x, int y)
 }
 
 
-static void curr_sheet_size(struct gui_ctx *gui, int *w, int *h)
+static void curr_sheet_size(struct gui *gui, int *w, int *h)
 {
 	const struct gui_sheet *sheet = gui->curr_sheet;
 	int ax1, ay1, bx1, by1;
@@ -119,7 +119,7 @@ static void curr_sheet_size(struct gui_ctx *gui, int *w, int *h)
 }
 
 
-void zoom_to_extents(struct gui_ctx *gui)
+void zoom_to_extents(struct gui *gui)
 {
 	GtkAllocation alloc;
 	int w, h;
@@ -145,7 +145,7 @@ void zoom_to_extents(struct gui_ctx *gui)
 static bool show_history_details(void *user, bool on, int dx, int dy)
 {
 	struct gui_hist *h = user;
-	struct gui_ctx *gui = h->gui;
+	struct gui *gui = h->gui;
 	char *s;
 
 	if (on) {
@@ -160,7 +160,7 @@ static bool show_history_details(void *user, bool on, int dx, int dy)
 }
 
 
-static void set_diff_mode(struct gui_ctx *gui, enum diff_mode mode)
+static void set_diff_mode(struct gui *gui, enum diff_mode mode)
 {
 	gui->diff_mode = mode;
 	do_revision_overlays(gui);
@@ -171,7 +171,7 @@ static void set_diff_mode(struct gui_ctx *gui, enum diff_mode mode)
 static void show_history_cb(void *user)
 {
 	struct gui_hist *h = user;
-	struct gui_ctx *gui = h->gui;
+	struct gui *gui = h->gui;
 	enum selecting sel = sel_only;
 
 	if (gui->old_hist) {
@@ -191,7 +191,7 @@ static void show_history_cb(void *user)
 
 static void show_diff_cb(void *user)
 {
-	struct gui_ctx *gui = user;
+	struct gui *gui = user;
 
 	if (gui->old_hist)
 		set_diff_mode(gui,
@@ -201,13 +201,13 @@ static void show_diff_cb(void *user)
 }
 
 
-static void toggle_old_new(struct gui_ctx *gui)
+static void toggle_old_new(struct gui *gui)
 {
 	set_diff_mode(gui, gui->diff_mode == diff_new ? diff_old : diff_new);
 }
 
 
-static void add_delta(struct gui_ctx *gui)
+static void add_delta(struct gui *gui)
 {
 	struct overlay *over;
 	struct overlay_style style;
@@ -226,7 +226,7 @@ static void add_delta(struct gui_ctx *gui)
 }
 
 
-static void revision_overlays_diff(struct gui_ctx *gui)
+static void revision_overlays_diff(struct gui *gui)
 {
 	struct gui_hist *new = gui->new_hist;
 	struct gui_hist *old = gui->old_hist;
@@ -252,7 +252,7 @@ static void revision_overlays_diff(struct gui_ctx *gui)
 }
 
 
-void do_revision_overlays(struct gui_ctx *gui)
+void do_revision_overlays(struct gui *gui)
 {
 	overlay_remove_all(&gui->hist_overlays);
 
@@ -291,7 +291,7 @@ static struct gui_sheet *find_parent_sheet(struct gui_sheet *sheets,
 static void close_subsheet(void *user)
 {
 	struct gui_sheet *sheet = user;
-	struct gui_ctx *gui = sheet->gui;
+	struct gui *gui = sheet->gui;
 	struct gui_sheet *parent;
 
 	parent = find_parent_sheet(gui->new_hist->sheets, sheet);
@@ -305,7 +305,7 @@ static void close_subsheet(void *user)
 static bool hover_sheet(void *user, bool on, int dx, int dy)
 {
 	struct gui_sheet *sheet = user;
-	struct gui_ctx *gui = sheet->gui;
+	struct gui *gui = sheet->gui;
 	const char *title = sheet->sch->title;
 
 	if (!title)
@@ -329,7 +329,7 @@ static bool hover_sheet(void *user, bool on, int dx, int dy)
 }
 
 
-static void sheet_selector_recurse(struct gui_ctx *gui, struct gui_sheet *sheet)
+static void sheet_selector_recurse(struct gui *gui, struct gui_sheet *sheet)
 {
 	struct gui_sheet *parent;
 
@@ -342,7 +342,7 @@ static void sheet_selector_recurse(struct gui_ctx *gui, struct gui_sheet *sheet)
 }
 
 
-static void do_sheet_overlays(struct gui_ctx *gui)
+static void do_sheet_overlays(struct gui *gui)
 {
 	overlay_remove_all(&gui->sheet_overlays);
 	sheet_selector_recurse(gui, gui->curr_sheet);
@@ -352,7 +352,7 @@ static void do_sheet_overlays(struct gui_ctx *gui)
 /* ----- Navigate sheets --------------------------------------------------- */
 
 
-void go_to_sheet(struct gui_ctx *gui, struct gui_sheet *sheet)
+void go_to_sheet(struct gui *gui, struct gui_sheet *sheet)
 {
 	aoi_dehover();
 	overlay_remove_all(&gui->pop_overlays);
@@ -371,7 +371,7 @@ void go_to_sheet(struct gui_ctx *gui, struct gui_sheet *sheet)
 }
 
 
-static bool go_up_sheet(struct gui_ctx *gui)
+static bool go_up_sheet(struct gui *gui)
 {
 	struct gui_sheet *parent;
 
@@ -383,7 +383,7 @@ static bool go_up_sheet(struct gui_ctx *gui)
 }
 
 
-static bool go_prev_sheet(struct gui_ctx *gui)
+static bool go_prev_sheet(struct gui *gui)
 {
 	struct gui_sheet *sheet;
 
@@ -396,7 +396,7 @@ static bool go_prev_sheet(struct gui_ctx *gui)
 }
 
 
-static bool go_next_sheet(struct gui_ctx *gui)
+static bool go_next_sheet(struct gui *gui)
 {
 	if (!gui->curr_sheet->next)
 		return 0;
@@ -410,7 +410,7 @@ static bool go_next_sheet(struct gui_ctx *gui)
 
 static bool sheet_click(void *user, int x, int y)
 {
-	struct gui_ctx *gui = user;
+	struct gui *gui = user;
 	const struct gui_sheet *curr_sheet = gui->curr_sheet;
 	int ex, ey;
 
@@ -435,7 +435,7 @@ static bool sheet_click(void *user, int x, int y)
 
 static bool sheet_hover_update(void *user, int x, int y)
 {
-	struct gui_ctx *gui = user;
+	struct gui *gui = user;
 	const struct gui_sheet *curr_sheet = gui->curr_sheet;
 	int ex, ey;
 
@@ -461,7 +461,7 @@ static bool sheet_drag_begin(void *user, int x, int y)
 
 static void sheet_drag_move(void *user, int dx, int dy)
 {
-	struct gui_ctx *gui = user;
+	struct gui *gui = user;
 
 	gui->x -= dx / gui->scale;
 	gui->y -= dy / gui->scale;
@@ -477,7 +477,7 @@ static void sheet_drag_end(void *user)
 
 static void sheet_scroll(void *user, int x, int y, int dy)
 {
-	struct gui_ctx *gui = user;
+	struct gui *gui = user;
 	int ex, ey;
 
 
@@ -496,7 +496,7 @@ static void sheet_scroll(void *user, int x, int y, int dy)
 
 static void sheet_key(void *user, int x, int y, int keyval)
 {
-	struct gui_ctx *gui = user;
+	struct gui *gui = user;
 	struct gui_sheet *sheet = gui->curr_sheet;
 	int ex, ey;
 
@@ -610,7 +610,7 @@ static const struct input_ops sheet_input_ops = {
 /* ----- Initialization ---------------------------------------------------- */
 
 
-void sheet_setup(struct gui_ctx *gui)
+void sheet_setup(struct gui *gui)
 {
 	input_push(&sheet_input_ops, gui);
 }

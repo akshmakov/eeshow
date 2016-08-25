@@ -33,7 +33,7 @@
 #define	INDEX_MARGIN	10	/* margin on each side */
 
 
-/* @@@ clean all this up and move into gui_ctx */
+/* @@@ clean all this up and move into struct gui */
 static unsigned thumb_rows, thumb_cols;
 static unsigned thumb_w, thumb_h;
 static struct overlay *name_over = NULL;
@@ -43,7 +43,7 @@ static const struct gui_sheet *curr_sheet = NULL;
 /* ----- Tools ------------------------------------------------------------- */
 
 
-static void thumbnail_pos(const struct gui_ctx *gui, GtkAllocation *alloc,
+static void thumbnail_pos(const struct gui *gui, GtkAllocation *alloc,
     unsigned n, int *ix, int *iy)
 {
 	*ix = alloc->width / 2 + (thumb_w + SHEET_GAP) *
@@ -56,7 +56,7 @@ static void thumbnail_pos(const struct gui_ctx *gui, GtkAllocation *alloc,
 /* ----- Drawing ----------------------------------------------------------- */
 
 
-static struct gui_sheet *sheets(const struct gui_ctx *gui)
+static struct gui_sheet *sheets(const struct gui *gui)
 {
 	if (gui->old_hist && gui->diff_mode == diff_old)
 		return gui->old_hist->sheets;
@@ -65,7 +65,7 @@ static struct gui_sheet *sheets(const struct gui_ctx *gui)
 }
 
 
-void index_draw_event(const struct gui_ctx *gui, cairo_t *cr)
+void index_draw_event(const struct gui *gui, cairo_t *cr)
 {
 	GtkAllocation alloc;
 	const struct gui_sheet *sheet;
@@ -109,7 +109,7 @@ void index_draw_event(const struct gui_ctx *gui, cairo_t *cr)
 /* ----- Thumbnail actions ------------------------------------------------- */
 
 
-static void close_index(struct gui_ctx *gui)
+static void close_index(struct gui *gui)
 {
 	overlay_remove_all(&gui->thumb_overlays);
 	name_over = NULL;
@@ -122,7 +122,7 @@ static void close_index(struct gui_ctx *gui)
 static void thumb_click(void *user)
 {
 	struct gui_sheet *sheet = user;
-	struct gui_ctx *gui = sheet->gui;
+	struct gui *gui = sheet->gui;
 
 	go_to_sheet(gui, sheet);
 	close_index(gui);
@@ -153,7 +153,7 @@ static void thumb_set_style(struct gui_sheet *sheet, bool selected)
 static bool thumb_hover(void *user, bool on, int dx, int dy)
 {
 	struct gui_sheet *sheet = user;
-	struct gui_ctx *gui = sheet->gui;
+	struct gui *gui = sheet->gui;
 	struct overlay_style style = overlay_style_default;
 
 	if (on) {
@@ -183,7 +183,7 @@ static bool thumb_hover(void *user, bool on, int dx, int dy)
 /* ----- Rendering to cache ------------------------------------------------ */
 
 
-static bool best_ratio(const struct gui_ctx *gui)
+static bool best_ratio(const struct gui *gui)
 {
 	GtkAllocation alloc;
 	const struct gui_sheet *sheet;
@@ -256,7 +256,7 @@ static void paint_yellow(uint32_t *data, int w, int h, int stride)
 }
 
 
-static void index_render_sheet(const struct gui_ctx *gui,
+static void index_render_sheet(const struct gui *gui,
     struct gui_sheet *sheet)
 {
 	int xmin, ymin, w, h;
@@ -317,7 +317,7 @@ static void index_render_sheet(const struct gui_ctx *gui,
 }
 
 
-static void index_add_overlay(struct gui_ctx *gui, struct gui_sheet *sheet)
+static void index_add_overlay(struct gui *gui, struct gui_sheet *sheet)
 {
 	sheet->thumb_over = overlay_add(&gui->thumb_overlays, &gui->aois,
 	    thumb_hover, thumb_click, sheet);
@@ -326,7 +326,7 @@ static void index_add_overlay(struct gui_ctx *gui, struct gui_sheet *sheet)
 }
 
 
-static void index_render_sheets(struct gui_ctx *gui)
+static void index_render_sheets(struct gui *gui)
 {
 	struct gui_sheet *sheet;
 
@@ -342,7 +342,7 @@ static void index_render_sheets(struct gui_ctx *gui)
 
 static bool index_hover_update(void *user, int x, int y)
 {
-	struct gui_ctx *gui = user;
+	struct gui *gui = user;
 
 	if (aoi_hover(&gui->aois, x, y))
 		return 1;
@@ -352,7 +352,7 @@ static bool index_hover_update(void *user, int x, int y)
 
 static bool index_click(void *user, int x, int y)
 {
-	struct gui_ctx *gui = user;
+	struct gui *gui = user;
 
 	if (aoi_click(&gui->aois, x, y))
 		return 1;
@@ -363,7 +363,7 @@ static bool index_click(void *user, int x, int y)
 
 static void index_key(void *user, int x, int y, int keyval)
 {
-	struct gui_ctx *gui = user;
+	struct gui *gui = user;
 
 	switch (keyval) {
 	case GDK_KEY_Escape:
@@ -395,7 +395,7 @@ static const struct input_ops index_input_ops = {
 /* ----- Resizing ---------------------------------------------------------- */
 
 
-void index_resize(struct gui_ctx *gui)
+void index_resize(struct gui *gui)
 {
 	overlay_remove_all(&gui->thumb_overlays);
 	name_over = NULL;
@@ -410,7 +410,7 @@ void index_resize(struct gui_ctx *gui)
 /* ----- Initialization ---------------------------------------------------- */
 
 
-void show_index(struct gui_ctx *gui)
+void show_index(struct gui *gui)
 {
 	input_push(&index_input_ops, gui);
 	gui->mode = showing_index;
