@@ -28,6 +28,14 @@
 
 
 /*
+ * For uses where we take libraries from a .pro but don't want the page layout,
+ * too. This is especially important in non-interactive diff mode.
+ */
+
+bool suppress_page_layout = 0;
+
+
+/*
  * Eeschema works in mil
  * Page layouts are in mm
  */
@@ -233,6 +241,8 @@ void pl_render(struct pl_ctx *pl, struct gfx *gfx, const struct sheet *sheets,
 	const struct pl_obj *obj;
 	int i;
 
+	if (suppress_page_layout)
+		return;
 	for (obj = pl->objs; obj; obj = obj->next)
 		for (i = 0; i != obj->repeat; i++)
 			render_obj(pl, obj, gfx, i, sheets, sheet);

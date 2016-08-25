@@ -26,6 +26,7 @@
 #include "gfx/cro.h"
 #include "file/file.h"
 #include "kicad/ext.h"
+#include "kicad/pl.h"
 #include "kicad/lib.h"
 #include "kicad/sch.h"
 #include "kicad/pro.h"
@@ -207,6 +208,8 @@ static bool diff_args(void *ctx, int argc, char *const *argv)
 	if (!gfx_args(diff->gfx, argc, argv))
 		goto fail_open;
 	//diff->gfx = cro_img_ops.init(argc, argv);
+
+	suppress_page_layout = 1;
 
 	return 1;
 

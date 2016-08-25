@@ -166,7 +166,7 @@ int main(int argc, char **argv)
 	if (!have_dashdash)
 		gtk_init(&argc, &argv);
 
-	while ((c = getopt(dashdash, argv, "ervC:F:H:N:OPSV")) != EOF)
+	while ((c = getopt(dashdash, argv, "ervC:F:H:LN:OPSV")) != EOF)
 		switch (c) {
 		case 'e':
 			extra = 1;
@@ -185,6 +185,9 @@ int main(int argc, char **argv)
 			break;
 		case 'H':
 			history = optarg;
+			break;
+		case 'L':
+			suppress_page_layout = 1;
 			break;
 		case 'N':
 			limit = atoi(optarg);

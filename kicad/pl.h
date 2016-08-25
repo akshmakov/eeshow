@@ -14,12 +14,17 @@
 #ifndef KICAD_PL_H
 #define	KICAD_PL_H
 
+#include <stdbool.h>
+
 #include "gfx/gfx.h"
 #include "file/file.h"
 #include "kicad/sch.h"
 
 
 struct pl_ctx;
+
+
+extern bool suppress_page_layout;
 
 
 void pl_render(struct pl_ctx *pl, struct gfx *gfx,
