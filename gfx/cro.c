@@ -45,6 +45,7 @@
 
 
 bool use_pango = 0;
+bool disable_overline = 0;
 
 
 struct cro_ctx {
@@ -319,7 +320,7 @@ static void cr_text_cairo(void *ctx, int x, int y, const char *s, unsigned size,
 		BUG("invalid alignment %d", align);
 	}
 
-	if (strchr(s, '~'))
+	if (!disable_overline && strchr(s, '~'))
 		overlined(cc->cr, s, cd(cc, size) * TEXT_STRETCH);
 	else
 		cairo_show_text(cc->cr, s);

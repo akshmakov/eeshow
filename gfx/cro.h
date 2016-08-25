@@ -26,6 +26,7 @@ struct cro_ctx;
 
 
 extern bool use_pango;
+extern bool disable_overline;
 
 extern const struct gfx_ops cro_png_ops;
 extern const struct gfx_ops cro_pdf_ops;

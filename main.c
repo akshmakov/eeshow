@@ -166,7 +166,7 @@ int main(int argc, char **argv)
 	if (!have_dashdash)
 		gtk_init(&argc, &argv);
 
-	while ((c = getopt(dashdash, argv, "ervC:F:H:N:PSV")) != EOF)
+	while ((c = getopt(dashdash, argv, "ervC:F:H:N:OPSV")) != EOF)
 		switch (c) {
 		case 'e':
 			extra = 1;
@@ -188,6 +188,9 @@ int main(int argc, char **argv)
 			break;
 		case 'N':
 			limit = atoi(optarg);
+			break;
+		case 'O':
+			disable_overline = 1;
 			break;
 		case 'P':
 			use_pango = 1;
