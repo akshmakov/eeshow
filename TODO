@@ -34,7 +34,7 @@ Rendering:
   (goal: prevent font geometry from changing when scaling)
 - support fonts attributes ?
 - support line thickness ?
-- ~ as overline (grep for ~ in out.fig)
+- ~ as overline (grep for ~ in out.fig) [ done for Cairo, FIG still missing ]
 - maybe let user set PNG size [we have zoom level]
 - return indication of whether non-interactive diff found any differences
 - in diff, pass only options understood by cairo_png
@@ -88,4 +88,5 @@ GUI/index:
 - needs keyboard shortcut to invoke
 - add keyboard shortcuts (cursor, Enter)
 - examine interaction with background, suppress conflicts
-- try to use alpha instead of "yellow"
+- try to use alpha instead of "yellow"; consider CAIRO_OPERATOR_SOURCE:
+  https://www.cairographics.org/FAQ/#paint_from_a_surface
