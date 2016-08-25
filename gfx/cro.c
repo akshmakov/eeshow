@@ -760,7 +760,7 @@ void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr, int xo, int yo,
 /* ----- Image for external use (simplified API) --------------------------- */
 
 
-uint32_t *cro_img(struct cro_ctx *ctx, struct cro_ctx *ctx_extra,
+uint32_t *cro_img(struct cro_ctx *cc, struct cro_ctx *cc_extra,
     int xo, int yo, int w, int h,
     float scale, cairo_t **res_cr, int *res_stride)
 {
@@ -782,20 +782,20 @@ uint32_t *cro_img(struct cro_ctx *ctx, struct cro_ctx *ctx_extra,
 	cairo_set_line_width(cr, 2);
 	cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
 
-	ctx->cr = cr;
-	ctx->s = s;
-	ctx->xo = xo;
-	ctx->yo = yo;
-	ctx->scale = scale;
-	ctx->color_override = COLOR_NONE;
+	cc->cr = cr;
+	cc->s = s;
+	cc->xo = xo;
+	cc->yo = yo;
+	cc->scale = scale;
+	cc->color_override = COLOR_NONE;
 
-	setup_pango(ctx);
+	setup_pango(cc);
 
-	if (ctx_extra) {
-		ctx_extra->record.user = ctx->record.user;  /* @@@ eww ! */
-		record_replay(&ctx_extra->record);
+	if (cc_extra) {
+		cc_extra->record.user = cc->record.user;  /* @@@ eww ! */
+		record_replay(&cc_extra->record);
 	}
-	record_replay(&ctx->record);
+	record_replay(&cc->record);
 
 	if (res_cr)
 		*res_cr = cr;
@@ -808,9 +808,9 @@ uint32_t *cro_img(struct cro_ctx *ctx, struct cro_ctx *ctx_extra,
 
 /* @@@ redesign this when we get a bit more serious about cleaning up */
 
-cairo_surface_t *cro_img_surface(struct cro_ctx *ctx)
+cairo_surface_t *cro_img_surface(struct cro_ctx *cc)
 {
-	return ctx->s;
+	return cc->s;
 }
 
 
