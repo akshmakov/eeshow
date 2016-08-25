@@ -43,8 +43,7 @@ static const struct gui_sheet *curr_sheet = NULL;
 /* ----- Tools ------------------------------------------------------------- */
 
 
-static void thumbnail_pos(const struct gui *gui, GtkAllocation *alloc,
-    unsigned n, int *ix, int *iy)
+static void thumbnail_pos(GtkAllocation *alloc, unsigned n, int *ix, int *iy)
 {
 	*ix = alloc->width / 2 + (thumb_w + SHEET_GAP) *
 	    (n % thumb_cols - (thumb_cols - 1) / 2.0);
@@ -81,7 +80,7 @@ void index_draw_event(const struct gui *gui, cairo_t *cr)
 
 	n = 0;
 	for (sheet = sheets(gui); sheet; sheet = sheet->next) {
-		thumbnail_pos(sheet->gui, &alloc, n, &ix, &iy);
+		thumbnail_pos(&alloc, n, &ix, &iy);
 		x = ix - thumb_w / 2 - SHEET_PAD;
 		y = iy - thumb_h / 2 - SHEET_PAD;
 
@@ -94,7 +93,7 @@ void index_draw_event(const struct gui *gui, cairo_t *cr)
 	if (named == -1)
 		return;
 
-	thumbnail_pos(curr_sheet->gui, &alloc, named, &ix, &iy);
+	thumbnail_pos(&alloc, named, &ix, &iy);
 	overlay_size(name_over,
 	    gtk_widget_get_pango_context(curr_sheet->gui->da), &w, &h);
 	x = ix - w / 2;
