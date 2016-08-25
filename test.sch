@@ -1,6 +1,5 @@
 EESchema Schematic File Version 2
 LIBS:test
-LIBS:test-cache
 EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
@@ -369,4 +368,12 @@ Entry Bus Bus
 	5400 1950 5500 1850
 Entry Bus Bus
 	5350 1950 5450 2050
+Text Notes 7000 6300 0    60   ~ 0
+~OVER~normal
+Text Notes 7000 6450 0    60   ~ 0
+normal~OVER
+Text Notes 7750 6450 1    60   ~ 0
+abc~over~def
+Text Notes 8350 6450 2    60   ~ 0
+foo~over~bar
 $EndSCHEMATC
