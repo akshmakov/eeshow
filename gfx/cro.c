@@ -18,6 +18,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <math.h>
+#include <assert.h>
 
 #include <cairo/cairo.h>
 #include <cairo/cairo-pdf.h>
@@ -198,6 +199,93 @@ static void cr_arc(void *ctx, int x, int y, int r, int sa, int ea,
 }
 
 
+static void overline(cairo_t *cr, double ox, double oy, double ex, double ey,
+    double h)
+{
+	if (oy == ey) {
+		oy -= h;
+		ey -= h;
+	} else {
+		ox -= h;
+		ex -= h;
+	}
+	cairo_save(cr);
+	cairo_move_to(cr, ox, oy);
+	cairo_line_to(cr, ex, ey);
+	// @@@ should adjust line width to match text
+	cairo_stroke(cr);
+	cairo_restore(cr);
+}
+
+
+// https://cairographics.org/manual/cairo-cairo-scaled-font-t.html#cairo-scaled-font-text-to-glyphs
+// https://en.wikipedia.org/wiki/UTF-8
+
+static void overlined(cairo_t *cr, const char *s, double h)
+{
+	cairo_status_t status;
+	cairo_glyph_t *glyphs = NULL;
+	int num_glyphs = 0;
+	double cpx, cpy;
+	cairo_glyph_t *g, *last;
+	double off_x = 0, off_y = 0;
+	bool overlining = 0;
+	cairo_text_extents_t ext;
+	double ox, oy;
+
+	cairo_get_current_point(cr, &cpx, &cpy);
+	status = cairo_scaled_font_text_to_glyphs(cairo_get_scaled_font(cr),
+	    cpx, cpy, s, -1, &glyphs, &num_glyphs, NULL, NULL, NULL);
+	if (status != CAIRO_STATUS_SUCCESS)
+		fatal("cairo_scaled_font_text_to_glyphs failed: %s",
+		    cairo_status_to_string(status));
+
+	if (!num_glyphs) {
+		cairo_glyph_free(glyphs);
+		return;
+	}
+
+	g = last = glyphs;
+	while (*s) {
+		assert(g < glyphs + num_glyphs);
+		/* skip UTF-8 multi-characters */
+		if ((*s & 0xc0) == 0xc0)
+			s++;
+		g->x += off_x;
+		g->y += off_y;
+		if (*s == '~') {
+			cairo_show_glyphs(cr, last, g - last);
+			last = g + 1;
+			if (overlining) {
+				overline(cr, ox, oy, g->x, g->y, h);
+			} else {
+				ox = g->x;
+				oy = g->y;
+			}
+			overlining = !overlining;
+			if (s[1]) {
+				off_x = g[0].x - g[1].x;
+				off_y = g[0].y - g[1].y;
+			}
+		}
+		g++;
+		s++;
+	}
+	assert(g == glyphs + num_glyphs);
+	assert(g > glyphs);
+
+	if (last != g)
+		cairo_show_glyphs(cr, last, g - last);
+	if (overlining) {
+		cairo_glyph_extents(cr, g - 1, 1, &ext);
+		overline(cr, ox, oy, g[-1].x + ext.x_advance,
+		    g[-1].y + ext.y_advance, h);
+	}
+	
+	cairo_glyph_free(glyphs);
+}
+
+
 #define	TEXT_STRETCH	1.3
 
 
@@ -231,7 +319,10 @@ static void cr_text_cairo(void *ctx, int x, int y, const char *s, unsigned size,
 		BUG("invalid alignment %d", align);
 	}
 
-	cairo_show_text(cc->cr, s);
+	if (strchr(s, '~'))
+		overlined(cc->cr, s, cd(cc, size) * TEXT_STRETCH);
+	else
+		cairo_show_text(cc->cr, s);
 	cairo_set_matrix(cc->cr, &m);
 }
 
