@@ -261,7 +261,8 @@ int main(int argc, char **argv)
 
 	lib_init(&lib);
 	for (i = 0; i != fn->n_libs; i++)
-		if (!lib_parse(&lib, fn->libs[i], &sch_file))
+		if (!lib_parse(&lib, fn->libs[i],
+		    file_names.pro ? &pro_file : &sch_file))
 			return 1;
 
 	if (fn->pl) {
