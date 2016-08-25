@@ -28,28 +28,28 @@
 #include "gui/common.h"
 
 
-static void hide_history(struct gui_ctx *ctx)
+static void hide_history(struct gui_ctx *gui)
 {
 	input_pop();
 
-	ctx->mode = showing_sheet;
-	do_revision_overlays(ctx);
-	redraw(ctx);
+	gui->mode = showing_sheet;
+	do_revision_overlays(gui);
+	redraw(gui);
 }
 
 
 static void set_history_style(struct gui_hist *h, bool current)
 {
-	struct gui_ctx *ctx = h->ctx;
+	struct gui_ctx *gui = h->gui;
 	struct overlay_style style = overlay_style_dense;
-	const struct gui_hist *new = ctx->new_hist;
-	const struct gui_hist *old = ctx->old_hist;
+	const struct gui_hist *new = gui->new_hist;
+	const struct gui_hist *old = gui->old_hist;
 
 	/* this is in addition to showing detailed content */
 	if (current)
 		style.width++;
 
-	switch (ctx->selecting) {
+	switch (gui->selecting) {
 	case sel_only:
 	case sel_split:
 		style.frame = COLOR(FRAME_SEL_ONLY);
@@ -61,14 +61,14 @@ static void set_history_style(struct gui_hist *h, bool current)
 		style.frame = COLOR(FRAME_SEL_NEW);
 		break;
 	default:
-		BUG("invalid mode %d", ctx->selecting);
+		BUG("invalid mode %d", gui->selecting);
 	}
 
-	if (ctx->new_hist == h || ctx->old_hist == h) {
+	if (gui->new_hist == h || gui->old_hist == h) {
 		style.width++;
 		style.font = BOLD_FONT;
 	}
-	if (ctx->old_hist) {
+	if (gui->old_hist) {
 		if (h == new)
 			style.bg = COLOR(BG_NEW);
 		if (h == old)
@@ -109,12 +109,12 @@ static void set_history_style(struct gui_hist *h, bool current)
 static bool hover_history(void *user, bool on, int dx, int dy)
 {
 	struct gui_hist *h = user;
-	struct gui_ctx *ctx = h->ctx;
+	struct gui_ctx *gui = h->gui;
 	char *s;
 	int before, after;
 
 	if (dy)
-		overlay_size(h->over, gtk_widget_get_pango_context(ctx->da),
+		overlay_size(h->over, gtk_widget_get_pango_context(gui->da),
 		    NULL, &before);
 	if (on) {
 		s = vcs_git_long_for_pango(h->vcs_hist, fmt_pango);
@@ -126,15 +126,15 @@ static bool hover_history(void *user, bool on, int dx, int dy)
 	}
 	set_history_style(h, on);
 	if (dy)
-		overlay_size(h->over, gtk_widget_get_pango_context(ctx->da),
+		overlay_size(h->over, gtk_widget_get_pango_context(gui->da),
 		    NULL, &after);
 
 	if (dy < 0 && on)
-		ctx->hist_y_offset -= after - before;
+		gui->hist_y_offset -= after - before;
 	if (dy > 0 && !on)
-		ctx->hist_y_offset -= after - before;
+		gui->hist_y_offset -= after - before;
 
-	redraw(ctx);
+	redraw(gui);
 	return 1;
 }
 
@@ -142,64 +142,64 @@ static bool hover_history(void *user, bool on, int dx, int dy)
 static void click_history(void *user)
 {
 	struct gui_hist *h = user;
-	struct gui_ctx *ctx = h->ctx;
+	struct gui_ctx *gui = h->gui;
 	struct gui_sheet *sheet, *old_sheet;
 
-	hide_history(ctx);
+	hide_history(gui);
 
 	if (!h->sheets)
 		return;
 
 	sheet = find_corresponding_sheet(h->sheets,
-	    ctx->new_hist->sheets, ctx->curr_sheet);
+	    gui->new_hist->sheets, gui->curr_sheet);
 	old_sheet = find_corresponding_sheet(
-	    ctx->old_hist ? ctx->old_hist->sheets : ctx->new_hist->sheets,
-	    ctx->new_hist->sheets, ctx->curr_sheet);
+	    gui->old_hist ? gui->old_hist->sheets : gui->new_hist->sheets,
+	    gui->new_hist->sheets, gui->curr_sheet);
 
-	switch (ctx->selecting) {
+	switch (gui->selecting) {
 	case sel_only:
-		ctx->new_hist = h;
+		gui->new_hist = h;
 		break;
 	case sel_split:
-		ctx->old_hist = ctx->new_hist;
-		ctx->new_hist = h;
+		gui->old_hist = gui->new_hist;
+		gui->new_hist = h;
 		break;
 	case sel_new:
-		ctx->new_hist = h;
+		gui->new_hist = h;
 		break;
 	case sel_old:
-		ctx->old_hist = h;
+		gui->old_hist = h;
 		break;
 	default:
-		BUG("invalid mode %d", ctx->selecting);
+		BUG("invalid mode %d", gui->selecting);
 	}
 
-	ctx->diff_mode = diff_delta;
+	gui->diff_mode = diff_delta;
 
-	if (ctx->old_hist) {
-		if (ctx->new_hist->age > ctx->old_hist->age) {
-			swap(ctx->new_hist, ctx->old_hist);
-			if (ctx->selecting == sel_old) {
-				go_to_sheet(ctx, sheet);
+	if (gui->old_hist) {
+		if (gui->new_hist->age > gui->old_hist->age) {
+			swap(gui->new_hist, gui->old_hist);
+			if (gui->selecting == sel_old) {
+				go_to_sheet(gui, sheet);
 			} else {
-				go_to_sheet(ctx, old_sheet);
-				render_delta(ctx);
+				go_to_sheet(gui, old_sheet);
+				render_delta(gui);
 			}
 		} else {
-			if (ctx->selecting != sel_old)
-				go_to_sheet(ctx, sheet);
+			if (gui->selecting != sel_old)
+				go_to_sheet(gui, sheet);
 			else
-				render_delta(ctx);
+				render_delta(gui);
 		}
 	} else {
-		go_to_sheet(ctx, sheet);
+		go_to_sheet(gui, sheet);
 	}
 
-	if (ctx->old_hist == ctx->new_hist)
-		ctx->old_hist = NULL;
+	if (gui->old_hist == gui->new_hist)
+		gui->old_hist = NULL;
 
-	do_revision_overlays(ctx);
-	redraw(ctx);
+	do_revision_overlays(gui);
+	redraw(gui);
 }
 
 
@@ -208,13 +208,13 @@ static void ignore_click(void *user)
 }
 
 
-static struct gui_hist *skip_history(struct gui_ctx *ctx, struct gui_hist *h)
+static struct gui_hist *skip_history(struct gui_ctx *gui, struct gui_hist *h)
 {
 	struct overlay_style style = overlay_style_dense;
 	unsigned n;
 
 	/* don't skip the first entry */
-	if (h == ctx->hist)
+	if (h == gui->hist)
 		return h;
 
 	/* need at least two entries */
@@ -225,7 +225,7 @@ static struct gui_hist *skip_history(struct gui_ctx *ctx, struct gui_hist *h)
 	for (n = 0; h->next && h->identical; h = h->next)
 		n++;
 
-	h->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
+	h->over = overlay_add(&gui->hist_overlays, &gui->aois,
 	    NULL, ignore_click, h);
 	overlay_text(h->over, "<small>%u commits without changes</small>", n);
 
@@ -243,39 +243,39 @@ static struct gui_hist *skip_history(struct gui_ctx *ctx, struct gui_hist *h)
 
 static bool history_click(void *user, int x, int y)
 {
-	struct gui_ctx *ctx = user;
+	struct gui_ctx *gui = user;
 
-	if (aoi_click(&ctx->aois, x, y))
+	if (aoi_click(&gui->aois, x, y))
 		return 1;
-	hide_history(ctx);
+	hide_history(gui);
 	return 1;
 }
 
 
 static bool history_hover_update(void *user, int x, int y)
 {
-	struct gui_ctx *ctx = user;
+	struct gui_ctx *gui = user;
 
-	return aoi_hover(&ctx->aois, x, y);
+	return aoi_hover(&gui->aois, x, y);
 }
 
 
 static void history_drag_move(void *user, int dx, int dy)
 {
-	struct gui_ctx *ctx = user;
+	struct gui_ctx *gui = user;
 
-	ctx->hist_y_offset += dy;
-	redraw(ctx);
+	gui->hist_y_offset += dy;
+	redraw(gui);
 }
 
 
 static void history_key(void *user, int x, int y, int keyval)
 {
-	struct gui_ctx *ctx = user;
+	struct gui_ctx *gui = user;
 
 	switch (keyval) {
 	case GDK_KEY_Escape:
-		hide_history(ctx);
+		hide_history(gui);
 		break;
 	case GDK_KEY_q:
 		gtk_main_quit();
@@ -297,22 +297,22 @@ static const struct input_ops history_input_ops = {
 /* ----- Invocation -------------------------------------------------------- */
 
 
-void show_history(struct gui_ctx *ctx, enum selecting sel)
+void show_history(struct gui_ctx *gui, enum selecting sel)
 {
-	struct gui_hist *h = ctx->hist;
+	struct gui_hist *h = gui->hist;
 
-	input_push(&history_input_ops, ctx);
+	input_push(&history_input_ops, gui);
 
-	ctx->mode = showing_history;
-	ctx->hist_y_offset = 0;
-	ctx->selecting = sel;
-	overlay_remove_all(&ctx->hist_overlays);
-	for (h = ctx->hist; h; h = h->next) {
-		h = skip_history(ctx, h);
-		h->over = overlay_add(&ctx->hist_overlays, &ctx->aois,
+	gui->mode = showing_history;
+	gui->hist_y_offset = 0;
+	gui->selecting = sel;
+	overlay_remove_all(&gui->hist_overlays);
+	for (h = gui->hist; h; h = h->next) {
+		h = skip_history(gui, h);
+		h->over = overlay_add(&gui->hist_overlays, &gui->aois,
 		    hover_history, click_history, h);
 		set_history_style(h, 0);
 		hover_history(h, 0, 0, 0);
 	}
-	redraw(ctx);
+	redraw(gui);
 }

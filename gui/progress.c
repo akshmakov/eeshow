@@ -36,18 +36,18 @@ static void progress_draw_event(GtkWidget *widget, cairo_t *cr,
     gpointer user_data)
 {
 	GtkAllocation alloc;
-	struct gui_ctx *ctx = user_data;
+	struct gui_ctx *gui = user_data;
 	unsigned w, x;
 
-	x = ctx->progress >> ctx->progress_scale;
+	x = gui->progress >> gui->progress_scale;
 	if (!x) {
 		/* @@@ needed ? Gtk seems to always clear the the surface. */
 		cairo_set_source_rgb(cr, 1, 1, 1);
 		cairo_paint(cr);
 	}
 
-	gtk_widget_get_allocation(ctx->da, &alloc);
-	w = ctx->hist_size >> ctx->progress_scale;
+	gtk_widget_get_allocation(gui->da, &alloc);
+	w = gui->hist_size >> gui->progress_scale;
 
 	cairo_save(cr);
 	cairo_translate(cr,
@@ -67,33 +67,33 @@ static void progress_draw_event(GtkWidget *widget, cairo_t *cr,
 }
 
 
-void setup_progress_bar(struct gui_ctx *ctx, GtkWidget *window)
+void setup_progress_bar(struct gui_ctx *gui, GtkWidget *window)
 {
 	GtkAllocation alloc;
 
-	gtk_widget_get_allocation(ctx->da, &alloc);
+	gtk_widget_get_allocation(gui->da, &alloc);
 
-	ctx->progress_scale = 0;
-	while ((ctx->hist_size >> ctx->progress_scale) > alloc.width)
-		ctx->progress_scale++;
-	ctx->progress = 0;
+	gui->progress_scale = 0;
+	while ((gui->hist_size >> gui->progress_scale) > alloc.width)
+		gui->progress_scale++;
+	gui->progress = 0;
 
-	g_signal_connect(G_OBJECT(ctx->da), "draw",
-	    G_CALLBACK(progress_draw_event), ctx);
+	g_signal_connect(G_OBJECT(gui->da), "draw",
+	    G_CALLBACK(progress_draw_event), gui);
 
-	redraw(ctx);
+	redraw(gui);
 	gtk_main_iteration_do(0);
 }
 
 
-void progress_update(struct gui_ctx *ctx)
+void progress_update(struct gui_ctx *gui)
 {
-	unsigned mask = (1 << ctx->progress_scale) - 1;
+	unsigned mask = (1 << gui->progress_scale) - 1;
 
-	ctx->progress++;
-	if ((ctx->progress & mask) != mask)
+	gui->progress++;
+	if ((gui->progress & mask) != mask)
 		return;
 
-	redraw(ctx);
+	redraw(gui);
 	gtk_main_iteration_do(0);
 }

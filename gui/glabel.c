@@ -43,14 +43,14 @@ struct glabel_aoi_ctx {
 /* ----- Tools ------------------------------------------------------------- */
 
 
-static void eeschema_coord(const struct gui_ctx *ctx,
+static void eeschema_coord(const struct gui_ctx *gui,
     int x, int y, int *rx, int *ry)
 {
 	GtkAllocation alloc;
 
-	gtk_widget_get_allocation(ctx->da, &alloc);
-	*rx = ((x - ctx->x) * ctx->scale) + alloc.width / 2;
-	*ry = ((y - ctx->y) * ctx->scale) + alloc.height / 2;
+	gtk_widget_get_allocation(gui->da, &alloc);
+	*rx = ((x - gui->x) * gui->scale) + alloc.width / 2;
+	*ry = ((y - gui->y) * gui->scale) + alloc.height / 2;
 }
 
 
@@ -61,20 +61,20 @@ static void glabel_dest_click(void *user)
 {
 	struct gui_sheet *sheet = user;
 
-	go_to_sheet(sheet->ctx, sheet);
+	go_to_sheet(sheet->gui, sheet);
 }
 
 
-void dehover_glabel(struct gui_ctx *ctx)
+void dehover_glabel(struct gui_ctx *gui)
 {
-	overlay_remove_all(&ctx->pop_overlays);
-	overlay_remove_all(&ctx->pop_underlays);
-	ctx->pop_origin = NULL;
-	redraw(ctx);
+	overlay_remove_all(&gui->pop_overlays);
+	overlay_remove_all(&gui->pop_underlays);
+	gui->pop_origin = NULL;
+	redraw(gui);
 }
 
 
-static void add_dest_header(struct gui_ctx *ctx, const char *label)
+static void add_dest_header(struct gui_ctx *gui, const char *label)
 {
 	struct overlay_style style = {
 		.font	= BOLD_FONT,
@@ -90,13 +90,13 @@ static void add_dest_header(struct gui_ctx *ctx, const char *label)
 	};
 	struct overlay *over;
 
-	over = overlay_add(&ctx->pop_overlays, NULL, NULL, NULL, NULL);
+	over = overlay_add(&gui->pop_overlays, NULL, NULL, NULL, NULL);
 	overlay_text(over, "%s", label);
 	overlay_style(over, &style);
 }
 
 
-static void add_dest_overlay(struct gui_ctx *ctx, const char *label,
+static void add_dest_overlay(struct gui_ctx *gui, const char *label,
     struct gui_sheet *sheet, unsigned n)
 {
 	struct overlay_style style = {
@@ -114,7 +114,7 @@ static void add_dest_overlay(struct gui_ctx *ctx, const char *label,
 	const struct sch_obj *obj;
 	struct overlay *over;
 
-	if (sheet == ctx->curr_sheet)
+	if (sheet == gui->curr_sheet)
 		style.fg = RGBA(0.5, 0.5, 0.5, 1.0);
 
 	for (obj = sheet->sch->objs; obj; obj = obj->next) {
@@ -122,8 +122,8 @@ static void add_dest_overlay(struct gui_ctx *ctx, const char *label,
 			continue;
 		if (strcmp(obj->u.text.s, label))
 			continue;
-		over = overlay_add(&ctx->pop_overlays,
-		    &ctx->aois, NULL, glabel_dest_click, sheet);
+		over = overlay_add(&gui->pop_overlays,
+		    &gui->aois, NULL, glabel_dest_click, sheet);
 		overlay_text(over, "%d %s", n,
 		    sheet->sch->title ? sheet->sch->title : "(unnamed)");
 		overlay_style(over, &style);
@@ -134,20 +134,20 @@ static void add_dest_overlay(struct gui_ctx *ctx, const char *label,
 
 static bool pop_hover(void *user, bool on, int dx, int dy)
 {
-	struct gui_ctx *ctx = user;
+	struct gui_ctx *gui = user;
 
 	if (!on)
-		dehover_glabel(ctx);
+		dehover_glabel(gui);
 	return 1;
 }
 
 
-static void add_dest_frame(struct gui_ctx *ctx)
+static void add_dest_frame(struct gui_ctx *gui)
 {
 	int w, h;
 
-	overlay_size_all(ctx->pop_overlays,
-	    gtk_widget_get_pango_context(ctx->da), 0, 1, &w, &h);
+	overlay_size_all(gui->pop_overlays,
+	    gtk_widget_get_pango_context(gui->da), 0, 1, &w, &h);
 
 	struct overlay_style style = {
 		.font	= BOLD_FONT,
@@ -163,8 +163,8 @@ static void add_dest_frame(struct gui_ctx *ctx)
 	};
 	struct overlay *over;
 
-	over = overlay_add(&ctx->pop_underlays, &ctx->aois,
-	    pop_hover, NULL, ctx);
+	over = overlay_add(&gui->pop_underlays, &gui->aois,
+	    pop_hover, NULL, gui);
 	overlay_text_raw(over, "");
 	overlay_style(over, &style);
 
@@ -180,25 +180,25 @@ static void add_dest_frame(struct gui_ctx *ctx)
 	 * We solve this by declaring the frame overlay to be "related" to the
 	 * destination overlays. This suppresses dehovering.
 	 */
-	overlay_set_related_all(ctx->pop_overlays, over);
+	overlay_set_related_all(gui->pop_overlays, over);
 }
 
 
 static bool hover_glabel(void *user, bool on, int dx, int dy)
 {
 	struct glabel_aoi_ctx *aoi_ctx = user;
-	struct gui_ctx *ctx = aoi_ctx->sheet->ctx;
-	const struct gui_sheet *curr_sheet = ctx->curr_sheet;
+	struct gui_ctx *gui = aoi_ctx->sheet->gui;
+	const struct gui_sheet *curr_sheet = gui->curr_sheet;
 	const struct dwg_bbox *bbox = &aoi_ctx->bbox;
 
 	if (!on) {
-		dehover_glabel(ctx);
+		dehover_glabel(gui);
 		return 1;
 	}
-	if (ctx->pop_underlays) {
-		if (ctx->pop_origin == aoi_ctx)
+	if (gui->pop_underlays) {
+		if (gui->pop_origin == aoi_ctx)
 			return 0;
-		dehover_glabel(ctx);
+		dehover_glabel(gui);
 	}
 
 	GtkAllocation alloc;
@@ -206,40 +206,40 @@ static bool hover_glabel(void *user, bool on, int dx, int dy)
 	unsigned n = 0;
 	struct gui_sheet *sheet;
 
-	ctx->glabel = aoi_ctx->obj->u.text.s;
-	ctx->pop_origin = aoi_ctx;
+	gui->glabel = aoi_ctx->obj->u.text.s;
+	gui->pop_origin = aoi_ctx;
 
 	aoi_dehover();
-	overlay_remove_all(&ctx->pop_overlays);
-	overlay_remove_all(&ctx->pop_underlays);
+	overlay_remove_all(&gui->pop_overlays);
+	overlay_remove_all(&gui->pop_underlays);
 
-	add_dest_header(ctx, aoi_ctx->obj->u.text.s);
-	for (sheet = ctx->new_hist->sheets; sheet; sheet = sheet->next)
-		add_dest_overlay(ctx, aoi_ctx->obj->u.text.s, sheet, ++n);
-	add_dest_frame(ctx);
+	add_dest_header(gui, aoi_ctx->obj->u.text.s);
+	for (sheet = gui->new_hist->sheets; sheet; sheet = sheet->next)
+		add_dest_overlay(gui, aoi_ctx->obj->u.text.s, sheet, ++n);
+	add_dest_frame(gui);
 
-	eeschema_coord(ctx,
+	eeschema_coord(gui,
 	    bbox->x - curr_sheet->xmin, bbox->y - curr_sheet->ymin,
 	    &sx, &sy);
-	eeschema_coord(ctx, bbox->x + bbox->w - curr_sheet->xmin,
+	eeschema_coord(gui, bbox->x + bbox->w - curr_sheet->xmin,
 	    bbox->y + bbox->h - curr_sheet->ymin, &ex, &ey);
 
-	gtk_widget_get_allocation(ctx->da, &alloc);
+	gtk_widget_get_allocation(gui->da, &alloc);
 	mx = (sx + ex) / 2;
 	my = (sy + ey) / 2;
 	if (mx < alloc.width / 2) {
-		ctx->pop_x = sx - CHEAT;
-		ctx->pop_dx = 1;
+		gui->pop_x = sx - CHEAT;
+		gui->pop_dx = 1;
 	} else {
-		ctx->pop_x = ex + CHEAT;
-		ctx->pop_dx = -1;
+		gui->pop_x = ex + CHEAT;
+		gui->pop_dx = -1;
 	}
 	if (my < alloc.height / 2) {
-		ctx->pop_y = sy - CHEAT;
-		ctx->pop_dy = 1;
+		gui->pop_y = sy - CHEAT;
+		gui->pop_dy = 1;
 	} else {
-		ctx->pop_y = ey + CHEAT;
-		ctx->pop_dy = -1;
+		gui->pop_y = ey + CHEAT;
+		gui->pop_dy = -1;
 	}
 
 	/*
@@ -276,7 +276,7 @@ static bool hover_glabel(void *user, bool on, int dx, int dy)
 	 * - pressing Escape.
 	 */
 	input_update();
-	redraw(ctx);
+	redraw(gui);
 	return 0;
 }
 

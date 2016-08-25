@@ -43,7 +43,7 @@ static const struct gui_sheet *curr_sheet = NULL;
 /* ----- Tools ------------------------------------------------------------- */
 
 
-static void thumbnail_pos(const struct gui_ctx *ctx, GtkAllocation *alloc,
+static void thumbnail_pos(const struct gui_ctx *gui, GtkAllocation *alloc,
     unsigned n, int *ix, int *iy)
 {
 	*ix = alloc->width / 2 + (thumb_w + SHEET_GAP) *
@@ -56,16 +56,16 @@ static void thumbnail_pos(const struct gui_ctx *ctx, GtkAllocation *alloc,
 /* ----- Drawing ----------------------------------------------------------- */
 
 
-static struct gui_sheet *sheets(const struct gui_ctx *ctx)
+static struct gui_sheet *sheets(const struct gui_ctx *gui)
 {
-	if (ctx->old_hist && ctx->diff_mode == diff_old)
-		return ctx->old_hist->sheets;
+	if (gui->old_hist && gui->diff_mode == diff_old)
+		return gui->old_hist->sheets;
 	else
-		return ctx->new_hist->sheets;
+		return gui->new_hist->sheets;
 }
 
 
-void index_draw_event(const struct gui_ctx *ctx, cairo_t *cr)
+void index_draw_event(const struct gui_ctx *gui, cairo_t *cr)
 {
 	GtkAllocation alloc;
 	const struct gui_sheet *sheet;
@@ -74,14 +74,14 @@ void index_draw_event(const struct gui_ctx *ctx, cairo_t *cr)
 	int w, h;
 	int named = -1;
 
-	gtk_widget_get_allocation(ctx->da, &alloc);
+	gtk_widget_get_allocation(gui->da, &alloc);
 
 	cairo_set_source_rgba(cr, 1, 1, 1, 0.7);
 	cairo_paint(cr);
 
 	n = 0;
-	for (sheet = sheets(ctx); sheet; sheet = sheet->next) {
-		thumbnail_pos(sheet->ctx, &alloc, n, &ix, &iy);
+	for (sheet = sheets(gui); sheet; sheet = sheet->next) {
+		thumbnail_pos(sheet->gui, &alloc, n, &ix, &iy);
 		x = ix - thumb_w / 2 - SHEET_PAD;
 		y = iy - thumb_h / 2 - SHEET_PAD;
 
@@ -94,9 +94,9 @@ void index_draw_event(const struct gui_ctx *ctx, cairo_t *cr)
 	if (named == -1)
 		return;
 
-	thumbnail_pos(curr_sheet->ctx, &alloc, named, &ix, &iy);
+	thumbnail_pos(curr_sheet->gui, &alloc, named, &ix, &iy);
 	overlay_size(name_over,
-	    gtk_widget_get_pango_context(curr_sheet->ctx->da), &w, &h);
+	    gtk_widget_get_pango_context(curr_sheet->gui->da), &w, &h);
 	x = ix - w / 2;
 	if (x < INDEX_MARGIN)
 		x = INDEX_MARGIN;
@@ -109,23 +109,23 @@ void index_draw_event(const struct gui_ctx *ctx, cairo_t *cr)
 /* ----- Thumbnail actions ------------------------------------------------- */
 
 
-static void close_index(struct gui_ctx *ctx)
+static void close_index(struct gui_ctx *gui)
 {
-	overlay_remove_all(&ctx->thumb_overlays);
+	overlay_remove_all(&gui->thumb_overlays);
 	name_over = NULL;
-	ctx->mode = showing_sheet;
+	gui->mode = showing_sheet;
 	input_pop();
-	redraw(ctx);
+	redraw(gui);
 }
 
 
 static void thumb_click(void *user)
 {
 	struct gui_sheet *sheet = user;
-	struct gui_ctx *ctx = sheet->ctx;
+	struct gui_ctx *gui = sheet->gui;
 
-	go_to_sheet(ctx, sheet);
-	close_index(ctx);
+	go_to_sheet(gui, sheet);
+	close_index(gui);
 }
 
 
@@ -153,13 +153,13 @@ static void thumb_set_style(struct gui_sheet *sheet, bool selected)
 static bool thumb_hover(void *user, bool on, int dx, int dy)
 {
 	struct gui_sheet *sheet = user;
-	struct gui_ctx *ctx = sheet->ctx;
+	struct gui_ctx *gui = sheet->gui;
 	struct overlay_style style = overlay_style_default;
 
 	if (on) {
 
 		thumb_set_style(sheet, 1);
-		name_over = overlay_add(&ctx->thumb_overlays, &ctx->aois,
+		name_over = overlay_add(&gui->thumb_overlays, &gui->aois,
 		    NULL, NULL, NULL);
 		if (sheet->sch && sheet->sch->title)
 			overlay_text(name_over, "%s", sheet->sch->title);
@@ -172,10 +172,10 @@ static bool thumb_hover(void *user, bool on, int dx, int dy)
 		curr_sheet = sheet;
 	} else {
 		thumb_set_style(sheet, 0);
-		overlay_remove(&ctx->thumb_overlays, name_over);
+		overlay_remove(&gui->thumb_overlays, name_over);
 		name_over = NULL;
 	}
-	redraw(ctx);
+	redraw(gui);
 	return 1;
 }
 
@@ -183,7 +183,7 @@ static bool thumb_hover(void *user, bool on, int dx, int dy)
 /* ----- Rendering to cache ------------------------------------------------ */
 
 
-static bool best_ratio(const struct gui_ctx *ctx)
+static bool best_ratio(const struct gui_ctx *gui)
 {
 	GtkAllocation alloc;
 	const struct gui_sheet *sheet;
@@ -193,9 +193,9 @@ static bool best_ratio(const struct gui_ctx *ctx)
 	int aw, ah;	/* available size */
 	int w, h;
 
-	gtk_widget_get_allocation(ctx->da, &alloc);
+	gtk_widget_get_allocation(gui->da, &alloc);
 
-	for (sheet = sheets(ctx); sheet; sheet = sheet->next)
+	for (sheet = sheets(gui); sheet; sheet = sheet->next)
 		n++;
 	assert(n);
 
@@ -256,7 +256,7 @@ static void paint_yellow(uint32_t *data, int w, int h, int stride)
 }
 
 
-static void index_render_sheet(const struct gui_ctx *ctx,
+static void index_render_sheet(const struct gui_ctx *gui,
     struct gui_sheet *sheet)
 {
 	int xmin, ymin, w, h;
@@ -273,11 +273,11 @@ static void index_render_sheet(const struct gui_ctx *ctx,
 		    NULL, NULL, NULL, NULL);
 	}
 
-	if (ctx->old_hist && ctx->diff_mode == diff_delta) {
+	if (gui->old_hist && gui->diff_mode == diff_delta) {
 		const struct gui_sheet *old;
 
-		old = find_corresponding_sheet(ctx->old_hist->sheets,
-		    ctx->new_hist->sheets, sheet);
+		old = find_corresponding_sheet(gui->old_hist->sheets,
+		    gui->new_hist->sheets, sheet);
 		if (!sheet_eq(sheet->sch, old->sch))
 			yellow = 1;
 	}
@@ -317,22 +317,22 @@ static void index_render_sheet(const struct gui_ctx *ctx,
 }
 
 
-static void index_add_overlay(struct gui_ctx *ctx, struct gui_sheet *sheet)
+static void index_add_overlay(struct gui_ctx *gui, struct gui_sheet *sheet)
 {
-	sheet->thumb_over = overlay_add(&ctx->thumb_overlays, &ctx->aois,
+	sheet->thumb_over = overlay_add(&gui->thumb_overlays, &gui->aois,
 	    thumb_hover, thumb_click, sheet);
 	overlay_icon(sheet->thumb_over, sheet->thumb_surf);
 	thumb_set_style(sheet, 0);
 }
 
 
-static void index_render_sheets(struct gui_ctx *ctx)
+static void index_render_sheets(struct gui_ctx *gui)
 {
 	struct gui_sheet *sheet;
 
-	for (sheet = sheets(ctx); sheet; sheet = sheet->next) {
-		index_render_sheet(ctx, sheet);
-		index_add_overlay(ctx, sheet);
+	for (sheet = sheets(gui); sheet; sheet = sheet->next) {
+		index_render_sheet(gui, sheet);
+		index_add_overlay(gui, sheet);
 	}
 }
 
@@ -342,9 +342,9 @@ static void index_render_sheets(struct gui_ctx *ctx)
 
 static bool index_hover_update(void *user, int x, int y)
 {
-	struct gui_ctx *ctx = user;
+	struct gui_ctx *gui = user;
 
-	if (aoi_hover(&ctx->aois, x, y))
+	if (aoi_hover(&gui->aois, x, y))
 		return 1;
 	return 0;
 }
@@ -352,24 +352,24 @@ static bool index_hover_update(void *user, int x, int y)
 
 static bool index_click(void *user, int x, int y)
 {
-	struct gui_ctx *ctx = user;
+	struct gui_ctx *gui = user;
 
-	if (aoi_click(&ctx->aois, x, y))
+	if (aoi_click(&gui->aois, x, y))
 		return 1;
-	close_index(ctx);
+	close_index(gui);
 	return 1;
 }
 
 
 static void index_key(void *user, int x, int y, int keyval)
 {
-	struct gui_ctx *ctx = user;
+	struct gui_ctx *gui = user;
 
 	switch (keyval) {
 	case GDK_KEY_Escape:
-		ctx->mode = showing_sheet;
+		gui->mode = showing_sheet;
 		input_pop();
-		redraw(ctx);
+		redraw(gui);
 		break;
 
 	case GDK_KEY_h:
@@ -395,24 +395,24 @@ static const struct input_ops index_input_ops = {
 /* ----- Resizing ---------------------------------------------------------- */
 
 
-void index_resize(struct gui_ctx *ctx)
+void index_resize(struct gui_ctx *gui)
 {
-	overlay_remove_all(&ctx->thumb_overlays);
+	overlay_remove_all(&gui->thumb_overlays);
 	name_over = NULL;
-	if (best_ratio(ctx))
-		index_render_sheets(ctx);
+	if (best_ratio(gui))
+		index_render_sheets(gui);
 	else
-		close_index(ctx);
-	redraw(ctx);
+		close_index(gui);
+	redraw(gui);
 }
 
 
 /* ----- Initialization ---------------------------------------------------- */
 
 
-void show_index(struct gui_ctx *ctx)
+void show_index(struct gui_ctx *gui)
 {
-	input_push(&index_input_ops, ctx);
-	ctx->mode = showing_index;
-	index_resize(ctx);
+	input_push(&index_input_ops, gui);
+	gui->mode = showing_index;
+	index_resize(gui);
 }

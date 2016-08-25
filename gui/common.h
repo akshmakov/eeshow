@@ -31,7 +31,7 @@ struct gui_hist;
 
 struct gui_sheet {
 	const struct sheet *sch;
-	struct gui_ctx *ctx;	/* back link */
+	struct gui_ctx *gui;	/* back link */
 	struct gui_hist *hist;	/* back link */
 	struct gfx *gfx;
 	struct gfx *gfx_extra;
@@ -55,7 +55,7 @@ struct gui_sheet {
 };
 
 struct gui_hist {
-	struct gui_ctx *ctx;	/* back link */
+	struct gui_ctx *gui;	/* back link */
 	struct hist *vcs_hist;	/* NULL if not from repo */
 	struct overlay *over;	/* current overlay */
 	struct gui_sheet *sheets; /* NULL if failed */
@@ -137,8 +137,8 @@ struct gui_ctx {
 
 /* progress.c */
 
-void setup_progress_bar(struct gui_ctx *ctx, GtkWidget *window);
-void progress_update(struct gui_ctx *ctx);
+void setup_progress_bar(struct gui_ctx *gui, GtkWidget *window);
+void progress_update(struct gui_ctx *gui);
 
 /* render.c */
 
@@ -146,37 +146,37 @@ extern bool use_delta;
 extern bool show_extra;
 
 
-void redraw(const struct gui_ctx *ctx);
+void redraw(const struct gui_ctx *gui);
 void render_sheet(struct gui_sheet *sheet);
-void render_delta(struct gui_ctx *ctx);
-void render_setup(struct gui_ctx *ctx);
+void render_delta(struct gui_ctx *gui);
+void render_setup(struct gui_ctx *gui);
 
 /* glabel.c */
 
-void dehover_glabel(struct gui_ctx *ctx);
+void dehover_glabel(struct gui_ctx *gui);
 void add_glabel_aoi(struct gui_sheet *sheet, const struct sch_obj *obj);
 
 /* sheet.c */
 
-void go_to_sheet(struct gui_ctx *ctx, struct gui_sheet *sheet);
-void zoom_to_extents(struct gui_ctx *ctx);
-void do_revision_overlays(struct gui_ctx *ctx);
-void sheet_setup(struct gui_ctx *ctx);
+void go_to_sheet(struct gui_ctx *gui, struct gui_sheet *sheet);
+void zoom_to_extents(struct gui_ctx *gui);
+void do_revision_overlays(struct gui_ctx *gui);
+void sheet_setup(struct gui_ctx *gui);
 
 /* history.c */
 
-void show_history(struct gui_ctx *ctx, enum selecting sel);
+void show_history(struct gui_ctx *gui, enum selecting sel);
 
 /* index.c */
 
-void index_draw_event(const struct gui_ctx *ctx, cairo_t *cr);
-void index_resize(struct gui_ctx *ctx);
-void show_index(struct gui_ctx *ctx);
+void index_draw_event(const struct gui_ctx *gui, cairo_t *cr);
+void index_resize(struct gui_ctx *gui);
+void show_index(struct gui_ctx *gui);
 
 /* gui.c */
 
 struct gui_sheet *find_corresponding_sheet(struct gui_sheet *pick_from,
      struct gui_sheet *ref_in, const struct gui_sheet *ref);
-void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet);
+void mark_aois(struct gui_ctx *gui, struct gui_sheet *sheet);
 
 #endif /* !GUI_COMMON_H */

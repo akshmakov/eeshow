@@ -86,40 +86,40 @@ struct sheet_aoi_ctx {
 static void select_subsheet(void *user)
 {
 	const struct sheet_aoi_ctx *aoi_ctx = user;
-	struct gui_ctx *ctx = aoi_ctx->gui_ctx;
+	struct gui_ctx *gui = aoi_ctx->gui_ctx;
 	const struct sch_obj *obj = aoi_ctx->obj;
 	struct gui_sheet *sheet;
 
 	if (!obj->u.sheet.sheet)
 		return;
 
-	if (!ctx->old_hist || ctx->diff_mode != diff_old) {
-		for (sheet = ctx->new_hist->sheets; sheet; sheet = sheet->next)
+	if (!gui->old_hist || gui->diff_mode != diff_old) {
+		for (sheet = gui->new_hist->sheets; sheet; sheet = sheet->next)
 			if (sheet->sch == obj->u.sheet.sheet) {
-				go_to_sheet(ctx, sheet);
+				go_to_sheet(gui, sheet);
 				return;
 			}
 		BUG("new sheet not found");
 	}
 
-	for (sheet = ctx->old_hist->sheets; sheet; sheet = sheet->next)
+	for (sheet = gui->old_hist->sheets; sheet; sheet = sheet->next)
 		if (sheet->sch == obj->u.sheet.sheet)
 			goto found;
 	BUG("old sheet not found");
 
 found:
-	sheet = find_corresponding_sheet(ctx->new_hist->sheets,
-                    ctx->old_hist->sheets, sheet);
-	go_to_sheet(ctx, sheet);
+	sheet = find_corresponding_sheet(gui->new_hist->sheets,
+                    gui->old_hist->sheets, sheet);
+	go_to_sheet(gui, sheet);
 }
 
 
-static void add_sheet_aoi(struct gui_ctx *ctx, struct gui_sheet *parent,
+static void add_sheet_aoi(struct gui_ctx *gui, struct gui_sheet *parent,
     const struct sch_obj *obj)
 {
 	struct sheet_aoi_ctx *aoi_ctx = alloc_type(struct sheet_aoi_ctx);
 
-	aoi_ctx->gui_ctx = ctx;
+	aoi_ctx->gui_ctx = gui;
 	aoi_ctx->obj = obj;
 
 	struct aoi aoi = {
@@ -138,7 +138,7 @@ static void add_sheet_aoi(struct gui_ctx *ctx, struct gui_sheet *parent,
 /* ----- Load revisions ---------------------------------------------------- */
 
 
-void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet)
+void mark_aois(struct gui_ctx *gui, struct gui_sheet *sheet)
 {
 	const struct sch_obj *obj;
 
@@ -146,7 +146,7 @@ void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet)
 	for (obj = sheet->sch->objs; obj; obj = obj->next)
 		switch (obj->type) {
 		case sch_obj_sheet:
-			add_sheet_aoi(ctx, sheet, obj);
+			add_sheet_aoi(gui, sheet, obj);
 			break;
 		case sch_obj_glabel:
 			add_glabel_aoi(sheet, obj);
@@ -156,7 +156,7 @@ void mark_aois(struct gui_ctx *ctx, struct gui_sheet *sheet)
 }
 
 
-static struct gui_sheet *get_sheets(struct gui_ctx *ctx, struct gui_hist *hist,
+static struct gui_sheet *get_sheets(struct gui_ctx *gui, struct gui_hist *hist,
     const struct sheet *sheets)
 {
 	const struct sheet *sheet;
@@ -167,7 +167,7 @@ static struct gui_sheet *get_sheets(struct gui_ctx *ctx, struct gui_hist *hist,
 	for (sheet = sheets; sheet; sheet = sheet->next) {
 		new = alloc_type(struct gui_sheet);
 		new->sch = sheet;
-		new->ctx = ctx;
+		new->gui = gui;
 		new->hist = hist;
 		new->gfx_thumb = NULL;
 		new->thumb_surf = NULL;
@@ -337,7 +337,7 @@ fail:
 
 
 struct add_hist_ctx {
-	struct gui_ctx *ctx;
+	struct gui_ctx *gui;
 	const struct file_names *fn;
 	bool recurse;
 	unsigned limit;
@@ -347,7 +347,7 @@ struct add_hist_ctx {
 static void add_hist(void *user, struct hist *h)
 {
 	struct add_hist_ctx *ahc = user;
-	struct gui_ctx *ctx = ahc->ctx;
+	struct gui_ctx *gui = ahc->gui;
 	struct gui_hist **anchor, *hist, *prev;
 	const struct sheet *sch;
 	unsigned age = 0;
@@ -358,41 +358,41 @@ static void add_hist(void *user, struct hist *h)
 		ahc->limit--;
 
 	prev = NULL;
-	for (anchor = &ctx->hist; *anchor; anchor = &(*anchor)->next) {
+	for (anchor = &gui->hist; *anchor; anchor = &(*anchor)->next) {
 		prev = *anchor;
 		age++;
 	}
 
 	hist = alloc_type(struct gui_hist);
-	hist->ctx = ctx;
+	hist->gui = gui;
 	hist->vcs_hist = h;
 	hist->libs_open = 0;
 	hist->identical = 0;
 	hist->pl = NULL;
 	sch = parse_files(hist, ahc->fn, ahc->recurse, prev);
-	hist->sheets = sch ? get_sheets(ctx, hist, sch) : NULL;
+	hist->sheets = sch ? get_sheets(gui, hist, sch) : NULL;
 	hist->age = age;
 
 	hist->next = NULL;
 	*anchor = hist;
 
-	if (ctx->hist_size)
-		progress_update(ctx);
+	if (gui->hist_size)
+		progress_update(gui);
 }
 
 
-static void get_revisions(struct gui_ctx *ctx, const struct file_names *fn,
+static void get_revisions(struct gui_ctx *gui, const struct file_names *fn,
     bool recurse, int limit)
 {
 	struct add_hist_ctx add_hist_ctx = {
-		.ctx		= ctx,
+		.gui		= gui,
 		.fn		= fn,
 		.recurse	= recurse,
 		.limit		= limit ? limit < 0 ? -limit : limit : -1,
 	};
 
-	if (ctx->vcs_hist)
-		hist_iterate(ctx->vcs_hist, add_hist, &add_hist_ctx);
+	if (gui->vcs_hist)
+		hist_iterate(gui->vcs_hist, add_hist, &add_hist_ctx);
 	else
 		add_hist(&add_hist_ctx, NULL);
 }
@@ -403,24 +403,24 @@ static void get_revisions(struct gui_ctx *ctx, const struct file_names *fn,
 
 static void count_history(void *user, struct hist *h)
 {
-	struct gui_ctx *ctx = user;
+	struct gui_ctx *gui = user;
 
-	ctx->hist_size++;
+	gui->hist_size++;
 }
 
 
-static void get_history(struct gui_ctx *ctx, const char *sch_name, int limit)
+static void get_history(struct gui_ctx *gui, const char *sch_name, int limit)
 {
 	if (!vcs_git_try(sch_name)) {
-		ctx->vcs_hist = NULL;
+		gui->vcs_hist = NULL;
 		return;
 	} 
 	
-	ctx->vcs_hist = vcs_git_hist(sch_name);
+	gui->vcs_hist = vcs_git_hist(sch_name);
 	if (limit)
-		ctx->hist_size = limit > 0 ? limit : -limit;
+		gui->hist_size = limit > 0 ? limit : -limit;
 	else
-		hist_iterate(ctx->vcs_hist, count_history, ctx);
+		hist_iterate(gui->vcs_hist, count_history, gui);
 }
 
 
@@ -430,22 +430,22 @@ static void get_history(struct gui_ctx *ctx, const char *sch_name, int limit)
 static void size_allocate_event(GtkWidget *widget, GdkRectangle *allocation,
     gpointer data)
 {
-	struct gui_ctx *ctx = data;
+	struct gui_ctx *gui = data;
 
-	zoom_to_extents(ctx);
-	if (ctx->mode == showing_index)
-		index_resize(ctx);
+	zoom_to_extents(gui);
+	if (gui->mode == showing_index)
+		index_resize(gui);
 }
 
 
 /* ----- Initialization ---------------------------------------------------- */
 
 
-int gui(const struct file_names *fn, bool recurse, int limit)
+int run_gui(const struct file_names *fn, bool recurse, int limit)
 {
 	GtkWidget *window;
 	char *title;
-	struct gui_ctx ctx = {
+	struct gui_ctx gui = {
 		.scale		= 1 / 16.0,
 		.hist		= NULL,
 		.vcs_hist	= NULL,
@@ -465,42 +465,42 @@ int gui(const struct file_names *fn, bool recurse, int limit)
 	};
 
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	ctx.da = gtk_drawing_area_new();
-	gtk_container_add(GTK_CONTAINER(window), ctx.da);
+	gui.da = gtk_drawing_area_new();
+	gtk_container_add(GTK_CONTAINER(window), gui.da);
 
 	gtk_window_set_default_size(GTK_WINDOW(window), 640, 480);
 	if (asprintf(&title, "eeshow (rev %s)", version)) {};
 	gtk_window_set_title(GTK_WINDOW(window), title);
 
-	gtk_widget_set_events(ctx.da,
+	gtk_widget_set_events(gui.da,
 	    GDK_EXPOSE | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK);
 
-	input_setup(ctx.da);
+	input_setup(gui.da);
 
 	gtk_widget_show_all(window);
 
-	get_history(&ctx, fn->pro ? fn->pro : fn->sch, limit);
-	if (ctx.hist_size)
-		setup_progress_bar(&ctx, window);
+	get_history(&gui, fn->pro ? fn->pro : fn->sch, limit);
+	if (gui.hist_size)
+		setup_progress_bar(&gui, window);
 
-	get_revisions(&ctx, fn, recurse, limit);
-	for (ctx.new_hist = ctx.hist; ctx.new_hist && !ctx.new_hist->sheets;
-	    ctx.new_hist = ctx.new_hist->next);
-	if (!ctx.new_hist)
+	get_revisions(&gui, fn, recurse, limit);
+	for (gui.new_hist = gui.hist; gui.new_hist && !gui.new_hist->sheets;
+	    gui.new_hist = gui.new_hist->next);
+	if (!gui.new_hist)
 		fatal("no valid sheets\n");
 
-	g_signal_connect(G_OBJECT(ctx.da), "size_allocate",
-	    G_CALLBACK(size_allocate_event), &ctx);
+	g_signal_connect(G_OBJECT(gui.da), "size_allocate",
+	    G_CALLBACK(size_allocate_event), &gui);
 	g_signal_connect(window, "destroy",
 	    G_CALLBACK(gtk_main_quit), NULL);
 
 	icons_init();
-	sheet_setup(&ctx);
-	render_setup(&ctx);
+	sheet_setup(&gui);
+	render_setup(&gui);
 
 //	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 
-	go_to_sheet(&ctx, ctx.new_hist->sheets);
+	go_to_sheet(&gui, gui.new_hist->sheets);
 	gtk_widget_show_all(window);
 
 	/* for performance testing, use -N-depth */

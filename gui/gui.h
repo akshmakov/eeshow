@@ -18,6 +18,6 @@
 #include "kicad/ext.h"
 
 
-int gui(const struct file_names *fn, bool recurse, int limit);
+int run_gui(const struct file_names *fn, bool recurse, int limit);
 
 #endif /* !GUI_GUI_H */

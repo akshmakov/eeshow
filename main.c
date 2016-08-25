@@ -246,7 +246,7 @@ int main(int argc, char **argv)
 
 	if (!have_dashdash) {
 		optind = 0; /* reset getopt */
-		return gui(&file_names, recurse, limit);
+		return run_gui(&file_names, recurse, limit);
 	}
 
 	if (file_names.pro) {

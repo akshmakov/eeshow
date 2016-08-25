@@ -49,9 +49,9 @@ bool show_extra = 0;
 /* ----- Helper functions -------------------------------------------------- */
 
 
-void redraw(const struct gui_ctx *ctx)
+void redraw(const struct gui_ctx *gui)
 {
-	gtk_widget_queue_draw(ctx->da);
+	gtk_widget_queue_draw(gui->da);
 }
 
 
@@ -82,12 +82,12 @@ static inline int cy(int y, int yo, float scale)
 }
 
 
-static void highlight_glabel(const struct gui_ctx *ctx,
+static void highlight_glabel(const struct gui_ctx *gui,
     const struct gui_sheet *sheet,  cairo_t *cr, int xo, int yo, float f)
 {
 	const struct sch_obj *obj;
 
-	if (!ctx->glabel)
+	if (!gui->glabel)
 		return;
 
 	cairo_set_source_rgb(cr, 1, 0.8, 1);
@@ -96,7 +96,7 @@ static void highlight_glabel(const struct gui_ctx *ctx,
 
 		if (obj->type != sch_obj_glabel)
 			continue;
-		if (strcmp(obj->u.text.s, ctx->glabel))
+		if (strcmp(obj->u.text.s, gui->glabel))
 			continue;
 
 		cairo_rectangle(cr,
@@ -119,10 +119,10 @@ static void highlight_glabel(const struct gui_ctx *ctx,
  * delta.
  */
 
-static struct area *changed_sheets(const struct gui_ctx *ctx,
+static struct area *changed_sheets(const struct gui_ctx *gui,
     int xo, int yo, float f)
 {
-	const struct gui_sheet *new = ctx->curr_sheet;
+	const struct gui_sheet *new = gui->curr_sheet;
 	const struct sch_obj *obj;
 	struct area *areas = NULL;
 
@@ -135,13 +135,13 @@ static struct area *changed_sheets(const struct gui_ctx *ctx,
 		if (!obj->u.sheet.sheet)
 			continue;
 
-		for (new_sub = ctx->new_hist->sheets;
+		for (new_sub = gui->new_hist->sheets;
 		    new_sub && new_sub->sch != obj->u.sheet.sheet;
 		    new_sub = new_sub->next);
 		if (!new_sub)
 			continue;
-		old_sub = find_corresponding_sheet(ctx->old_hist->sheets,
-		    ctx->new_hist->sheets, new_sub);
+		old_sub = find_corresponding_sheet(gui->old_hist->sheets,
+		    gui->new_hist->sheets, new_sub);
 
 		if (!sheet_eq(new_sub->sch, old_sub->sch))
 			add_area(&areas, cx(obj->x, xo, f), cy(obj->y, yo, f),
@@ -152,16 +152,16 @@ static struct area *changed_sheets(const struct gui_ctx *ctx,
 }
 
 
-static void hack(const struct gui_ctx *ctx, cairo_t *cr,
+static void hack(const struct gui_ctx *gui, cairo_t *cr,
     int xo, int yo, float f)
 {
-	const struct gui_sheet *new = ctx->curr_sheet;
+	const struct gui_sheet *new = gui->curr_sheet;
 	const struct gui_sheet *old = find_corresponding_sheet(
-	    ctx->old_hist->sheets, ctx->new_hist->sheets, ctx->curr_sheet);
+	    gui->old_hist->sheets, gui->new_hist->sheets, gui->curr_sheet);
 	struct area *areas = NULL;
 
-	areas = changed_sheets(ctx, xo, yo, f);
-	diff_to_canvas(cr, ctx->x, ctx->y, ctx->scale,
+	areas = changed_sheets(gui, xo, yo, f);
+	diff_to_canvas(cr, gui->x, gui->y, gui->scale,
 	    gfx_user(old->gfx), show_extra ? gfx_user(old->gfx_extra) : NULL,
 	    gfx_user(new->gfx), show_extra ? gfx_user(new->gfx_extra) : NULL,
 	    areas);
@@ -172,33 +172,33 @@ static void hack(const struct gui_ctx *ctx, cairo_t *cr,
 static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
     gpointer user_data)
 {
-	struct gui_ctx *ctx = user_data;
-	const struct gui_sheet *sheet = ctx->curr_sheet;
+	struct gui_ctx *gui = user_data;
+	const struct gui_sheet *sheet = gui->curr_sheet;
 	GtkAllocation alloc;
-	float f = ctx->scale;
+	float f = gui->scale;
 	int x, y;
 
-	gtk_widget_get_allocation(ctx->da, &alloc);
-	x = -(sheet->xmin + ctx->x) * f + alloc.width / 2;
-	y = -(sheet->ymin + ctx->y) * f + alloc.height / 2;
+	gtk_widget_get_allocation(gui->da, &alloc);
+	x = -(sheet->xmin + gui->x) * f + alloc.width / 2;
+	y = -(sheet->ymin + gui->y) * f + alloc.height / 2;
 
 	cro_canvas_prepare(cr);
-	if (!ctx->old_hist || ctx->diff_mode == diff_new) {
-		highlight_glabel(ctx, sheet, cr, x, y, f);
+	if (!gui->old_hist || gui->diff_mode == diff_new) {
+		highlight_glabel(gui, sheet, cr, x, y, f);
 		if (show_extra)
 			cro_canvas_draw(gfx_user(sheet->gfx_extra),
 			    cr, x, y, f);
 		cro_canvas_draw(gfx_user(sheet->gfx), cr, x, y, f);
-	} else if (ctx->diff_mode == diff_old) {
-		sheet = find_corresponding_sheet(ctx->old_hist->sheets,
-		    ctx->new_hist->sheets, ctx->curr_sheet);
-		highlight_glabel(ctx, sheet, cr, x, y, f);
+	} else if (gui->diff_mode == diff_old) {
+		sheet = find_corresponding_sheet(gui->old_hist->sheets,
+		    gui->new_hist->sheets, gui->curr_sheet);
+		highlight_glabel(gui, sheet, cr, x, y, f);
 		if (show_extra)
 			cro_canvas_draw(gfx_user(sheet->gfx_extra),
 			    cr, x, y, f);
 		cro_canvas_draw(gfx_user(sheet->gfx), cr, x, y, f);
 	} else if (use_delta) {
-		struct area *areas = changed_sheets(ctx, x, y, f);
+		struct area *areas = changed_sheets(gui, x, y, f);
 		const struct area *area;
 
 		cairo_set_source_rgb(cr, 1, 1, 0);
@@ -211,36 +211,36 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 
 		/* @@@ fix geometry later */
 		if (show_extra) {
-			cro_canvas_draw(gfx_user(ctx->delta_ab.gfx_extra),
+			cro_canvas_draw(gfx_user(gui->delta_ab.gfx_extra),
 			    cr, x, y, f);
-			cro_canvas_draw(gfx_user(ctx->delta_a.gfx_extra),
+			cro_canvas_draw(gfx_user(gui->delta_a.gfx_extra),
 			    cr, x, y, f);
-			cro_canvas_draw(gfx_user(ctx->delta_b.gfx_extra),
+			cro_canvas_draw(gfx_user(gui->delta_b.gfx_extra),
 			    cr, x, y, f);
 		}
-		cro_canvas_draw(gfx_user(ctx->delta_ab.gfx), cr, x, y, f);
-		cro_canvas_draw(gfx_user(ctx->delta_a.gfx), cr, x, y, f);
-		cro_canvas_draw(gfx_user(ctx->delta_b.gfx), cr, x, y, f);
+		cro_canvas_draw(gfx_user(gui->delta_ab.gfx), cr, x, y, f);
+		cro_canvas_draw(gfx_user(gui->delta_a.gfx), cr, x, y, f);
+		cro_canvas_draw(gfx_user(gui->delta_b.gfx), cr, x, y, f);
 	} else {
-		hack(ctx, cr, x, y, f);
+		hack(gui, cr, x, y, f);
 	}
 
-	overlay_draw_all(ctx->sheet_overlays, cr,
+	overlay_draw_all(gui->sheet_overlays, cr,
 	    SHEET_OVERLAYS_X, SHEET_OVERLAYS_Y);
-	overlay_draw_all_d(ctx->hist_overlays, cr,
+	overlay_draw_all_d(gui->hist_overlays, cr,
 	    VCS_OVERLAYS_X,
 	    VCS_OVERLAYS_Y +
-	    (ctx->mode == showing_history ? ctx->hist_y_offset : 0),
+	    (gui->mode == showing_history ? gui->hist_y_offset : 0),
 	    0, 1);
-	overlay_draw_all_d(ctx->pop_underlays, cr, ctx->pop_x, ctx->pop_y,
-	    ctx->pop_dx, ctx->pop_dy);
-	overlay_draw_all_d(ctx->pop_overlays, cr,
-	    ctx->pop_x + ctx->pop_dx * GLABEL_STACK_PADDING,
-	    ctx->pop_y + ctx->pop_dy * GLABEL_STACK_PADDING,
-	    ctx->pop_dx, ctx->pop_dy);
+	overlay_draw_all_d(gui->pop_underlays, cr, gui->pop_x, gui->pop_y,
+	    gui->pop_dx, gui->pop_dy);
+	overlay_draw_all_d(gui->pop_overlays, cr,
+	    gui->pop_x + gui->pop_dx * GLABEL_STACK_PADDING,
+	    gui->pop_y + gui->pop_dy * GLABEL_STACK_PADDING,
+	    gui->pop_dx, gui->pop_dy);
 
-	if (ctx->mode == showing_index)
-		index_draw_event(ctx, cr);
+	if (gui->mode == showing_index)
+		index_draw_event(gui, cr);
 
 	timer_show(cr);
 
@@ -270,45 +270,45 @@ void render_sheet(struct gui_sheet *sheet)
 }
 
 
-void render_delta(struct gui_ctx *ctx)
+void render_delta(struct gui_ctx *gui)
 {
 #if 1
 	/* @@@ needs updating for curr/last vs. new/old */
 	struct sheet *sch_a, *sch_b, *sch_ab;
-	struct gui_sheet *a = ctx->curr_sheet;
+	struct gui_sheet *a = gui->curr_sheet;
 	struct gui_sheet *b = find_corresponding_sheet(
-	    ctx->old_hist->sheets, ctx->new_hist->sheets, ctx->curr_sheet);
+	    gui->old_hist->sheets, gui->new_hist->sheets, gui->curr_sheet);
 
 	sch_a = alloc_type(struct sheet);
 	sch_b = alloc_type(struct sheet);
 	sch_ab = alloc_type(struct sheet);
 
 	delta(a->sch, b->sch, sch_a, sch_b, sch_ab);
-	ctx->delta_a.sch = sch_a,
-	ctx->delta_b.sch = sch_b,
-	ctx->delta_ab.sch = sch_ab,
+	gui->delta_a.sch = sch_a,
+	gui->delta_b.sch = sch_b,
+	gui->delta_ab.sch = sch_ab,
 
-	ctx->delta_a.ctx = ctx->delta_b.ctx = ctx->delta_ab.ctx = NULL;
-	ctx->delta_a.hist = ctx->delta_b.hist = ctx->delta_ab.hist = NULL;
+	gui->delta_a.gui = gui->delta_b.gui = gui->delta_ab.gui = NULL;
+	gui->delta_a.hist = gui->delta_b.hist = gui->delta_ab.hist = NULL;
 
-	render_sheet(&ctx->delta_a);
-	render_sheet(&ctx->delta_b);
-	render_sheet(&ctx->delta_ab);
+	render_sheet(&gui->delta_a);
+	render_sheet(&gui->delta_b);
+	render_sheet(&gui->delta_ab);
 
-	cro_color_override(gfx_user(ctx->delta_ab.gfx), COLOR_LIGHT_GREY);
-	cro_color_override(gfx_user(ctx->delta_b.gfx), COLOR_RED);
-	cro_color_override(gfx_user(ctx->delta_a.gfx), COLOR_GREEN2);
+	cro_color_override(gfx_user(gui->delta_ab.gfx), COLOR_LIGHT_GREY);
+	cro_color_override(gfx_user(gui->delta_b.gfx), COLOR_RED);
+	cro_color_override(gfx_user(gui->delta_a.gfx), COLOR_GREEN2);
 
-	cro_color_override(gfx_user(ctx->delta_ab.gfx_extra), COLOR_LIGHT_GREY);
-	cro_color_override(gfx_user(ctx->delta_b.gfx_extra), COLOR_RED);
-	cro_color_override(gfx_user(ctx->delta_a.gfx_extra), COLOR_GREEN2);
+	cro_color_override(gfx_user(gui->delta_ab.gfx_extra), COLOR_LIGHT_GREY);
+	cro_color_override(gfx_user(gui->delta_b.gfx_extra), COLOR_RED);
+	cro_color_override(gfx_user(gui->delta_a.gfx_extra), COLOR_GREEN2);
 
 	// @@@ clean up when leaving sheet
 #endif
 
 	if (!b->rendered) {
 		render_sheet(b);
-		mark_aois(ctx, b);
+		mark_aois(gui, b);
 	}
 }
 
@@ -316,8 +316,8 @@ void render_delta(struct gui_ctx *ctx)
 /* ----- Setup ------------------------------------------------------------- */
 
 
-void render_setup(struct gui_ctx *ctx)
+void render_setup(struct gui_ctx *gui)
 {
-	g_signal_connect(G_OBJECT(ctx->da), "draw",
-	    G_CALLBACK(on_draw_event), ctx);
+	g_signal_connect(G_OBJECT(gui->da), "draw",
+	    G_CALLBACK(on_draw_event), gui);
 }
