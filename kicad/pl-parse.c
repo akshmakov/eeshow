@@ -52,7 +52,7 @@ static bool get_coord(const struct expr *e,
 			float f = strtof(e->s, &end);
 
 			if (*end) {
-				error("coord: no a number \"%s\"", e->s);
+				error("coord: not a number \"%s\"", e->s);
 				return 0;
 			}
 			if (n++)
@@ -65,7 +65,7 @@ static bool get_coord(const struct expr *e,
 	switch (n) {
 	case 0:
 	case 1:
-		error("coord: no enough coordinates");
+		error("coord: not enough coordinates");
 		return 0;
 	case 2:
 		return 1;
@@ -91,7 +91,7 @@ static bool get_size(const struct expr *e, float *x, float *y)
 
 		f = strtof(e->s, &end);
 		if (*end) {
-			error("size: no a number \"%s\"", e->s);
+			error("size: not a number \"%s\"", e->s);
 			return 0;
 		}
 		if (n++)
@@ -103,7 +103,7 @@ static bool get_size(const struct expr *e, float *x, float *y)
 	switch (n) {
 	case 0:
 	case 1:
-		error("size: no enough coordinates");
+		error("size: not enough coordinates");
 		return 0;
 	case 2:
 		return 1;
