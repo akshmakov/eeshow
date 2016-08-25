@@ -15,7 +15,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <stdint.h>
+#include <string.h>
 #include <unistd.h>
 #include <math.h>
 
@@ -289,7 +289,7 @@ static void cr_text_pango(void *ctx, int x, int y, const char *s, unsigned size,
 static void cr_text(void *ctx, int x, int y, const char *s, unsigned size,
     enum text_align align, int rot, unsigned color, unsigned layer)
 {
-	if (use_pango)
+	if (use_pango && strchr(s, '~'))
 		cr_text_pango(ctx, x, y, s, size, align, rot, color, layer);
 	else
 		cr_text_cairo(ctx, x, y, s, size, align, rot, color, layer);
@@ -366,10 +366,9 @@ static void setup_pango(struct cro_ctx *cc)
 		    pango_font_description_from_string("Helvetica Bold");
 		cc->pango_layout = pango_cairo_create_layout(cc->cr);
 		// pango_font_description_free(cc->pango_desc);
-	} else {
-		cairo_select_font_face(cc->cr, "Helvetica",
-		    CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
 	}
+	cairo_select_font_face(cc->cr, "Helvetica",
+	    CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
 
 	// @@@ to destroy pango_layout, g_object_unref(layout);
 }
