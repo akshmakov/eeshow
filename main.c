@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <locale.h>
 
 #include <gtk/gtk.h>
 
@@ -153,6 +154,8 @@ int main(int argc, char **argv)
 		perror(*argv);
 		return 1;
 	}
+
+	setlocale(LC_ALL, "C");	/* restore sanity */
 
 	for (dashdash = 1; dashdash != argc; dashdash++)
 		if (!strcmp(argv[dashdash], "--")) {
