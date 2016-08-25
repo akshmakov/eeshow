@@ -373,6 +373,7 @@ static void index_key(void *user, int x, int y, int keyval)
 		break;
 
 	case GDK_KEY_h:
+	case GDK_KEY_Help:
 		help();
 		break;
 

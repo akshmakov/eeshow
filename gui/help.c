@@ -37,6 +37,7 @@ static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
 {
 	switch (event->keyval) {
 	case GDK_KEY_h:
+	case GDK_KEY_Help:
 	case GDK_KEY_q:
 	case GDK_KEY_Escape:
 		gtk_widget_hide(window);
