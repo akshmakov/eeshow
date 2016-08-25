@@ -14,5 +14,6 @@
 #define	VERSION_H
 
 extern const char *version;
+extern const char *build_date;
 
 #endif /* !VERSION_H */

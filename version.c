@@ -14,3 +14,4 @@
 
 
 const char *version = VERSION;
+const char *build_date = BUILD_DATE;

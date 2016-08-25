@@ -202,7 +202,7 @@ int main(int argc, char **argv)
 			sexpr();
 			return 0;
 		case 'V':
-			fprintf(stderr, "%s\n", version);
+			fprintf(stderr, "%s %sZ\n", version, build_date);
 			return 1;
 		default:
 			usage(*argv);

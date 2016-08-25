@@ -40,7 +40,10 @@ LDLIBS = -lm \
 
 GIT_VERSION = $(shell git log -1 --format='%h' -s .)
 GIT_STATUS = $(shell [ -z "`git status -s -uno`" ] || echo +)
-CFLAGS += -DVERSION='"$(GIT_VERSION)$(GIT_STATUS)"'
+BUILD_DATE = $(shell date +'%Y%m%d-%H:%M')
+
+CFLAGS += -DVERSION='"$(GIT_VERSION)$(GIT_STATUS)"' \
+	  -DBUILD_DATE='"$(BUILD_DATE)"'
 
 ifneq ($(USE_WEBKIT),)
 	CFLAGS += -DUSE_WEBKIT `pkg-config --cflags webkit2gtk-4.0`
