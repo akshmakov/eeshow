@@ -159,14 +159,14 @@ void mark_aois(struct gui *gui, struct gui_sheet *sheet)
 static struct gui_sheet *get_sheets(struct gui *gui, struct gui_hist *hist,
     const struct sheet *sheets)
 {
-	const struct sheet *sheet;
+	const struct sheet *sch;
 	struct gui_sheet *gui_sheets = NULL;
 	struct gui_sheet **next = &gui_sheets;
 	struct gui_sheet *new;
 
-	for (sheet = sheets; sheet; sheet = sheet->next) {
+	for (sch = sheets; sch; sch = sch->next) {
 		new = alloc_type(struct gui_sheet);
-		new->sch = sheet;
+		new->sch = sch;
 		new->gui = gui;
 		new->hist = hist;
 		new->gfx_thumb = NULL;
