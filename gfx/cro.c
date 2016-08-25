@@ -280,7 +280,7 @@ static void cr_text_pango(void *ctx, int x, int y, const char *s, unsigned size,
 		BUG("invalid alignment %d", align);
 	}
 
-	pango_cairo_update_layout(cc->cr, cc->pango_layout);
+//	pango_cairo_update_layout(cc->cr, cc->pango_layout);
 	pango_cairo_show_layout(cc->cr, cc->pango_layout);
 	cairo_restore(cc->cr);
 }
