@@ -265,6 +265,9 @@ int main(int argc, char **argv)
 		    file_names.pro ? &pro_file : &sch_file))
 			return 1;
 
+	if (file_names.pro)
+		file_close(&pro_file);
+
 	if (fn->pl) {
 		struct file file;
 
@@ -275,6 +278,12 @@ int main(int argc, char **argv)
 		if (!pl)
 			return 1;
 	}
+
+	if (fn != &file_names) {
+		free_file_names(fn);
+		free(fn);
+	}
+	free_file_names(&file_names);
 
 	if (dashdash == argc) {
 		gfx_argc = 1;
