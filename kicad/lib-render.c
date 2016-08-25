@@ -410,6 +410,23 @@ static void draw_pin_line(const struct lib_pin *pin, struct gfx *gfx,
 		gfx_poly(gfx, 2, x, y,
 		    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
 	}
+
+	/*
+	 * Crazy exception: pin type (etype) normally doesn't have any visible
+	 * effect in eeschema - except if it's "not connected".
+	 */
+	if (pin->etype == 'N') {
+		x[0] = pin->x - PIN_X_R;
+		y[0] = pin->y - PIN_X_R;
+		x[1] = pin->x + PIN_X_R;
+		y[1] = pin->y + PIN_X_R;
+		transform_poly(2, x, y, m);
+		gfx_poly(gfx, 2, x, y,
+		    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+		swap(x[0], x[1]);
+		gfx_poly(gfx, 2, x, y,
+		    COLOR_COMP_DWG, COLOR_NONE, LAYER_COMP_DWG);
+	}
 }
 
 
@@ -424,7 +441,7 @@ static void draw_pin_etype(const struct lib_pin *pin, struct gfx *gfx,
 	int i;
 
 	mx = (pin->x + pin->x + dx * pin->length) / 2;
-	my = (pin->y + pin->y + dy * pin->length)/ 2;
+	my = (pin->y + pin->y + dy * pin->length) / 2;
 
 	switch (pin->etype) {
 	case 'I':

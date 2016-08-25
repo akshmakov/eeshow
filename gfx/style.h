@@ -102,6 +102,7 @@
 #define	MISSING_HEIGHT		300
 
 #define	PIN_R			25	/* radius and feature step */
+#define	PIN_X_R			13	/* feature step for "NC" */
 #define	PIN_EXTRA_R		25	/* feature step */
 
 
