@@ -61,25 +61,25 @@ void classify_files(struct file_names *fn, char *const *args,
 			if (fn->pro)
 				fatal("%s: there can only be one project",
 				    args[i]);
-			fn->pro = args[i];
+			fn->pro = stralloc(args[i]);
 			break;
 		case ext_sch:
 			if (fn->sch)
 				fatal("%s: there can only be one top sheet",
 				    args[i]);
-			fn->sch = args[i];
+			fn->sch = stralloc(args[i]);
 			break;
 		case ext_lib:
 			fn->n_libs++;
 			fn->libs = realloc_type_n(fn->libs, const char *,
 			    fn->n_libs);
-			fn->libs[fn->n_libs - 1] = args[i];
+			fn->libs[fn->n_libs - 1] = stralloc(args[i]);
 			break;
 		case ext_pl:
 			if (fn->pl)
 				fatal("%s: there can only be one page layout",
 				    args[i]);
-			fn->pl = args[i];
+			fn->pl = stralloc(args[i]);
 			break;
 		default:
 			BUG("invalid extension code %d", ext);
