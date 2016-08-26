@@ -115,8 +115,8 @@ void text_show(const struct text *txt, struct gfx *gfx,
 		if (!s)
 			break;
 		tmp = NULL;
-		gfx_text(gfx, x, y, s, txt->size, txt->hor, txt->rot, color,
-		    layer);
+		gfx_text(gfx, x, y, s, txt->size, txt->hor, txt->rot,
+		    txt->style, color, layer);
 		x += rx(0, NEWLINE_SKIP * txt->size, txt->rot);
 		y += ry(0, NEWLINE_SKIP * txt->size, txt->rot);
 	}
@@ -128,7 +128,7 @@ void text_rel(const struct text *txt, struct gfx *gfx,
     enum text_align xr, enum text_align yr,
     int dx, int dy, int *res_x, int *res_y)
 {
-	int width = gfx_text_width(gfx, txt->s, txt->size);
+	int width = gfx_text_width(gfx, txt->s, txt->size, txt->style);
 
 	dx -= align(width, txt->hor);
 	dy += align(txt->size, txt->vert);

@@ -103,19 +103,21 @@ static void diff_arc(void *ctx, int x, int y, int r, int sa, int ea,
 
 
 static void diff_text(void *ctx, int x, int y, const char *s, unsigned size,
-    enum text_align align, int rot, unsigned color, unsigned layer)
+    enum text_align align, int rot, enum text_style style,
+    unsigned color, unsigned layer)
 {
 	const struct diff *diff = ctx;
 
-	gfx_text(diff->gfx, x, y, s, size, align, rot, color, layer);
+	gfx_text(diff->gfx, x, y, s, size, align, rot, style, color, layer);
 }
 
 
-static unsigned diff_text_width(void *ctx, const char *s, unsigned size)
+static unsigned diff_text_width(void *ctx, const char *s, unsigned size,
+    enum text_style style)
 {
 	const struct diff *diff = ctx;
 
-	return gfx_text_width(diff->gfx, s, size);
+	return gfx_text_width(diff->gfx, s, size, style);
 }
 
 

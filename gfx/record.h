@@ -14,6 +14,7 @@
 #ifndef GFX_RECORD_H
 #define	GFX_RECORD_H
 
+#include "gfx/text.h"
 #include "gfx/gfx.h"
 
 
@@ -47,7 +48,8 @@ void record_circ(void *ctx, int x, int y, int r,
 void record_arc(void *ctx, int x, int y, int r, int sa, int ea,
     int color, int fill_color, unsigned layer);
 void record_text(void *ctx, int x, int y, const char *s, unsigned size,
-    enum text_align align, int rot, unsigned color, unsigned layer);
+    enum text_align align, int rot, enum text_style style,
+    unsigned color, unsigned layer);
 
 void record_init(struct record *rec, const struct gfx_ops *ops, void *user);
 void record_wipe(struct record *rec);

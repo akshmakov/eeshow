@@ -163,7 +163,8 @@ static void fig_tag(void *ctx, const char *s,
 
 
 static void fig_text(void *ctx, int x, int y, const char *s, unsigned size,
-    enum text_align align, int rot, unsigned color, unsigned layer)
+    enum text_align align, int rot, enum text_style style,
+    unsigned color, unsigned layer)
 {
 	//	Type   Depth     FontSiz Height
 	//	  Just    Pen       Angle    Length
@@ -174,7 +175,8 @@ static void fig_text(void *ctx, int x, int y, const char *s, unsigned size,
 }
 
 
-static unsigned fig_text_width(void *ctx, const char *s, unsigned size)
+static unsigned fig_text_width(void *ctx, const char *s, unsigned size,
+    enum text_style style)
 {
 	/*
 	 * Note that we stretch the text size, so the ratio is larger than

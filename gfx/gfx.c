@@ -81,9 +81,11 @@ void gfx_arc(struct gfx *gfx, int x, int y, int r, int sa, int ea,
 
 
 void gfx_text(struct gfx *gfx, int x, int y, const char *s, unsigned size,
-    enum text_align align, int rot, unsigned color, unsigned layer)
+    enum text_align align, int rot, enum text_style style,
+    unsigned color, unsigned layer)
 {
-	gfx->ops->text(gfx->user, x, y, s, size, align, rot, color, layer);
+	gfx->ops->text(gfx->user, x, y, s, size, align, rot, style,
+	    color, layer);
 }
 
 
@@ -95,9 +97,10 @@ void gfx_tag(struct gfx *gfx, const char *s,
 }
 
 
-unsigned gfx_text_width(struct gfx *gfx, const char *s, unsigned size)
+unsigned gfx_text_width(struct gfx *gfx, const char *s, unsigned size,
+    enum text_style style)
 {
-	return gfx->ops->text_width(gfx->user, s, size);
+	return gfx->ops->text_width(gfx->user, s, size, style);
 }
 
 

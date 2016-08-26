@@ -291,7 +291,8 @@ static void overlined(cairo_t *cr, const char *s, double h)
 
 
 static void cr_text_cairo(void *ctx, int x, int y, const char *s, unsigned size,
-    enum text_align align, int rot, unsigned color, unsigned layer)
+    enum text_align align, int rot, enum text_style style,
+    unsigned color, unsigned layer)
 {
 	struct cro_ctx *cc = ctx;
 	cairo_text_extents_t ext;
@@ -329,7 +330,8 @@ static void cr_text_cairo(void *ctx, int x, int y, const char *s, unsigned size,
 
 
 static void cr_text_pango(void *ctx, int x, int y, const char *s, unsigned size,
-    enum text_align align, int rot, unsigned color, unsigned layer)
+    enum text_align align, int rot, enum text_style style,
+    unsigned color, unsigned layer)
 {
 	struct cro_ctx *cc = ctx;
 	PangoRectangle ink;
@@ -379,16 +381,20 @@ static void cr_text_pango(void *ctx, int x, int y, const char *s, unsigned size,
 
 
 static void cr_text(void *ctx, int x, int y, const char *s, unsigned size,
-    enum text_align align, int rot, unsigned color, unsigned layer)
+    enum text_align align, int rot, enum text_style style,
+    unsigned color, unsigned layer)
 {
 	if (use_pango)
-		cr_text_pango(ctx, x, y, s, size, align, rot, color, layer);
+		cr_text_pango(ctx, x, y, s, size, align, rot, style,
+		    color, layer);
 	else
-		cr_text_cairo(ctx, x, y, s, size, align, rot, color, layer);
+		cr_text_cairo(ctx, x, y, s, size, align, rot, style,
+		    color, layer);
 }
 
 
-static unsigned cr_text_width(void *ctx, const char *s, unsigned size)
+static unsigned cr_text_width(void *ctx, const char *s, unsigned size,
+    enum text_style style)
 {
 	struct cro_ctx *cc = ctx;
 	cairo_text_extents_t ext;

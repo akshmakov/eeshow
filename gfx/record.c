@@ -58,6 +58,7 @@ struct record_obj {
 			unsigned size;
 			enum text_align align;
 			int rot;
+			enum text_style style;
 		} text;
 	} u;
 	struct record_obj *next;
@@ -213,12 +214,13 @@ void record_arc(void *ctx, int x, int y, int r, int sa, int ea,
 
 
 void record_text(void *ctx, int x, int y, const char *s, unsigned size,
-    enum text_align align, int rot, unsigned color, unsigned layer)
+    enum text_align align, int rot, enum text_style style,
+    unsigned color, unsigned layer)
 {
 	struct record *rec = ctx;
 	struct record_obj *obj =
 	    new_obj(ctx, ro_text, color, COLOR_NONE, layer);
-	unsigned width = rec->ops->text_width(rec->user, s, size);
+	unsigned width = rec->ops->text_width(rec->user, s, size, style);
 
 	bb_rot(rec, x, y - size, rot);
 	bb_rot(rec, x + width, y, rot);
@@ -229,6 +231,7 @@ void record_text(void *ctx, int x, int y, const char *s, unsigned size,
 	obj->u.text.size = size;
 	obj->u.text.align = align;
 	obj->u.text.rot = rot;
+	obj->u.text.style = style;
 }
 
 
@@ -286,7 +289,7 @@ void record_replay(const struct record *rec)
 			case ro_text:
 				ops->text(ctx, obj->x, obj->y, obj->u.text.s,
 				    obj->u.text.size, obj->u.text.align,
-				    obj->u.text.rot,
+				    obj->u.text.rot, obj->u.text.style,
 				    obj->color, layer->layer);
 				break;
 			default:

@@ -35,10 +35,12 @@ struct gfx_ops {
 	void (*arc)(void *ctx, int x, int y, int r, int sa, int ea,
 	    int color, int fill_color, unsigned layer);
 	void (*text)(void *ctx, int x, int y, const char *s, unsigned size,
-	    enum text_align align, int rot, unsigned color, unsigned layer);
+	    enum text_align align, int rot, enum text_style style,
+	    unsigned color, unsigned layer);
 	void (*tag)(void *ctx,  const char *s,
 	    int points, const int x[points], const int y[points]);
-	unsigned (*text_width)(void *ctx, const char *s, unsigned size);
+	unsigned (*text_width)(void *ctx, const char *s, unsigned size,
+	    enum text_style style);
 	void *(*init)(void);
 	bool (*args)(void *ctx, int argc, char *const *argv);
 	void (*sheet_name)(void *ctx, const char *name);
@@ -61,10 +63,12 @@ void gfx_circ(struct gfx *gfx,
 void gfx_arc(struct gfx *gfx, int x, int y, int r, int sa, int ea,
     int color, int fill_color, unsigned layer);
 void gfx_text(struct gfx *gfx, int x, int y, const char *s, unsigned size,
-    enum text_align align, int rot, unsigned color, unsigned layer);
+    enum text_align align, int rot, enum text_style style,
+    unsigned color, unsigned layer);
 void gfx_tag(struct gfx *gfx, const char *s,
     unsigned points, const int x[points], int const y[points]);
-unsigned gfx_text_width(struct gfx *gfx, const char *s, unsigned size);
+unsigned gfx_text_width(struct gfx *gfx, const char *s, unsigned size,
+    enum text_style style);
 
 /* inititalization and termination */
 
