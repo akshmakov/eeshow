@@ -31,7 +31,6 @@ Rendering:
 - better text size guessing also for FIG
 - consider switching to Hershey fonts (that's what eeschema uses, right ?)
   (goal: prevent font geometry from changing when scaling)
-- support fonts attributes ?
 - support line thickness ?
 - ~ as overline (grep for ~ in out.fig) [ done for Cairo, FIG still missing ]
 - maybe let user set PNG size [we have zoom level]
