@@ -25,9 +25,13 @@ enum text_align {
 	text_max = 2,	// right or top
 };
 
+/* "Text Notes" seem to use this encoding */
+
 enum text_style {
-	text_normal,
-	text_italic,
+	text_normal		= 0,
+	text_italic		= 1,
+	text_bold		= 2,
+	text_bold_italic	= 3,	// text_italic | text_bold
 };
 
 struct text {
@@ -37,7 +41,9 @@ struct text {
 	int rot;
 	enum text_align hor;
 	enum text_align vert;
+	enum text_style style;
 };
+
 
 void text_init(struct text *txt);
 void text_free(struct text *txt);

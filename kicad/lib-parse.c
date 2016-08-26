@@ -25,13 +25,21 @@
 /* ----- Text -------------------------------------------------------------- */
 
 
-static enum text_style decode_style(const char *s)
+static enum text_style decode_style(const char *s, unsigned bold)
 {
+	enum text_style res;
+
 	if (!strcmp(s, "Normal"))
-		return text_normal;
-	if (!strcmp(s, "Italic"))
-		return text_italic;
-	assert(0);
+		res = text_normal;
+	else if (!strcmp(s, "Italic"))
+		res = text_italic;
+	else
+		error("unrecognized text attribute \"%s\"", s);
+
+	if (bold)
+		res |= text_bold;
+
+	return res;
 }
 
 
@@ -197,7 +205,7 @@ static bool lib_parse_line(const struct file *file,
 	unsigned points;
 	struct lib_obj *obj;
 	char *s, *style;
-	unsigned zero1, zero2;
+	unsigned zero, bold;
 	char vis;
 
 	switch (lib->state) {
@@ -265,15 +273,15 @@ static bool lib_parse_line(const struct file *file,
 		n = sscanf(line,
 		    "T %d %d %d %d %u %u %u \"%m[^\"]\" %ms %u %c %c",
 		    &obj->u.text.orient, &obj->u.text.x, &obj->u.text.y,
-		    &obj->u.text.dim, &zero1, &obj->unit, &obj->convert,
-		    &obj->u.text.s, &style, &zero2,
+		    &obj->u.text.dim, &zero, &obj->unit, &obj->convert,
+		    &obj->u.text.s, &style, &bold,
 		    &obj->u.text.hor_align, &obj->u.text.vert_align);
 		if (n != 12) {
 			n = sscanf(line,
 			    "T %d %d %d %d %u %u %u %ms %ms %u %c %c",
 			    &obj->u.text.orient, &obj->u.text.x, &obj->u.text.y,
-			    &obj->u.text.dim, &zero1, &obj->unit, &obj->convert,
-			    &obj->u.text.s, &style, &zero2,
+			    &obj->u.text.dim, &zero, &obj->unit, &obj->convert,
+			    &obj->u.text.s, &style, &bold,
 			    &obj->u.text.hor_align, &obj->u.text.vert_align);
 			while (n == 12) {
 				char *tilde;
@@ -284,15 +292,13 @@ static bool lib_parse_line(const struct file *file,
 				*tilde = ' ';
 			}
 		}
-		/*
-		 * zero2 seems to be the font style: 0 = normal, 1 = bold ?
-		 */
 		if (n == 12) {
-			if (zero1)
+			if (zero)
 				fatal("%u: only understand 0 x x\n"
 				    "\"%s\"", file->lineno, line);
-			obj->u.text.style = decode_style(style);
+			obj->u.text.style = decode_style(style, bold);
 			obj->type = lib_obj_text;
+			free(style);
 			return 1;
 		}
 		s = NULL;

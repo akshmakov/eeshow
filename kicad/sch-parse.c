@@ -56,6 +56,26 @@ static enum dwg_shape decode_shape(const char *s)
 }
 
 
+static enum text_style decode_style(const char *italic, int bold)
+{
+	enum text_style res;
+
+	if (!strcmp(italic, "~"))
+		res = text_normal;
+	else if (!strcmp(italic, "Italic"))
+		res = text_italic;
+	else {
+		error ("unrecognized text attribute \"%s\"", italic);
+		res = text_normal;
+	}
+
+	if (bold)
+		res |= text_bold;
+
+	return res;
+}
+
+
 /* ----- Component fields -------------------------------------------------- */
 
 
@@ -175,7 +195,15 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 
 	decode_alignment(txt, hor, vert);
 
-	// @@@ decode font
+	txt->style = text_normal;
+	if (italic == 'I')
+		txt->style |= text_italic;
+	else if (italic != 'N')
+		error("unknown italic value \"%c\"", italic);
+	if (bold == 'B')
+		txt->style |= text_bold;
+	else if (bold != 'N')
+		error("unknown bold value \"%c\"", italic);
 
 	return 1;
 }
@@ -376,7 +404,8 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 	struct sch_ctx *ctx = user;
 	struct sch_obj *obj = &ctx->obj;
 	int n = 0;
-	char *s;
+	char *s, *italic;
+	int bold;
 
 	switch (ctx->state) {
 	case sch_basic:
@@ -399,33 +428,45 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 
 		struct sch_text *text = &obj->u.text;
 
-		if (sscanf(line, "Text Notes %d %d %d %d",
-		    &obj->x, &obj->y, &text->dir, &text->dim) == 4) {
+		if (sscanf(line, "Text Notes %d %d %d %d %ms %d",
+		    &obj->x, &obj->y, &text->dir, &text->dim, &italic, &bold)
+		    == 6) {
 			ctx->state = sch_text;
 			obj->u.text.fn = dwg_text;
 			obj->u.text.shape = dwg_unspec; /* not used for text */
+			obj->u.text.style = decode_style(italic, bold);
+			free(italic);
 			return 1;
 		}
-		if (sscanf(line, "Text GLabel %d %d %d %d %ms",
-		    &obj->x, &obj->y, &text->dir, &text->dim, &s) == 5) {
+		if (sscanf(line, "Text GLabel %d %d %d %d %ms %ms %d",
+		    &obj->x, &obj->y, &text->dir, &text->dim, &s,
+		    &italic, &bold) == 7) {
 			ctx->state = sch_text;
 			obj->u.text.fn = dwg_glabel;
 			obj->u.text.shape = decode_shape(s);
+			obj->u.text.style = decode_style(italic, bold);
+			free(italic);
 			return 1;
 		}
-		if (sscanf(line, "Text HLabel %d %d %d %d %ms",
-		    &obj->x, &obj->y, &text->dir, &text->dim, &s) == 5) {
+		if (sscanf(line, "Text HLabel %d %d %d %d %ms %ms %d",
+		    &obj->x, &obj->y, &text->dir, &text->dim, &s,
+		    &italic, &bold) == 7) {
 			ctx->state = sch_text;
 			obj->u.text.fn = dwg_hlabel;
 			obj->u.text.shape = decode_shape(s);
+			obj->u.text.style = decode_style(italic, bold);
+			free(italic);
 			return 1;
 		}
-		if (sscanf(line, "Text Label %d %d %d %d",
-		    &obj->x, &obj->y, &text->dir, &text->dim) == 4) {
+		if (sscanf(line, "Text Label %d %d %d %d %ms %d",
+		    &obj->x, &obj->y, &text->dir, &text->dim,
+		    &italic, &bold) == 6) {
 			ctx->state = sch_text;
 			obj->u.text.fn = dwg_label;
 			obj->u.text.shape = dwg_unspec;
 			    /* not used for (local) labels */
+			obj->u.text.style = decode_style(italic, bold);
+			free(italic);
 			return 1;
 		}
 

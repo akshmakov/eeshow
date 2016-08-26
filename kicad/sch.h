@@ -63,6 +63,7 @@ struct sch_obj {
 			int dir;	/* orientation */
 			int dim;	/* dimension */
 			enum dwg_shape shape;
+			enum text_style style;
 			struct dwg_bbox bbox; /* set when rendering; glabel */
 		} text;
 		struct sch_comp {
