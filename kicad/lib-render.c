@@ -223,13 +223,14 @@ static void draw_pin_name(const struct comp *comp, const struct lib_pin *pin,
 	}
 
 	struct text txt = {
-		.s = pin->name,
-		.x = mx(pin->x + ox, pin->y + oy, m) + sx,
-		.y = my(pin->x + ox, pin->y + oy, m) + sy,
-		.size = pin->name_size,
-		.rot = rot,
-		.hor = comp->name_offset ? hor : text_mid,
-		.vert = comp->name_offset ? text_mid : text_min,
+		.s	= pin->name,
+		.x	= mx(pin->x + ox, pin->y + oy, m) + sx,
+		.y	= my(pin->x + ox, pin->y + oy, m) + sy,
+		.size	= pin->name_size,
+		.rot	= rot,
+		.hor	= comp->name_offset ? hor : text_mid,
+		.vert	= comp->name_offset ? text_mid : text_min,
+		.style	= text_normal,
 	};
 
 	text_rot(&txt, matrix_to_angle(m));
@@ -275,13 +276,14 @@ static void draw_pin_num(const struct comp *comp, const struct lib_pin *pin,
 	}
 
 	struct text txt = {
-		.s = pin->number,
-		.x = mx(pin->x + ox, pin->y + oy, m) + sx,
-		.y = my(pin->x + ox, pin->y + oy, m) + sy,
-		.size = pin->number_size,
-		.rot = rot,
-		.hor = text_mid,
-		.vert = comp->name_offset ? text_min : text_max,
+		.s	= pin->number,
+		.x	= mx(pin->x + ox, pin->y + oy, m) + sx,
+		.y	= my(pin->x + ox, pin->y + oy, m) + sy,
+		.size	= pin->number_size,
+		.rot	= rot,
+		.hor	= text_mid,
+		.vert	= comp->name_offset ? text_min : text_max,
+		.style	= text_normal,
 	};
 
 	text_rot(&txt, matrix_to_angle(m) % 180);
@@ -665,11 +667,12 @@ static void draw_text(const struct lib_text *text, struct gfx *gfx,
     const int m[6])
 {
 	struct text txt = {
-		.s = text->s,
-		.size = text->dim,
-		.x = mx(text->x, text->y, m),
-		.y = my(text->x, text->y, m),
-		.rot = angle_add(text->orient / 10, matrix_to_angle(m)),
+		.s	= text->s,
+		.size	= text->dim,
+		.x	= mx(text->x, text->y, m),
+		.y	= my(text->x, text->y, m),
+		.rot	= angle_add(text->orient / 10, matrix_to_angle(m)),
+		.style	= text->style,
 	};
 
 	decode_alignment(&txt, text->hor_align, text->vert_align);

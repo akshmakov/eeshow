@@ -74,23 +74,25 @@ static void do_hsheet_text(const struct sch_obj *obj,
 	assert(sheet->name && sheet->file);
 
 	struct text sheet_txt = {
-		.size = sheet->name_dim,
-		.x = obj->x,
-		.y = obj->y,
-		.rot = 0,
-		.hor = text_min,
-		.vert = text_min,
+		.size	= sheet->name_dim,
+		.x	= obj->x,
+		.y	= obj->y,
+		.rot	= 0,
+		.hor	= text_min,
+		.vert	= text_min,
+		.style	= text_normal,
 	};
 	if (asprintf(&s, "Sheet: %s", sheet->name)) {}
 	sheet_txt.s = s; /* work around "const" mismatch */
 
 	struct text file_txt = {
-		.size = sheet->file_dim,
-		.x = obj->x,
-		.y = obj->y,
-		.rot = 0,
-		.hor = text_min,
-		.vert = text_max,
+		.size	= sheet->file_dim,
+		.x	= obj->x,
+		.y	= obj->y,
+		.rot	= 0,
+		.hor	= text_min,
+		.vert	= text_max,
+		.style	= text_normal,
 	};
 	if (asprintf(&s, "File: %s", sheet->file)) {}
 	file_txt.s = s; /* work around "const" mismatch */

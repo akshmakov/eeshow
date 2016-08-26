@@ -161,6 +161,7 @@ static void render_text(const struct pl_ctx *pl, const struct pl_obj *obj,
 		.rot	= 0,
 		.hor	= obj->hor,
 		.vert	= obj->vert,
+		.style	= text_normal,	// @@@
 	};
 
 	if (inc && *s) {
