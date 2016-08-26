@@ -166,11 +166,28 @@ static void fig_text(void *ctx, int x, int y, const char *s, unsigned size,
     enum text_align align, int rot, enum text_style style,
     unsigned color, unsigned layer)
 {
+	int font;
+
+	switch (style) {
+	case text_italic:
+		font = FONT_HELVETICA_OBLIQUE;
+		break;
+	case text_bold:
+		font = FONT_HELVETICA_BOLD;
+		break;
+	case text_bold_italic:
+		font = FONT_HELVETICA_BOLDOB;
+		break;
+	default:
+		font = FONT_HELVETICA;
+		break;
+	}
+
 	//	Type   Depth     FontSiz Height
 	//	  Just    Pen       Angle    Length
 	//	    Color     Font     Flags     X  Y
 	printf("4 %u %d %d -1 %d %f %f 4 0.0 0.0 %d %d %s\\001\n",
-	    align, color, layer, FONT_HELVETICA_BOLD,
+	    align, color, layer, font,
 	    pt(size), rot / 180.0 * M_PI, cx(x), cy(y), s);
 }
 
