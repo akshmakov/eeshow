@@ -81,16 +81,17 @@ static enum box_type flip_box(enum box_type box)
 
 
 void dwg_label(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
-    enum dwg_shape shape, struct dwg_bbox *bbox)
+    enum dwg_shape shape, enum text_style style, struct dwg_bbox *bbox)
 {
 	struct text txt = {
-		.s = s,
-		.size = dim,
-		.x = x,
-		.y = y,
-		.rot = 0,
-		.hor = 0,
-		.vert = text_min,
+		.s	= s,
+		.size	= dim,
+		.x	= x,
+		.y	= y,
+		.rot	= 0,
+		.hor	= 0,
+		.vert	= text_min,
+		.style	= style,
 	};
 	int dx = 0, dy = 0;
 
@@ -126,16 +127,17 @@ void dwg_label(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
 
 
 void dwg_glabel(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
-    enum dwg_shape shape, struct dwg_bbox *bbox)
+    enum dwg_shape shape, enum text_style style, struct dwg_bbox *bbox)
 {
 	struct text txt = {
-		.s = s,
-		.size = dim,
-		.x = x,
-		.y = y,
-		.rot = 0,
-		.hor = 0,
-		.vert = text_mid,
+		.s	= s,
+		.size	= dim,
+		.x	= x,
+		.y	= y,
+		.rot	= 0,
+		.hor	= 0,
+		.vert	= text_mid,
+		.style	= style,
 	};
 	int n = 6;
 	int vx[7];
@@ -326,16 +328,17 @@ static int make_box(enum box_type box, int h, int *vx, int *vy)
 
 
 void dwg_hlabel(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
-    enum dwg_shape shape, struct dwg_bbox *bbox)
+    enum dwg_shape shape, enum text_style style, struct dwg_bbox *bbox)
 {
 	struct text txt = {
-		.s = s,
-		.size = dim,
-		.x = x,
-		.y = y,
-		.rot = 0,
-		.hor = 0,
-		.vert = text_mid,
+		.s	= s,
+		.size	= dim,
+		.x	= x,
+		.y	= y,
+		.rot	= 0,
+		.hor	= 0,
+		.vert	= text_mid,
+		.style	= style,
 	};
 	int vx[6], vy[6];
 	int rot;
@@ -405,16 +408,17 @@ void dwg_hlabel(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
 
 
 void dwg_text(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
-    enum dwg_shape shape, struct dwg_bbox *bbox)
+    enum dwg_shape shape, enum text_style style, struct dwg_bbox *bbox)
 {
 	struct text txt = {
-		.s = s,
-		.size = dim,
-		.x = x,
-		.y = y,
-		.rot = 0,
-		.hor = text_min,
-		.vert = text_min,
+		.s	= s,
+		.size	= dim,
+		.x	= x,
+		.y	= y,
+		.rot	= 0,
+		.hor	= text_min,
+		.vert	= text_min,
+		.style	= style,
 	};
 
 	switch (dir) {

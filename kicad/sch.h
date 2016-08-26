@@ -58,7 +58,7 @@ struct sch_obj {
 			void (*fn)(struct gfx *gfx,
 			    int x, int y, const char *s,
 			    int dir, int dim, enum dwg_shape shape,
-			    struct dwg_bbox *bbox);
+			    enum text_style style, struct dwg_bbox *bbox);
 			const char *s;
 			int dir;	/* orientation */
 			int dim;	/* dimension */

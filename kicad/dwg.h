@@ -15,6 +15,7 @@
 #define	KICAD_DWG_H
 
 #include "gfx/gfx.h"
+#include "gfx/text.h"
 
 
 enum dwg_shape {
@@ -32,13 +33,13 @@ struct dwg_bbox {
 
 
 void dwg_label(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
-    enum dwg_shape shape, struct dwg_bbox *bbox);
+    enum dwg_shape shape, enum text_style style, struct dwg_bbox *bbox);
 void dwg_hlabel(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
-    enum dwg_shape shape, struct dwg_bbox *bbox);
+    enum dwg_shape shape, enum text_style style, struct dwg_bbox *bbox);
 void dwg_glabel(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
-    enum dwg_shape shape, struct dwg_bbox *bbox);
+    enum dwg_shape shape, enum text_style style, struct dwg_bbox *bbox);
 void dwg_text(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
-    enum dwg_shape shape, struct dwg_bbox *bbox);
+    enum dwg_shape shape, enum text_style style, struct dwg_bbox *bbox);
 
 void dwg_junction(struct gfx *gfx, int x, int y);
 void dwg_noconn(struct gfx *gfx, int x, int y);

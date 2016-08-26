@@ -127,7 +127,7 @@ static void render_sheet(const struct sch_obj *obj,
 	for (field = sheet->fields; field; field = field->next)
 		dwg_hlabel(gfx, field->x, field->y, field->s,
 		    field->side, field->dim,
-		    field->shape, NULL);
+		    field->shape, text_normal, NULL);
 	// free(field->s)
 }
 
@@ -159,7 +159,8 @@ void sch_render(const struct sheet *sheet, struct gfx *gfx)
 
 				text->fn(gfx, obj->x, obj->y,
 				    text->s, text->dir,
-				    text->dim, text->shape, &text->bbox);
+				    text->dim, text->shape, text->style,
+				    &text->bbox);
 			}
 			break;
 		case sch_obj_comp:
