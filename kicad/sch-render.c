@@ -62,7 +62,7 @@ static void dump_field(const struct comp_field *field, struct gfx *gfx,
 			txt.vert = text_flip(txt.vert);
 	}
 
-	text_fig(&txt, gfx, COLOR_FIELD, LAYER_FIELD);
+	text_show(&txt, gfx, COLOR_FIELD, LAYER_FIELD);
 }
 
 
@@ -108,8 +108,8 @@ static void do_hsheet_text(const struct sch_obj *obj,
 		file_txt.y += sheet->h + HSHEET_FIELD_OFFSET;
 	}
 
-	text_fig(&sheet_txt, gfx, COLOR_HSHEET_SHEET, LAYER_HSHEET_FIELD);
-	text_fig(&file_txt, gfx, COLOR_HSHEET_FILE, LAYER_HSHEET_FIELD);
+	text_show(&sheet_txt, gfx, COLOR_HSHEET_SHEET, LAYER_HSHEET_FIELD);
+	text_show(&file_txt, gfx, COLOR_HSHEET_FILE, LAYER_HSHEET_FIELD);
 
 //	free((void *) ctx->sheet);
 //	free((void *) ctx->file);

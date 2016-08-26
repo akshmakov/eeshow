@@ -93,7 +93,7 @@ static int align(int dim, enum text_align align)
 }
 
 
-void text_fig(const struct text *txt, struct gfx *gfx,
+void text_show(const struct text *txt, struct gfx *gfx,
     int color, unsigned layer)
 {
 	char *buf = stralloc(txt->s);

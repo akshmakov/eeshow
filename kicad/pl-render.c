@@ -182,7 +182,7 @@ static void render_text(const struct pl_ctx *pl, const struct pl_obj *obj,
 		}
 	}
 	txt.s = s;
-	text_fig(&txt, gfx, COLOR_COMP_DWG, LAYER_COMP_DWG);
+	text_show(&txt, gfx, COLOR_COMP_DWG, LAYER_COMP_DWG);
 	free(s);
 }
 

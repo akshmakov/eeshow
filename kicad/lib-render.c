@@ -250,7 +250,7 @@ static void draw_pin_name(const struct comp *comp, const struct lib_pin *pin,
 		break;
 	}
 
-	text_fig(&txt, gfx, COLOR_PIN_NAME, LAYER_PIN_NAME);
+	text_show(&txt, gfx, COLOR_PIN_NAME, LAYER_PIN_NAME);
 }
 
 
@@ -311,7 +311,7 @@ static void draw_pin_num(const struct comp *comp, const struct lib_pin *pin,
 		break;
 	}
 
-	text_fig(&txt, gfx, COLOR_PIN_NUMBER, LAYER_PIN_NUMBER);
+	text_show(&txt, gfx, COLOR_PIN_NUMBER, LAYER_PIN_NUMBER);
 }
 
 
@@ -704,7 +704,7 @@ static void draw_text(const struct lib_text *text, struct gfx *gfx,
 			BUG("unknown rotation %d", txt.rot);
 		}
 
-	text_fig(&txt, gfx, COLOR_COMP_DWG, WIDTH_COMP_DWG);
+	text_show(&txt, gfx, COLOR_COMP_DWG, WIDTH_COMP_DWG);
 }
 
 

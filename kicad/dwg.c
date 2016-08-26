@@ -122,7 +122,7 @@ void dwg_label(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
 
 	txt.y -= dy * LABEL_OFFSET;
 	txt.x += dx * LABEL_OFFSET;
-	text_fig(&txt, gfx, COLOR_LABEL, LAYER_LABEL);
+	text_show(&txt, gfx, COLOR_LABEL, LAYER_LABEL);
 }
 
 
@@ -258,7 +258,7 @@ void dwg_glabel(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
 		assert(0);
 	}
 
-	text_fig(&txt, gfx, COLOR_GLABEL, LAYER_GLABEL);
+	text_show(&txt, gfx, COLOR_GLABEL, LAYER_GLABEL);
 
 	vx[0] = vx[n - 1];
 	vy[0] = vy[n - 1];
@@ -399,7 +399,7 @@ void dwg_hlabel(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
 
 	txt.rot = rot % 180;
 
-	text_fig(&txt, gfx, COLOR_HLABEL, LAYER_HLABEL);
+	text_show(&txt, gfx, COLOR_HLABEL, LAYER_HLABEL);
 	gfx_poly(gfx, n + 1, vx, vy, COLOR_HLABEL, COLOR_NONE, LAYER_HLABEL);
 }
 
@@ -438,7 +438,7 @@ void dwg_text(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
 		assert(2 + 2 == 5);
 	}
 
-	text_fig(&txt, gfx, COLOR_TEXT, LAYER_TEXT);
+	text_show(&txt, gfx, COLOR_TEXT, LAYER_TEXT);
 }
 
 

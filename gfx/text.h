@@ -53,7 +53,7 @@ void text_rot(struct text *txt, int deg);
 void text_flip_x(struct text *txt);
 enum text_align text_flip(enum text_align align);
 
-void text_fig(const struct text *txt, struct gfx *gfx,
+void text_show(const struct text *txt, struct gfx *gfx,
     int color, unsigned layer);
 
 void text_rel(const struct text *txt, struct gfx *gfx,
