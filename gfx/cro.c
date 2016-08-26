@@ -57,6 +57,8 @@ struct cro_ctx {
 	cairo_t *cr;
 	cairo_surface_t *s;
 
+	enum text_style style;	/* current font style */
+
 	PangoFontDescription *pango_desc;
 	PangoLayout *pango_layout;
 	double pango_size;
@@ -287,6 +289,34 @@ static void overlined(cairo_t *cr, const char *s, double h)
 }
 
 
+static void select_font(struct cro_ctx *cc, enum text_style style)
+{
+	if (cc->style == style)
+		return;
+
+	switch (style) {
+	case text_bold:
+		cairo_select_font_face(cc->cr, "Helvetica",
+		    CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+		break;
+	case text_italic:
+		cairo_select_font_face(cc->cr, "Helvetica",
+		    CAIRO_FONT_SLANT_OBLIQUE, CAIRO_FONT_WEIGHT_NORMAL);
+		break;
+	case text_bold_italic:
+		cairo_select_font_face(cc->cr, "Helvetica",
+		    CAIRO_FONT_SLANT_OBLIQUE, CAIRO_FONT_WEIGHT_BOLD);
+		break;
+	default:
+		cairo_select_font_face(cc->cr, "Helvetica",
+		    CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+		break;
+	}
+
+	cc->style = style;
+}
+
+
 #define	TEXT_STRETCH	1.3
 
 
@@ -298,6 +328,7 @@ static void cr_text_cairo(void *ctx, int x, int y, const char *s, unsigned size,
 	cairo_text_extents_t ext;
 	cairo_matrix_t m;
 
+	select_font(cc, style);
 	cairo_set_font_size(cc->cr, cd(cc, size) * TEXT_STRETCH);
 	cairo_text_extents(cc->cr, s, &ext);
 
@@ -399,6 +430,7 @@ static unsigned cr_text_width(void *ctx, const char *s, unsigned size,
 	struct cro_ctx *cc = ctx;
 	cairo_text_extents_t ext;
 
+	select_font(cc, style);
 	cairo_set_font_size(cc->cr, cd(cc, size) * TEXT_STRETCH);
 	cairo_text_extents(cc->cr, s, &ext);
 	return dc(cc, ext.width);
@@ -467,7 +499,8 @@ static void setup_pango(struct cro_ctx *cc)
 		// @@@ to destroy pango_layout, g_object_unref(layout);
 	} else {
 		cairo_select_font_face(cc->cr, "Helvetica",
-		    CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+		    CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+		cc->style = text_normal;
 	}
 }
 
