@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <math.h>
 #include <assert.h>
 
 #include <cairo/cairo.h>
@@ -34,6 +35,14 @@
 #include "gfx/gfx.h"
 #include "gfx/diff.h"
 
+
+/*
+ * FIG works with 1/1200 in
+ * KiCad works with mil
+ * 1 point = 1/72 in
+ */
+
+#define DEFAULT_SCALE   (72.0 / 1200)
 
 #define	DEFAULT_FRAME_RADIUS	30
 
@@ -54,8 +63,9 @@
 
 struct diff {
 	struct gfx *gfx;
-	uint32_t *new_img;
+	float scale;
 	int w, h, stride;
+	struct gfx *new_gfx;
 	const char *output_name;
 	int frame_radius;
 	struct area *areas;
@@ -129,6 +139,7 @@ static void *diff_init(void)
 	struct diff *diff;
 
 	diff = alloc_type(struct diff);
+	diff->scale = DEFAULT_SCALE;
 	diff->areas = NULL;
 
 	diff->output_name = NULL;
@@ -160,7 +171,7 @@ static bool diff_args(void *ctx, int argc, char *const *argv)
 			diff->output_name = optarg;
 			break;
 		case 's':
-			/* for cro_png */
+			diff->scale = atof(optarg) * DEFAULT_SCALE;
 			break;
 		default:
 			usage(*argv);
@@ -199,19 +210,17 @@ static bool diff_args(void *ctx, int argc, char *const *argv)
 	}
 	free_file_names(&file_names);
 
+	suppress_page_layout = 1;
+
 	diff->gfx = gfx_init(&cro_img_ops);
 	if (!gfx_args(diff->gfx, argc, argv))
 		goto fail_open;
 	sch_render(new_sch.sheets, diff->gfx);
-	diff->new_img = cro_img_end(gfx_user(diff->gfx),
-	    &diff->w, &diff->h, &diff->stride);
+	diff->new_gfx = diff->gfx;
 
 	diff->gfx = gfx_init(&cro_img_ops);
 	if (!gfx_args(diff->gfx, argc, argv))
 		goto fail_open;
-	//diff->gfx = cro_img_ops.init(argc, argv);
-
-	suppress_page_layout = 1;
 
 	return 1;
 
@@ -317,7 +326,7 @@ void free_areas(struct area **areas)
 }
 
 
-/* ----- Termination ------------------------------------------------------- */
+/* ----- Generate differences ---------------------------------------------- */
 
 
 static void differences(struct diff *diff, uint32_t *a, const uint32_t *b)
@@ -344,28 +353,6 @@ static void differences(struct diff *diff, uint32_t *a, const uint32_t *b)
 }
 
 
-static void diff_end(void *ctx)
-{
-	struct diff *diff = ctx;
-	uint32_t *old_img;
-	int w, h, stride;
-
-	assert(diff->gfx);
-	old_img = cro_img_end(gfx_user(diff->gfx), &w, &h, &stride);
-	if (diff->w != w || diff->h != h)
-		fatal("%d x %d vs. %d x %d image\n", w, h, diff->w, diff->h);
-
-	differences(diff, old_img, diff->new_img);
-	show_areas(diff, old_img);
-	free_areas(&diff->areas);
-
-	cro_img_write(gfx_user(diff->gfx), diff->output_name);
-}
-
-
-/* ----- Diff to canvas ---------------------------------------------------- */
-
-
 static void merge_coord(int pos_a, int pos_b, int dim_a, int dim_b,
     int *pos_res, int *res_dim)
 {
@@ -380,7 +367,7 @@ static void merge_coord(int pos_a, int pos_b, int dim_a, int dim_b,
 }
 
 
-void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
+static cairo_t *make_diff(cairo_t *cr, int cx, int cy, float scale,
     struct cro_ctx *old, struct cro_ctx *old_extra,
     struct cro_ctx *new, struct cro_ctx *new_extra,
     const struct area *areas)
@@ -390,15 +377,11 @@ void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
 	int xmin, ymin, w, h, stride;
 	uint32_t *img_old, *img_new;
 	double x1, y1, x2, y2;
-	int sw, sh;
+	int sw, sh, xo, yo;
 	cairo_t *old_cr;
 	cairo_surface_t *s;
 
-	cairo_clip_extents(cr, &x1, &y1, &x2, &y2);
-	sw = x2 - x1;
-	sh = y2 - y1;
-
-	/* @@@ baeh ! */
+	/* @@@ baeh ! nasty castses ! */
 	record_bbox((const struct record *) old,
 	    &old_xmin, &old_ymin, &old_w, &old_h);
 	record_bbox((const struct record *) new,
@@ -407,16 +390,23 @@ void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
 	merge_coord(old_xmin, new_xmin, old_w, new_w, &xmin, &w);
 	merge_coord(old_ymin, new_ymin, old_h, new_h, &ymin, &h);
 
-	img_old = cro_img(old, old_extra,
-	    sw / 2.0 - (cx + xmin) * scale,
-	    sh / 2.0 - (cy + ymin) * scale,
-	    sw, sh,
-	    scale, &old_cr, &stride);
-	img_new = cro_img(new, new_extra,
-	    sw / 2.0 - (cx + xmin) * scale,
-	    sh / 2.0 - (cy + ymin) * scale,
-	    sw, sh,
-	    scale, NULL, NULL);
+	if (cr) {
+		cairo_clip_extents(cr, &x1, &y1, &x2, &y2);
+		sw = x2 - x1;
+		sh = y2 - y1;
+		xo = sw / 2.0 - (cx + xmin) * scale;
+		yo = sh / 2.0 - (cy + ymin) * scale;
+	} else {
+		sw = ceil(w * scale);
+		sh = ceil(h * scale);
+		xo = -xmin * scale;
+		yo = -ymin * scale;
+	}
+
+	img_old = cro_img(old, old_extra, xo, yo, sw, sh, scale,
+	    &old_cr, &stride);
+	img_new = cro_img(new, new_extra, xo, yo, sw, sh, scale,
+	    NULL, NULL);
 
 	struct diff diff = {
 		.w		= sw,
@@ -437,13 +427,56 @@ void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
 	}
 	cairo_surface_mark_dirty(s);
 
+	return old_cr;
+}
+
+
+/* ----- Diff to file ------------------------------------------------------ */
+
+
+static void diff_end(void *ctx)
+{
+	struct diff *diff = ctx;
+	cairo_t *old_cr;
+	cairo_surface_t *s;
+
+	assert(diff->gfx);
+	assert(diff->new_gfx);
+
+	old_cr = make_diff(NULL, 0, 0, diff->scale,
+	    gfx_user(diff->gfx), NULL, gfx_user(diff->new_gfx), NULL, NULL);
+	s = cairo_get_target(old_cr);
+
+	cro_img_write(s, diff->output_name);
+
+	cairo_surface_destroy(s);
+	cairo_destroy(old_cr);
+}
+
+
+/* ----- Diff to canvas ---------------------------------------------------- */
+
+
+void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
+    struct cro_ctx *old, struct cro_ctx *old_extra,
+    struct cro_ctx *new, struct cro_ctx *new_extra,
+    const struct area *areas)
+{
+	cairo_t *old_cr;
+	cairo_surface_t *s;
+
+	old_cr = make_diff(cr, cx, cy, scale, old, old_extra, new, new_extra,
+	    areas);
+
+	s = cairo_get_target(old_cr);
 	cairo_set_source_surface(cr, s, 0, 0);
 	cairo_paint(cr);
 
 	cairo_surface_destroy(s);
 	cairo_destroy(old_cr);
-	free(img_old);
-	free(img_new);
+
+//	free(img_old);
+//	free(img_new);
 }
 
 

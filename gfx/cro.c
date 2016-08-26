@@ -713,7 +713,7 @@ static void cr_png_end(void *ctx)
 	int w, h, stride;
 
 	cro_img_end(cc, &w, &h, &stride);
-	cro_img_write(cc, cc->output_name);
+	cro_img_write(cc->s, cc->output_name);
 }
 
 
@@ -749,13 +749,12 @@ uint32_t *cro_img_end(struct cro_ctx *cc, int *w, int *h, int *stride)
 }
 
 
-void cro_img_write(struct cro_ctx *cc, const char *name)
+void cro_img_write(cairo_surface_t *s, const char *name)
 {
 	if (name)
-		cairo_surface_write_to_png(cc->s, name);
+		cairo_surface_write_to_png(s, name);
 	else
-		cairo_surface_write_to_png_stream(cc->s, stream_to_stdout,
-		    NULL);
+		cairo_surface_write_to_png_stream(s, stream_to_stdout, NULL);
 }
 
 

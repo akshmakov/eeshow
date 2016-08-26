@@ -37,8 +37,6 @@ Rendering:
 - return indication of whether non-interactive diff found any differences
 - in diff, pass only options understood by cairo_png
 - find out why in Cairo PDF non-dashed lines disappear if CAIRO_LINE_CAP_ROUND
-- non-interactive diff mode currently requires both sheets to have identical
-  size
 - diff area algorithm will fill anything resembling a closed path, no matter
   how little is inside (e.g., a changed large but empty rectangle will be
   filled)
