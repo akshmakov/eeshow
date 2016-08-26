@@ -562,14 +562,17 @@ static void sheet_key(void *user, int x, int y, int keyval)
 
 	case GDK_KEY_n:
 		gui->diff_mode = diff_new;
+		do_revision_overlays(gui);
 		redraw(gui);
 		break;
 	case GDK_KEY_o:
 		gui->diff_mode = diff_old;
+		do_revision_overlays(gui);
 		redraw(gui);
 		break;
 	case GDK_KEY_d:
 		gui->diff_mode = diff_delta;
+		do_revision_overlays(gui);
 		redraw(gui);
 		break;
 	case GDK_KEY_D:	/* Shift + D */
