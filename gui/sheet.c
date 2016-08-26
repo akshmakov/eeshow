@@ -555,11 +555,6 @@ static void sheet_key(void *user, int x, int y, int keyval)
 		redraw(gui);
 		break;
 
-	case GDK_KEY_a:
-		use_delta = !use_delta;
-		do_revision_overlays(gui);
-		redraw(gui);
-		break;
 	case GDK_KEY_e:
 		show_extra = !show_extra;
 		redraw(gui);
@@ -575,6 +570,11 @@ static void sheet_key(void *user, int x, int y, int keyval)
 		break;
 	case GDK_KEY_d:
 		gui->diff_mode = diff_delta;
+		redraw(gui);
+		break;
+	case GDK_KEY_D:	/* Shift + D */
+		use_delta = !use_delta;
+		do_revision_overlays(gui);
 		redraw(gui);
 		break;
 
