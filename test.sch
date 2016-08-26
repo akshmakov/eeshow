@@ -43,30 +43,12 @@ Wire Wire Line
 Wire Wire Line
 	5050 850  5050 1350
 Wire Wire Line
-	5550 850  5550 1100
-Wire Wire Line
-	5550 1100 5550 1350
+	5550 850  5550 1350
 Wire Wire Line
 	6050 1100 5550 1100
 Connection ~ 5550 1100
 Wire Bus Line
-	6750 600  6750 650 
-Wire Bus Line
-	6750 650  6750 800 
-Wire Bus Line
-	6750 800  6750 900 
-Wire Bus Line
-	6750 900  6750 1000
-Wire Bus Line
-	6750 1000 6750 1050
-Wire Bus Line
-	6750 1050 6750 1100
-Wire Bus Line
-	6750 1100 6750 1250
-Wire Bus Line
-	6750 1250 6750 1350
-Wire Bus Line
-	6750 1350 6750 1400
+	6750 600  6750 1400
 Entry Bus Bus
 	6650 1250 6750 1350
 Wire Bus Line
@@ -114,9 +96,7 @@ Wire Wire Line
 Text GLabel 6100 2200 1    60   BiDi ~ 0
 G_UP_BI
 Wire Wire Line
-	4650 3000 4850 3000
-Wire Wire Line
-	4850 3000 5350 3000
+	4650 3000 5350 3000
 Text GLabel 4650 3000 0    60   BiDi ~ 0
 G_R_BIDIR
 Text GLabel 5350 3000 2    60   UnSpc ~ 0
@@ -170,9 +150,7 @@ H_UP_OUT
 Text HLabel 9050 2900 3    60   UnSpc ~ 0
 H_DOWN_PASS
 Wire Wire Line
-	7250 3000 7450 3000
-Wire Wire Line
-	7450 3000 7950 3000
+	7250 3000 7950 3000
 Text Notes 1300 3400 0    60   ~ 0
 60 mil Text
 Wire Notes Line
@@ -376,4 +354,40 @@ Text Notes 7750 6450 1    60   ~ 0
 abc~over~def
 Text Notes 8350 6450 2    60   ~ 0
 foo~over~bar
+Wire Wire Line
+	800  2000 1800 2000
+Wire Wire Line
+	800  2100 1800 2100
+Text Label 800  2000 0    60   ~ 0
+Norm
+Text Label 800  2100 0    60   ~ 12
+Bold
+Text Label 1800 2000 2    60   Italic 0
+Italic
+Text Label 1800 2100 2    60   Italic 12
+BoldItalic
+Text GLabel 2300 1900 0    60   Input Italic 12
+Norm
+Text GLabel 2300 2100 0    60   Input Italic 0
+Italic
+Text GLabel 2500 1900 2    60   Input Italic 0
+Bold
+Text GLabel 2500 2100 2    60   Input Italic 0
+BoldItalic
+Wire Wire Line
+	2300 1900 2500 1900
+Wire Wire Line
+	2300 2100 2500 2100
+Text HLabel 7300 3400 0    60   Input ~ 0
+Normal
+Text HLabel 7600 3400 2    60   Input Italic 0
+Italic
+Text HLabel 7300 3500 0    60   Input ~ 12
+Bold
+Text HLabel 7600 3500 2    60   Input Italic 12
+BoldItalic
+Wire Wire Line
+	7300 3400 7600 3400
+Wire Wire Line
+	7300 3500 7600 3500
 $EndSCHEMATC
