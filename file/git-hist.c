@@ -16,6 +16,8 @@
 #include <time.h>	/* for vcs_long_for_pango */
 #include <alloca.h>
 
+#include <git2.h>
+
 #include "misc/util.h"
 #include "misc/diag.h"
 #include "file/git-util.h"
