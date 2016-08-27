@@ -23,6 +23,9 @@ struct vcs_hist {
 
 	unsigned branch;	/* branch index */
 
+	const char **branches;	/* NULL if none */
+	unsigned n_branches;
+
 	struct vcs_hist **newer;
 	unsigned n_newer;
 

@@ -33,6 +33,7 @@
 
 struct vcs_history {
 	struct vcs_hist *head;
+	git_repository *repo;
 	struct vcs_hist *history;	/* any order */
 };
 
@@ -47,6 +48,8 @@ static struct vcs_hist *new_commit(struct vcs_history *history, unsigned branch)
 	h = alloc_type(struct vcs_hist);
 	h->commit = NULL;
 	h->branch = branch;
+	h->branches = NULL;
+	h->n_branches = 0;
 	h->newer = NULL;
 	h->n_newer = 0;
 	h->older = NULL;
@@ -54,6 +57,42 @@ static struct vcs_hist *new_commit(struct vcs_history *history, unsigned branch)
 	h->next = history->history;
 	history->history = h;
 	return h;
+}
+
+
+static const char **get_branches(git_repository *repo,
+    struct git_commit *commit, unsigned *res_n)
+{
+	git_branch_iterator *iter;
+	git_reference *ref;
+	git_branch_t type;
+	git_object *obj;
+	const char **res = NULL;
+	unsigned n = 0;
+
+	if (git_branch_iterator_new(&iter, repo, GIT_BRANCH_ALL))
+		pfatal_git("git_branch_iterator");
+	while (!git_branch_next(&ref, &type, iter)) {
+
+		/*
+		 * @@@ is it okay to just ignore symbolic references ?
+		 * E.g., remotes/origin/HEAD -> origin/master
+		 */
+		if (git_reference_type(ref) != GIT_REF_OID)
+			continue;
+
+		if (git_reference_peel(&obj, ref, GIT_OBJ_COMMIT))
+			pfatal_git("git_reference_peel");
+		if ((git_commit *) obj != commit)
+			continue;
+		res = realloc_type_n(res, const char *, n + 1);
+		if (git_branch_name(res + n, ref))
+			pfatal_git("git_branch_name");
+		n++;
+	}
+	git_branch_iterator_free(iter);
+	*res_n = n;
+	return res;
 }
 
 
@@ -111,6 +150,8 @@ static void recurse(struct vcs_history *history, struct vcs_hist *h,
 
 			new = new_commit(history, n_branches);
 			new->commit = commit;
+			new->branches = get_branches(history->repo, commit,
+			    &new->n_branches);
 			h->older[i] = new;
 			n_branches++;
 			uplink(new, h);
@@ -137,7 +178,6 @@ struct vcs_history *vcs_git_history(const char *path)
 {
 	struct vcs_history *history;
 	struct vcs_hist *head, *dirty;
-	git_repository *repo;
 	git_oid oid;
 
 	history = alloc_type(struct vcs_history);
@@ -147,19 +187,22 @@ struct vcs_history *vcs_git_history(const char *path)
 
 	git_init_once();
 
-	if (git_repository_open_ext(&repo, path,
+	if (git_repository_open_ext(&history->repo, path,
 	    GIT_REPOSITORY_OPEN_CROSS_FS, NULL))
 		pfatal_git(path);
 
-	if (git_reference_name_to_id(&oid, repo, "HEAD"))
-		pfatal_git(git_repository_path(repo));
+	if (git_reference_name_to_id(&oid, history->repo, "HEAD"))
+		pfatal_git(git_repository_path(history->repo));
 
-	if (git_commit_lookup(&head->commit, repo, &oid))
-		pfatal_git(git_repository_path(repo));
+	if (git_commit_lookup(&head->commit, history->repo, &oid))
+		pfatal_git(git_repository_path(history->repo));
+
+	head->branches = get_branches(history->repo, head->commit,
+	    &head->n_branches);
 
 	recurse(history, head, 1);
 
-	if (!git_repo_is_dirty(repo)) {
+	if (!git_repo_is_dirty(history->repo)) {
 		history->head = head;
 		return history;
 	}
@@ -278,22 +321,35 @@ void hist_iterate(struct vcs_history *history, struct vcs_hist *hist,
 /* ----- Textual dump (mainly for debugging) ------------------------------- */
 
 
+// http://stackoverflow.com/questions/12132862/how-do-i-get-the-name-of-the-current-branch-in-libgit2
+
 static void dump_one(void *user, struct vcs_hist *h)
 {
 	git_buf buf = { 0 };
+	unsigned i;
 
-	if (h->commit) {
-		if (git_object_short_id(&buf, (git_object *) h->commit))
-			pfatal_git("git_object_short_id");
-		printf("%*s%s  %s\n",
-		    2 * h->branch, "", buf.ptr, vcs_git_summary(h));
-		git_buf_free(&buf);
-	} else {
+	if (!h->commit) {
 		printf("dirty\n");
+		return;
 	}
+
+	if (git_object_short_id(&buf, (git_object *) h->commit))
+		pfatal_git("git_object_short_id");
+	printf("%*s%s  ", 2 * h->branch, "", buf.ptr);
+	git_buf_free(&buf);
+
+
+	if (h->n_branches) {
+		printf("[");
+		for (i = 0; i != h->n_branches; i++)
+			printf("%s%s", i ? " " : "", h->branches[i]);
+		printf("] ");
+	}
+
+	printf("%s\n", vcs_git_summary(h));
 }
 
-	
+
 void dump_hist(struct vcs_history *history, struct vcs_hist *h)
 {
 	hist_iterate(history, h, dump_one, NULL);
