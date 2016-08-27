@@ -41,6 +41,8 @@ extern unsigned verbose;
 void __attribute__((noreturn)) diag_pfatal(const char *s);
 void diag_perror(const char *s);
 
+void __attribute__((noreturn)) pfatal_git(const char *s);
+void perror_git(const char *s);
 
 /* ----- General diagnostic functions -------------------------------------- */
 

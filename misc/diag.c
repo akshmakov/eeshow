@@ -17,6 +17,7 @@
 #include <string.h>
 #include <errno.h>
 
+#include <git2.h>
 
 #include "misc/diag.h"
 
@@ -39,7 +40,24 @@ void diag_perror(const char *s)
 }
 
 
+void pfatal_git(const char *s)
+{
+	const git_error *e = giterr_last();
+
+	fatal("%s: %s", s, e->message);
+}
+
+
+void perror_git(const char *s)
+{
+	const git_error *e = giterr_last();
+
+	error("%s: %s", s, e->message);
+}
+
+
 /* ----- General diagnostic functions -------------------------------------- */
+
 
 void fatal(const char *fmt, ...)
 {
