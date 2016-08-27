@@ -434,7 +434,7 @@ static cairo_t *make_diff(cairo_t *cr, int cx, int cy, float scale,
 /* ----- Diff to file ------------------------------------------------------ */
 
 
-static void diff_end(void *ctx)
+static int diff_end(void *ctx)
 {
 	struct diff *diff = ctx;
 	cairo_t *old_cr;
@@ -451,6 +451,8 @@ static void diff_end(void *ctx)
 
 	cairo_surface_destroy(s);
 	cairo_destroy(old_cr);
+
+	return 0;
 }
 
 

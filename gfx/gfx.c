@@ -148,9 +148,12 @@ void *gfx_user(struct gfx *gfx)
 }
 
 
-void gfx_end(struct gfx *gfx)
+int gfx_end(struct gfx *gfx)
 {
+	int res = 0;
+
 	if (gfx->ops->end)
-		gfx->ops->end(gfx->user);
+		res = gfx->ops->end(gfx->user);
 	free(gfx);
+	return res;
 }

@@ -641,7 +641,7 @@ static void cr_pdf_new_sheet(void *ctx)
 }
 
 
-static void cr_pdf_end(void *ctx)
+static int cr_pdf_end(void *ctx)
 {
 	struct cro_ctx *cc = ctx;
 	int w, h;
@@ -688,6 +688,8 @@ static void cr_pdf_end(void *ctx)
 
 	if (cc->toc)
 		pdftoc_end(cc->toc);
+
+	return 0;
 }
 
 
@@ -708,13 +710,15 @@ static void *cr_png_init(void)
 }
 
 
-static void cr_png_end(void *ctx)
+static int cr_png_end(void *ctx)
 {
 	struct cro_ctx *cc = ctx;
 	int w, h, stride;
 
 	cro_img_end(cc, &w, &h, &stride);
 	cro_img_write(cc->s, cc->output_name);
+
+	return 0;
 }
 
 
