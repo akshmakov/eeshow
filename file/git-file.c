@@ -96,21 +96,15 @@ static git_tree *pick_revision(git_repository *repo, const char *revision)
 	git_object *obj;
 	git_tree *tree;
 
-	if (git_revparse_single(&obj, repo, revision)) {
-		const git_error *e = giterr_last();
-
-		fatal("%s: %s\n", git_repository_path(repo), e->message);
-	}
+	if (git_revparse_single(&obj, repo, revision))
+		pfatal_git(git_repository_path(repo));
 
 	if (git_object_type(obj) != GIT_OBJ_COMMIT)
-		fatal("%s: not a commit\n", revision);
+		fatal("%s: not a commit", revision);
 	commit = (git_commit *) obj;
 
-	if (git_commit_tree(&tree, commit)) {
-		const git_error *e = giterr_last();
-
-		fatal("%s: %s\n", revision, e->message);
-	}
+	if (git_commit_tree(&tree, commit))
+		pfatal_git(revision);
 
 	return tree;
 }
@@ -284,9 +278,7 @@ static git_tree_entry *find_file(git_repository *repo, git_tree *tree,
 	free(repo_path);
 
 	if (git_tree_entry_bypath(&entry, tree, canon_path)) {
-		const git_error *e = giterr_last();
-
-		error("%s: %s", path, e->message);
+		perror_git(path);
 		free(canon_path);
 		return NULL;
 	}
@@ -305,21 +297,15 @@ static const void *get_data(struct vcs_git *vcs_git, git_tree_entry *entry,
 
 	if (git_tree_entry_type(entry) != GIT_OBJ_BLOB)
 		fatal("entry is not a blob\n");
-	if (git_tree_entry_to_object(&obj, repo, entry)) {
-		const git_error *e = giterr_last();
-
-		fatal("%s\n", e->message);
-	}
+	if (git_tree_entry_to_object(&obj, repo, entry))
+		pfatal_git("git_tree_entry_to_object");
 	vcs_git->obj = obj;
 
 	if (verbose > 2) {
 		git_buf buf = { 0 };
 
-		if (git_object_short_id(&buf, obj))  {
-			const git_error *e = giterr_last();
-
-			fatal("%s\n", e->message);
-		}
+		if (git_object_short_id(&buf, obj))
+			pfatal_git("git_object_short_id");
 		progress(3, "object %s", buf.ptr);
 		git_buf_free(&buf);
 	}

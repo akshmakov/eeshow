@@ -81,7 +81,6 @@ static void recurse(struct hist *h,
 {
 	unsigned n, i, j;
 	struct hist **b;
-	const git_error *e;
 
 	n = git_commit_parentcount(h->commit);
 	if (verbose > 2)
@@ -98,10 +97,8 @@ static void recurse(struct hist *h,
 		git_commit *commit;
 		struct hist *found = NULL;
 
-		if (git_commit_parent(&commit, h->commit, i)) {
-			e = giterr_last();
-			fatal("git_commit_parent: %s\n", e->message);
-		}
+		if (git_commit_parent(&commit, h->commit, i))
+			pfatal_git("git_commit_parent");
 		for (j = 0; j != n_branches; j++) {
 			found = find_commit(b[j], commit);
 			if (found)
@@ -142,27 +139,20 @@ struct hist *vcs_git_hist(const char *path)
 	struct hist *head, *dirty;
 	git_repository *repo;
 	git_oid oid;
-	const git_error *e;
 
 	head = new_commit(0);
 
 	git_init_once();
 
 	if (git_repository_open_ext(&repo, path,
-	    GIT_REPOSITORY_OPEN_CROSS_FS, NULL)) {
-		e = giterr_last();
-		fatal("%s: %s\n", path, e->message);
-	}
+	    GIT_REPOSITORY_OPEN_CROSS_FS, NULL))
+		pfatal_git(path);
 
-	if (git_reference_name_to_id(&oid, repo, "HEAD")) {
-		e = giterr_last();
-		fatal("%s: %s\n", git_repository_path(repo), e->message);
-	}
+	if (git_reference_name_to_id(&oid, repo, "HEAD"))
+		pfatal_git(git_repository_path(repo));
 
-	if (git_commit_lookup(&head->commit, repo, &oid)) {
-		e = giterr_last();
-		fatal("%s: %s\n", git_repository_path(repo), e->message);
-	}
+	if (git_commit_lookup(&head->commit, repo, &oid))
+		pfatal_git(git_repository_path(repo));
 
 	recurse(head, 1, &head);
 
@@ -191,7 +181,6 @@ char *vcs_git_get_rev(struct hist *h)
 const char *vcs_git_summary(struct hist *h)
 {
 	const char *summary;
-	const git_error *e;
 
 	if (!h->commit)
 		return "Uncommitted changes";
@@ -199,8 +188,7 @@ const char *vcs_git_summary(struct hist *h)
 	if (summary)
 		return summary;
 
-	e = giterr_last();
-	fatal("git_commit_summary: %s\n", e->message);
+	pfatal_git("git_commit_summary");
 }
 
 
@@ -213,7 +201,6 @@ const char *vcs_git_summary(struct hist *h)
 char *vcs_git_long_for_pango(struct hist *h,
     char *(*formatter)(const char *fmt, ...))
 {
-	const git_error *e;
 	git_buf buf = { 0 };
 	time_t commit_time;
 	const git_signature *sig;
@@ -232,8 +219,7 @@ char *vcs_git_long_for_pango(struct hist *h,
 	return s;
 
 fail:
-	e = giterr_last();
-	fatal("vcs_git_long_for_pango: %s\n", e->message);
+	pfatal_git("vcs_git_long_for_pango");
 }
 
 
@@ -252,14 +238,11 @@ void hist_iterate(struct hist *h,
 void dump_hist(struct hist *h)
 {
 	git_buf buf = { 0 };
-	const git_error *e;
 	unsigned i;
 
 	if (h->commit) {
-		if (git_object_short_id(&buf, (git_object *) h->commit)) {
-			e = giterr_last();
-			fatal("git_object_short_id: %s\n", e->message);
-		}
+		if (git_object_short_id(&buf, (git_object *) h->commit))
+			pfatal_git("git_object_short_id");
 		printf("%*s%s  %s\n",
 		    2 * h->branch, "", buf.ptr, vcs_git_summary(h));
 		git_buf_free(&buf);
