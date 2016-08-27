@@ -56,7 +56,7 @@ struct gui_sheet {
 
 struct gui_hist {
 	struct gui *gui;	/* back link */
-	struct hist *vcs_hist;	/* NULL if not from repo */
+	struct vcs_hist *vcs_hist; /* NULL if not from repo */
 	struct overlay *over;	/* current overlay */
 	struct gui_sheet *sheets; /* NULL if failed */
 	unsigned age;		/* 0-based; uncommitted or HEAD = 0 */
@@ -80,7 +80,7 @@ struct gui {
 	int x, y;		/* center, in eeschema coordinates */
 
 	struct gui_hist *hist;	/* revision history; NULL if none */
-	struct history *vcs_history;
+	struct vcs_history *vcs_history;
 				/* underlying VCS data; NULL if none */
 
 	enum gui_mode {

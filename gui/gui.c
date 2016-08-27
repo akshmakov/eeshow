@@ -344,7 +344,7 @@ struct add_hist_ctx {
 };
 
 
-static void add_hist(void *user, struct hist *h)
+static void add_hist(void *user, struct vcs_hist *h)
 {
 	struct add_hist_ctx *ahc = user;
 	struct gui *gui = ahc->gui;
@@ -402,7 +402,7 @@ static void get_revisions(struct gui *gui, const struct file_names *fn,
 /* ----- Retrieve and count history ---------------------------------------- */
 
 
-static void count_history(void *user, struct hist *h)
+static void count_history(void *user, struct vcs_hist *h)
 {
 	struct gui *gui = user;
 

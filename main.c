@@ -223,8 +223,8 @@ int main(int argc, char **argv)
 	}
 
 	if (history) {
-		struct history *vcs_history = vcs_git_history(history);
-		struct hist *h = vcs_head(vcs_history);
+		struct vcs_history *vcs_history = vcs_git_history(history);
+		struct vcs_hist *h = vcs_head(vcs_history);
 
 		dump_hist(vcs_history, h);
 		return 0;

@@ -31,20 +31,20 @@
  */
 
 
-struct history {
-	struct hist *head;
-	struct hist *history;	/* any order */
+struct vcs_history {
+	struct vcs_hist *head;
+	struct vcs_hist *history;	/* any order */
 };
 
 
 /* ----- History retrieval ------------------------------------------------- */
 
 
-static struct hist *new_commit(struct history *history, unsigned branch)
+static struct vcs_hist *new_commit(struct vcs_history *history, unsigned branch)
 {
-	struct hist *h;
+	struct vcs_hist *h;
 
-	h = alloc_type(struct hist);
+	h = alloc_type(struct vcs_hist);
 	h->commit = NULL;
 	h->branch = branch;
 	h->newer = NULL;
@@ -57,18 +57,18 @@ static struct hist *new_commit(struct history *history, unsigned branch)
 }
 
 
-static void uplink(struct hist *down, struct hist *up)
+static void uplink(struct vcs_hist *down, struct vcs_hist *up)
 {
-	down->newer = realloc_type_n(down->newer, struct hist *,
+	down->newer = realloc_type_n(down->newer, struct vcs_hist *,
 	    down->n_newer + 1);
 	down->newer[down->n_newer++] = up;
 }
 
 
-static struct hist *find_commit(struct history *history,
+static struct vcs_hist *find_commit(struct vcs_history *history,
     const git_commit *commit)
 {
-	struct hist *h;
+	struct vcs_hist *h;
 
 	/*
 	 * @@@ should probably use
@@ -82,7 +82,7 @@ static struct hist *find_commit(struct history *history,
 }
 
 
-static void recurse(struct history *history, struct hist *h,
+static void recurse(struct vcs_history *history, struct vcs_hist *h,
     unsigned n_branches)
 {
 	unsigned n, i;
@@ -93,12 +93,12 @@ static void recurse(struct history *history, struct hist *h,
 
 	n_branches--;
 
-	h->older = alloc_type_n(struct hist *, n);
+	h->older = alloc_type_n(struct vcs_hist *, n);
 	h->n_older = n;
 
 	for (i = 0; i != n; i++) {
 		git_commit *commit;
-		struct hist *found = NULL;
+		struct vcs_hist *found = NULL;
 
 		if (git_commit_parent(&commit, h->commit, i))
 			pfatal_git("git_commit_parent");
@@ -107,7 +107,7 @@ static void recurse(struct history *history, struct hist *h,
 			uplink(found, h);
 			h->older[i] = found;
 		} else {
-			struct hist *new;
+			struct vcs_hist *new;
 
 			new = new_commit(history, n_branches);
 			new->commit = commit;
@@ -133,14 +133,14 @@ bool vcs_git_try(const char *path)
 }
 
 
-struct history *vcs_git_history(const char *path)
+struct vcs_history *vcs_git_history(const char *path)
 {
-	struct history *history;
-	struct hist *head, *dirty;
+	struct vcs_history *history;
+	struct vcs_hist *head, *dirty;
 	git_repository *repo;
 	git_oid oid;
 
-	history = alloc_type(struct history);
+	history = alloc_type(struct vcs_history);
 	history->history = NULL;
 
 	head = new_commit(history, 0);
@@ -165,7 +165,7 @@ struct history *vcs_git_history(const char *path)
 	}
 
 	dirty = new_commit(history, 0);
-	dirty->older = alloc_type(struct hist *);
+	dirty->older = alloc_type(struct vcs_hist *);
 	dirty->older[0] = head;
 	dirty->n_older = 1;
 	uplink(head, dirty);
@@ -178,7 +178,7 @@ struct history *vcs_git_history(const char *path)
 /* ----- Get the head ------------------------------------------------------ */
 
 
-struct hist *vcs_head(const struct history *history)
+struct vcs_hist *vcs_head(const struct vcs_history *history)
 {
 	return history->head;
 }
@@ -187,7 +187,7 @@ struct hist *vcs_head(const struct history *history)
 /* ----- Get information about commit -------------------------------------- */
 
 
-char *vcs_git_get_rev(struct hist *h)
+char *vcs_git_get_rev(struct vcs_hist *h)
 {
 	const git_oid *oid = git_commit_id(h->commit);
 	char *s = alloc_size(GIT_OID_HEXSZ + 1);
@@ -196,7 +196,7 @@ char *vcs_git_get_rev(struct hist *h)
 }
 
 
-const char *vcs_git_summary(struct hist *h)
+const char *vcs_git_summary(struct vcs_hist *h)
 {
 	const char *summary;
 
@@ -216,7 +216,7 @@ const char *vcs_git_summary(struct hist *h)
  * the very specific constraints imposed by the markup format of Pango. 
  */
 
-char *vcs_git_long_for_pango(struct hist *h,
+char *vcs_git_long_for_pango(struct vcs_hist *h,
     char *(*formatter)(const char *fmt, ...))
 {
 	git_buf buf = { 0 };
@@ -252,8 +252,8 @@ fail:
  * history entries during traversal,  and is simpler.
  */
 
-static void hist_iterate_recurse(struct hist *h,
-    void (*fn)(void *user, struct hist *h), void *user)
+static void hist_iterate_recurse(struct vcs_hist *h,
+    void (*fn)(void *user, struct vcs_hist *h), void *user)
 {
 	unsigned i;
 
@@ -264,10 +264,10 @@ static void hist_iterate_recurse(struct hist *h,
 }
 
 
-void hist_iterate(struct history *history, struct hist *hist,
-    void (*fn)(void *user, struct hist *h), void *user)
+void hist_iterate(struct vcs_history *history, struct vcs_hist *hist,
+    void (*fn)(void *user, struct vcs_hist *h), void *user)
 {
-	struct hist *h;
+	struct vcs_hist *h;
 
 	for (h = history->history; h; h = h->next)
 		h->seen = 0;
@@ -278,7 +278,7 @@ void hist_iterate(struct history *history, struct hist *hist,
 /* ----- Textual dump (mainly for debugging) ------------------------------- */
 
 
-static void dump_one(void *user, struct hist *h)
+static void dump_one(void *user, struct vcs_hist *h)
 {
 	git_buf buf = { 0 };
 
@@ -294,7 +294,7 @@ static void dump_one(void *user, struct hist *h)
 }
 
 	
-void dump_hist(struct history *history, struct hist *h)
+void dump_hist(struct vcs_history *history, struct vcs_hist *h)
 {
 	hist_iterate(history, h, dump_one, NULL);
 }

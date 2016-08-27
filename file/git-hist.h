@@ -18,33 +18,35 @@
 #include <git2.h>
 
 
-struct hist {
+struct vcs_hist {
 	struct git_commit *commit; /* NULL if uncommitted changes */
 
 	unsigned branch;	/* branch index */
 
-	struct hist **newer;
+	struct vcs_hist **newer;
 	unsigned n_newer;
 
-	struct hist **older;
+	struct vcs_hist **older;
 	unsigned n_older;
 
-	struct hist *next;	/* no specific order */
+	struct vcs_hist *next;	/* no specific order */
 	unsigned seen;		/* for traversal */
 };
 
-struct history;
+struct vcs_history;
 
 
 bool vcs_git_try(const char *path);
-struct history *vcs_git_history(const char *path);
-struct hist *vcs_head(const struct history *history);
-char *vcs_git_get_rev(struct hist *h);
-const char *vcs_git_summary(struct hist *hist);
-char *vcs_git_long_for_pango(struct hist *hist,
+struct vcs_history *vcs_git_history(const char *path);
+struct vcs_hist *vcs_head(const struct vcs_history *history);
+
+char *vcs_git_get_rev(struct vcs_hist *h);
+const char *vcs_git_summary(struct vcs_hist *hist);
+char *vcs_git_long_for_pango(struct vcs_hist *hist,
     char *(*formatter)(const char *fmt, ...));
-void hist_iterate(struct history *history, struct hist *h, 
-    void (*fn)(void *user, struct hist *h), void *user);
-void dump_hist(struct history *history, struct hist *h);
+
+void hist_iterate(struct vcs_history *history, struct vcs_hist *h, 
+    void (*fn)(void *user, struct vcs_hist *h), void *user);
+void dump_hist(struct vcs_history *history, struct vcs_hist *h);
 
 #endif /* !FILE_GIT_HIST_H */
