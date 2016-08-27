@@ -370,7 +370,7 @@ static void merge_coord(int pos_a, int pos_b, int dim_a, int dim_b,
 static cairo_t *make_diff(cairo_t *cr, int cx, int cy, float scale,
     struct cro_ctx *old, struct cro_ctx *old_extra,
     struct cro_ctx *new, struct cro_ctx *new_extra,
-    const struct area *areas)
+    const struct area *areas, bool *changed)
 {
 	int old_xmin, old_ymin, old_w, old_h;
 	int new_xmin, new_ymin, new_w, new_h;
@@ -420,7 +420,10 @@ static cairo_t *make_diff(cairo_t *cr, int cx, int cy, float scale,
 	cairo_surface_flush(s);
 	differences(&diff, img_old, img_new);
 	show_areas(&diff, img_old);
+	if (changed)
+		*changed = diff.areas;
 	free_areas(&diff.areas);
+
 	if (areas) {
 		diff.areas = (struct area *) areas;
 		show_areas(&diff, img_old);
@@ -439,12 +442,14 @@ static int diff_end(void *ctx)
 	struct diff *diff = ctx;
 	cairo_t *old_cr;
 	cairo_surface_t *s;
+	bool changed;
 
 	assert(diff->gfx);
 	assert(diff->new_gfx);
 
 	old_cr = make_diff(NULL, 0, 0, diff->scale,
-	    gfx_user(diff->gfx), NULL, gfx_user(diff->new_gfx), NULL, NULL);
+	    gfx_user(diff->gfx), NULL, gfx_user(diff->new_gfx), NULL, NULL,
+	    &changed);
 	s = cairo_get_target(old_cr);
 
 	cro_img_write(s, diff->output_name);
@@ -452,7 +457,7 @@ static int diff_end(void *ctx)
 	cairo_surface_destroy(s);
 	cairo_destroy(old_cr);
 
-	return 0;
+	return changed;
 }
 
 
@@ -468,7 +473,7 @@ void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
 	cairo_surface_t *s;
 
 	old_cr = make_diff(cr, cx, cy, scale, old, old_extra, new, new_extra,
-	    areas);
+	    areas, NULL);
 
 	s = cairo_get_target(old_cr);
 	cairo_set_source_surface(cr, s, 0, 0);

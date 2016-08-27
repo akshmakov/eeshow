@@ -141,6 +141,7 @@ int main(int argc, char **argv)
 	char **gfx_argv;
 	const struct gfx_ops **ops = ops_list;
 	struct gfx *gfx;
+	int retval;
 
 	if (argc > 1 && !strcmp(argv[1], "gdb")) {
 		char **args;
@@ -335,10 +336,10 @@ found:
 		if (pl)
 			pl_render(pl, gfx, sch_ctx.sheets, sch_ctx.sheets);
 	}
-	gfx_end(gfx);
+	retval = gfx_end(gfx);
 
 	sch_free(&sch_ctx);
 	lib_free(&lib);
 
-	return 0;
+	return retval;
 }
