@@ -214,15 +214,34 @@ fail:
 }
 
 
-void hist_iterate(struct hist *h,
+/*
+ * We use the "seen" counter to make sure we only show a commit after all newer
+ * commits have been shown. We could accomplish the same by reordering the
+ * h->older array of all ancestors each time we find a branch, but this works
+ * just as well, has only the small disadvantage that we're modifying the
+ * history entries during traversal,  and is simpler.
+ */
+
+static void hist_iterate_recurse(struct hist *h,
     void (*fn)(void *user, struct hist *h), void *user)
 {
 	unsigned i;
 
 	fn(user, h);
 	for (i = 0; i != h->n_older; i++)
-		if (h->older[i]->newer[h->older[i]->n_newer - 1] == h)
-			hist_iterate(h->older[i], fn, user);
+		if (++h->older[i]->seen == h->older[i]->n_newer)
+			hist_iterate_recurse(h->older[i], fn, user);
+}
+
+
+void hist_iterate(struct hist *hist,
+    void (*fn)(void *user, struct hist *h), void *user)
+{
+	struct hist *h;
+
+	for (h = history; h; h = h->next)
+		h->seen = 0;
+	hist_iterate_recurse(hist, fn, user);
 }
 
 

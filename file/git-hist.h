@@ -30,6 +30,7 @@ struct hist {
 	unsigned n_older;
 
 	struct hist *next;	/* no specific order */
+	unsigned seen;		/* for traversal */
 };
 
 
