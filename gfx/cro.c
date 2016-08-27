@@ -751,10 +751,15 @@ uint32_t *cro_img_end(struct cro_ctx *cc, int *w, int *h, int *stride)
 
 void cro_img_write(cairo_surface_t *s, const char *name)
 {
+	cairo_status_t status;
+
 	if (name)
-		cairo_surface_write_to_png(s, name);
+		status = cairo_surface_write_to_png(s, name);
 	else
-		cairo_surface_write_to_png_stream(s, stream_to_stdout, NULL);
+		status = cairo_surface_write_to_png_stream(s, stream_to_stdout,
+		    NULL);
+	if (status != CAIRO_STATUS_SUCCESS)
+		fatal("%s: %s", name, cairo_status_to_string(status));
 }
 
 
