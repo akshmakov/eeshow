@@ -34,6 +34,9 @@
 static struct hist *history = NULL;
 
 
+/* ----- History retrieval ------------------------------------------------- */
+
+
 static struct hist *new_commit(unsigned branch)
 {
 	struct hist *h;
@@ -160,6 +163,9 @@ struct hist *vcs_git_hist(const char *path)
 }
 
 
+/* ----- Get information about commit -------------------------------------- */
+
+
 char *vcs_git_get_rev(struct hist *h)
 {
 	const git_oid *oid = git_commit_id(h->commit);
@@ -214,6 +220,9 @@ fail:
 }
 
 
+/* ----- Iteration --------------------------------------------------------- */
+
+
 /*
  * We use the "seen" counter to make sure we only show a commit after all newer
  * commits have been shown. We could accomplish the same by reordering the
@@ -243,6 +252,9 @@ void hist_iterate(struct hist *hist,
 		h->seen = 0;
 	hist_iterate_recurse(hist, fn, user);
 }
+
+
+/* ----- Textual dump (mainly for debugging) ------------------------------- */
 
 
 static void dump_one(void *user, struct hist *h)
