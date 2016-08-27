@@ -702,6 +702,7 @@ static void *cr_png_init(void)
 
 	cc->s = cairo_image_surface_create(CAIRO_FORMAT_RGB24, 16, 16);
 	cc->cr = cairo_create(cc->s);
+	setup_pango(cc);
 
 	return cc;
 }
