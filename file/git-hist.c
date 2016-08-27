@@ -31,6 +31,9 @@
  */
 
 
+static struct hist *history = NULL;
+
+
 static struct hist *new_commit(unsigned branch)
 {
 	struct hist *h;
@@ -42,6 +45,8 @@ static struct hist *new_commit(unsigned branch)
 	h->n_newer = 0;
 	h->older = NULL;
 	h->n_older = 0;
+	h->next = history;
+	history = h;
 	return h;
 }
 
@@ -54,41 +59,31 @@ static void uplink(struct hist *down, struct hist *up)
 }
 
 
-static struct hist *find_commit(struct hist *h, const git_commit *commit)
+static struct hist *find_commit(const git_commit *commit)
 {
-	unsigned i;
-	struct hist *found;
+	struct hist *h;
 
 	/*
 	 * @@@ should probably use
 	 * git_oid_equal(git_object_id(a), git_object_id(b))
 	 */
-	if (h->commit == commit)
-		return h;
-	for (i = 0; i != h->n_older; i++) {
-		if (h->older[i]->newer[0] != h)
-			continue;
-		found = find_commit(h->older[i], commit);
-		if (found)
-			return found;
-	}
-	return NULL;
+
+	for (h = history; h; h = h->next)
+		if (h->commit == commit)
+			break;
+	return h;
 }
 
 
-static void recurse(struct hist *h,
-    unsigned n_branches, struct hist **branches)
+static void recurse(struct hist *h, unsigned n_branches)
 {
-	unsigned n, i, j;
-	struct hist **b;
+	unsigned n, i;
 
 	n = git_commit_parentcount(h->commit);
 	if (verbose > 2)
 		progress(3, "commit %p: %u + %u", h->commit, n_branches, n);
 
-	b = alloca(sizeof(struct hist) * (n_branches - 1 + n));
 	n_branches--;
-	memcpy(b, branches, sizeof(struct hist *) * n_branches);
 
 	h->older = alloc_type_n(struct hist *, n);
 	h->n_older = n;
@@ -99,11 +94,7 @@ static void recurse(struct hist *h,
 
 		if (git_commit_parent(&commit, h->commit, i))
 			pfatal_git("git_commit_parent");
-		for (j = 0; j != n_branches; j++) {
-			found = find_commit(b[j], commit);
-			if (found)
-				break;
-		}
+		found = find_commit(commit);
 		if (found) {
 			uplink(found, h);
 			h->older[i] = found;
@@ -113,9 +104,9 @@ static void recurse(struct hist *h,
 			new = new_commit(n_branches);
 			new->commit = commit;
 			h->older[i] = new;
-			b[n_branches++] = new;
+			n_branches++;
 			uplink(new, h);
-			recurse(new, n_branches, b);
+			recurse(new, n_branches);
 		}
 	}
 }
@@ -154,7 +145,7 @@ struct hist *vcs_git_hist(const char *path)
 	if (git_commit_lookup(&head->commit, repo, &oid))
 		pfatal_git(git_repository_path(repo));
 
-	recurse(head, 1, &head);
+	recurse(head, 1);
 
 	if (!git_repo_is_dirty(repo))
 		return head;

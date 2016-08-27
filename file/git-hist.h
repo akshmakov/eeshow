@@ -28,6 +28,8 @@ struct hist {
 
 	struct hist **older;
 	unsigned n_older;
+
+	struct hist *next;	/* no specific order */
 };
 
 
