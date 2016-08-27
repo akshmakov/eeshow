@@ -489,7 +489,7 @@ static struct cro_ctx *new_cc(void)
 }
 
 
-static void setup_pango(struct cro_ctx *cc)
+static void setup_font(struct cro_ctx *cc)
 {
 	if (use_pango) {
 		cc->pango_desc =
@@ -663,7 +663,7 @@ static void cr_pdf_end(void *ctx)
 	cc->cr = cairo_create(cc->s);
 
 	cairo_scale(cc->cr, 1.0 / 16.0, 1.0 / 16);
-	setup_pango(cc);
+	setup_font(cc);
 	cairo_set_line_width(cc->cr, 0.5 * cc->scale);
 	/* @@@ CAIRO_LINE_CAP_ROUND makes all non-dashed lines disappear */
 	cairo_set_line_cap(cc->cr, CAIRO_LINE_CAP_SQUARE);
@@ -702,7 +702,7 @@ static void *cr_png_init(void)
 
 	cc->s = cairo_image_surface_create(CAIRO_FORMAT_RGB24, 16, 16);
 	cc->cr = cairo_create(cc->s);
-	setup_pango(cc);
+	setup_font(cc);
 
 	return cc;
 }
@@ -737,7 +737,7 @@ uint32_t *cro_img_end(struct cro_ctx *cc, int *w, int *h, int *stride)
 	set_color(cc, COLOR_WHITE);
 	cairo_paint(cc->cr);
 
-	setup_pango(cc);
+	setup_font(cc);
 	cairo_set_line_width(cc->cr, 2);
 	cairo_set_line_cap(cc->cr, CAIRO_LINE_CAP_ROUND);
 
@@ -792,7 +792,7 @@ void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr, int xo, int yo,
 {
 	cc->cr = cr;
 
-	setup_pango(cc);
+	setup_font(cc);
 
 	cc->scale = scale;
 	cc->xo = xo;
@@ -833,7 +833,7 @@ uint32_t *cro_img(struct cro_ctx *cc, struct cro_ctx *cc_extra,
 	cc->scale = scale;
 	cc->color_override = COLOR_NONE;
 
-	setup_pango(cc);
+	setup_font(cc);
 
 	if (cc_extra) {
 		cc_extra->record.user = cc->record.user;  /* @@@ eww ! */
