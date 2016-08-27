@@ -235,10 +235,9 @@ void hist_iterate(struct hist *h,
 }
 
 
-void dump_hist(struct hist *h)
+static void dump_one(void *user, struct hist *h)
 {
 	git_buf buf = { 0 };
-	unsigned i;
 
 	if (h->commit) {
 		if (git_object_short_id(&buf, (git_object *) h->commit))
@@ -249,8 +248,10 @@ void dump_hist(struct hist *h)
 	} else {
 		printf("dirty\n");
 	}
+}
 
-	for (i = 0; i != h->n_older; i++)
-		if (h->older[i]->newer[h->older[i]->n_newer - 1] == h)
-			dump_hist(h->older[i]);
+	
+void dump_hist(struct hist *h)
+{
+	hist_iterate(h, dump_one, NULL);
 }
