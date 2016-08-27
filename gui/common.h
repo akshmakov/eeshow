@@ -80,7 +80,8 @@ struct gui {
 	int x, y;		/* center, in eeschema coordinates */
 
 	struct gui_hist *hist;	/* revision history; NULL if none */
-	struct hist *vcs_hist;	/* underlying VCS data; NULL if none */
+	struct history *vcs_history;
+				/* underlying VCS data; NULL if none */
 
 	enum gui_mode {
 		showing_sheet,

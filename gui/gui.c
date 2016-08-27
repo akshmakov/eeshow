@@ -391,8 +391,9 @@ static void get_revisions(struct gui *gui, const struct file_names *fn,
 		.limit		= limit ? limit < 0 ? -limit : limit : -1,
 	};
 
-	if (gui->vcs_hist)
-		hist_iterate(gui->vcs_hist, add_hist, &add_hist_ctx);
+	if (gui->vcs_history)
+		hist_iterate(gui->vcs_history, vcs_head(gui->vcs_history),
+		    add_hist, &add_hist_ctx);
 	else
 		add_hist(&add_hist_ctx, NULL);
 }
@@ -412,15 +413,16 @@ static void count_history(void *user, struct hist *h)
 static void get_history(struct gui *gui, const char *sch_name, int limit)
 {
 	if (!vcs_git_try(sch_name)) {
-		gui->vcs_hist = NULL;
+		gui->vcs_history = NULL;
 		return;
 	} 
 	
-	gui->vcs_hist = vcs_git_hist(sch_name);
+	gui->vcs_history = vcs_git_history(sch_name);
 	if (limit)
 		gui->hist_size = limit > 0 ? limit : -limit;
 	else
-		hist_iterate(gui->vcs_hist, count_history, gui);
+		hist_iterate(gui->vcs_history, vcs_head(gui->vcs_history),
+		    count_history, gui);
 }
 
 
@@ -448,7 +450,7 @@ int run_gui(const struct file_names *fn, bool recurse, int limit)
 	struct gui gui = {
 		.scale		= 1 / 16.0,
 		.hist		= NULL,
-		.vcs_hist	= NULL,
+		.vcs_history	= NULL,
 		.mode		= showing_sheet,
 		.sheet_overlays	= NULL,
 		.hist_overlays	= NULL,

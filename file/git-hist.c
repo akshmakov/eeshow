@@ -31,13 +31,16 @@
  */
 
 
-static struct hist *history = NULL;
+struct history {
+	struct hist *head;
+	struct hist *history;	/* any order */
+};
 
 
 /* ----- History retrieval ------------------------------------------------- */
 
 
-static struct hist *new_commit(unsigned branch)
+static struct hist *new_commit(struct history *history, unsigned branch)
 {
 	struct hist *h;
 
@@ -48,8 +51,8 @@ static struct hist *new_commit(unsigned branch)
 	h->n_newer = 0;
 	h->older = NULL;
 	h->n_older = 0;
-	h->next = history;
-	history = h;
+	h->next = history->history;
+	history->history = h;
 	return h;
 }
 
@@ -62,7 +65,8 @@ static void uplink(struct hist *down, struct hist *up)
 }
 
 
-static struct hist *find_commit(const git_commit *commit)
+static struct hist *find_commit(struct history *history,
+    const git_commit *commit)
 {
 	struct hist *h;
 
@@ -71,14 +75,15 @@ static struct hist *find_commit(const git_commit *commit)
 	 * git_oid_equal(git_object_id(a), git_object_id(b))
 	 */
 
-	for (h = history; h; h = h->next)
+	for (h = history->history; h; h = h->next)
 		if (h->commit == commit)
 			break;
 	return h;
 }
 
 
-static void recurse(struct hist *h, unsigned n_branches)
+static void recurse(struct history *history, struct hist *h,
+    unsigned n_branches)
 {
 	unsigned n, i;
 
@@ -97,19 +102,19 @@ static void recurse(struct hist *h, unsigned n_branches)
 
 		if (git_commit_parent(&commit, h->commit, i))
 			pfatal_git("git_commit_parent");
-		found = find_commit(commit);
+		found = find_commit(history, commit);
 		if (found) {
 			uplink(found, h);
 			h->older[i] = found;
 		} else {
 			struct hist *new;
 
-			new = new_commit(n_branches);
+			new = new_commit(history, n_branches);
 			new->commit = commit;
 			h->older[i] = new;
 			n_branches++;
 			uplink(new, h);
-			recurse(new, n_branches);
+			recurse(history, new, n_branches);
 		}
 	}
 }
@@ -128,13 +133,17 @@ bool vcs_git_try(const char *path)
 }
 
 
-struct hist *vcs_git_hist(const char *path)
+struct history *vcs_git_history(const char *path)
 {
+	struct history *history;
 	struct hist *head, *dirty;
 	git_repository *repo;
 	git_oid oid;
 
-	head = new_commit(0);
+	history = alloc_type(struct history);
+	history->history = NULL;
+
+	head = new_commit(history, 0);
 
 	git_init_once();
 
@@ -148,18 +157,30 @@ struct hist *vcs_git_hist(const char *path)
 	if (git_commit_lookup(&head->commit, repo, &oid))
 		pfatal_git(git_repository_path(repo));
 
-	recurse(head, 1);
+	recurse(history, head, 1);
 
-	if (!git_repo_is_dirty(repo))
-		return head;
+	if (!git_repo_is_dirty(repo)) {
+		history->head = head;
+		return history;
+	}
 
-	dirty = new_commit(0);
+	dirty = new_commit(history, 0);
 	dirty->older = alloc_type(struct hist *);
 	dirty->older[0] = head;
 	dirty->n_older = 1;
 	uplink(head, dirty);
 
-	return dirty;
+	history->head = dirty;
+	return history;
+}
+
+
+/* ----- Get the head ------------------------------------------------------ */
+
+
+struct hist *vcs_head(const struct history *history)
+{
+	return history->head;
 }
 
 
@@ -243,12 +264,12 @@ static void hist_iterate_recurse(struct hist *h,
 }
 
 
-void hist_iterate(struct hist *hist,
+void hist_iterate(struct history *history, struct hist *hist,
     void (*fn)(void *user, struct hist *h), void *user)
 {
 	struct hist *h;
 
-	for (h = history; h; h = h->next)
+	for (h = history->history; h; h = h->next)
 		h->seen = 0;
 	hist_iterate_recurse(hist, fn, user);
 }
@@ -273,7 +294,7 @@ static void dump_one(void *user, struct hist *h)
 }
 
 	
-void dump_hist(struct hist *h)
+void dump_hist(struct history *history, struct hist *h)
 {
-	hist_iterate(h, dump_one, NULL);
+	hist_iterate(history, h, dump_one, NULL);
 }
