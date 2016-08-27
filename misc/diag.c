@@ -29,13 +29,13 @@ unsigned verbose = 0;
 
 void diag_pfatal(const char *s)
 {
-	fatal("%s: %s\n", s, strerror(errno));
+	fatal("%s: %s", s, strerror(errno));
 }
 
 
 void diag_perror(const char *s)
 {
-	error("%s: %s\n", s, strerror(errno));
+	error("%s: %s", s, strerror(errno));
 }
 
 
