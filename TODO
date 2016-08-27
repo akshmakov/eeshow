@@ -26,8 +26,6 @@ Visualization (dwg.c and such):
 - should get rid of gfx_user()
 
 Rendering:
-- why does "NRESWARM-CPU" (70 mil) on sheet 27 (eMMC) grow outside its box ?
-  None of the others (60 mil) do.
 - better text size guessing also for FIG
 - consider switching to Hershey fonts (that's what eeschema uses, right ?)
   (goal: prevent font geometry from changing when scaling)
