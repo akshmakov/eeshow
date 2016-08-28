@@ -312,6 +312,11 @@ static const struct sheet *parse_files(struct gui_hist *hist,
 	file_close(&sch_file);
 	// @@@ close pro_file
 
+	/*
+	 * sheet_eq recurses into sub-sheets, so we compare all sheets, even if
+	 * it may look like it.
+	 */
+
 	if (prev && prev->sheets &&
 	    sheet_eq(prev->sch_ctx.sheets, hist->sch_ctx.sheets))
 		prev->identical = 1;
