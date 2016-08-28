@@ -45,6 +45,8 @@ struct vcs_hist *vcs_head(const struct vcs_history *history);
 
 char *vcs_git_get_rev(struct vcs_hist *h);
 const char *vcs_git_summary(struct vcs_hist *hist);
+char *vcs_git_summary_for_pango(struct vcs_hist *hist,
+    char *(*formatter)(const char *fmt, ...));
 char *vcs_git_long_for_pango(struct vcs_hist *hist,
     char *(*formatter)(const char *fmt, ...));
 

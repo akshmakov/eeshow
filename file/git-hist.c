@@ -10,6 +10,7 @@
  * (at your option) any later version.
  */
 
+#define _GNU_SOURCE
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -253,6 +254,27 @@ const char *vcs_git_summary(struct vcs_hist *h)
 }
 
 
+char *vcs_git_summary_for_pango(struct vcs_hist *h,
+    char *(*formatter)(const char *fmt, ...))
+{
+	const char *summary;
+
+	if (!h->commit)
+		return formatter("<small>Uncommitted changes</small>");
+	summary = git_commit_summary(h->commit);
+	if (!summary)
+		pfatal_git("git_commit_summary");
+
+	if (h->n_branches)
+		return formatter(
+		    "<small><span background=\"#00e00080\"><b>%s</b>%s</span>"
+		    " %s</small>",
+		    h->branches[0], h->n_branches > 1 ? "+" : "", summary);
+	else
+		return formatter("<small>%s</small>", summary);
+}
+
+
 /*
  * @@@ This one is a bit inconvenient. It depends both on the information the
  * VCS provides, some of which is fairly generic, but some may not be, and
@@ -273,9 +295,35 @@ char *vcs_git_long_for_pango(struct vcs_hist *h,
 		goto fail;
 	commit_time = git_commit_time(h->commit);
 	sig = git_commit_committer(h->commit);
-	s = formatter("<b>%s</b> %s%s &lt;%s&gt;<small>\n%s</small>",
-	    buf.ptr, ctime(&commit_time), sig->name, sig->email,
-	    git_commit_summary(h->commit));
+
+	if (h->n_branches) {
+		unsigned i;
+		unsigned len = 1;
+
+		for (i = 0; i != h->n_branches; i++)
+			len += strlen(h->branches[i]) + 1;
+
+		char b[len + 1];
+
+		*b = ' ';
+		len = 1;
+		for (i = 0; i != h->n_branches; i++) {
+			strcpy(b + len, h->branches[i]);
+			len += strlen(h->branches[i]);
+			b[len++] = ' ';
+		}
+		b[len] = 0;
+
+		s = formatter(
+		    "<span background=\"#00e00080\"><b>%s</b></span>\n"
+		    "<b>%s</b> %s%s &lt;%s&gt;<small>\n%s</small>",
+		    b, buf.ptr, ctime(&commit_time), sig->name, sig->email,
+		    git_commit_summary(h->commit));
+	} else {
+		s = formatter("<b>%s</b> %s%s &lt;%s&gt;<small>\n%s</small>",
+		    buf.ptr, ctime(&commit_time), sig->name, sig->email,
+		    git_commit_summary(h->commit));
+	}
 	git_buf_free(&buf);
 	return s;
 
