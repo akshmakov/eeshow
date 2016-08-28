@@ -339,6 +339,21 @@ char *vcs_git_summary_for_pango(struct vcs_hist *h,
 }
 
 
+static char *append(char *s, char *add)
+{
+	unsigned len_s, len_add;
+
+	if (!s)
+		return add;
+	len_s = strlen(s);
+	len_add = strlen(add);
+	s = realloc_size(s, len_s + len_add + 1);
+	strcpy(s + len_s, add);
+	free(add);
+	return s;
+}
+
+
 /*
  * @@@ This one is a bit inconvenient. It depends both on the information the
  * VCS provides, some of which is fairly generic, but some may not be, and
@@ -351,7 +366,8 @@ char *vcs_git_long_for_pango(struct vcs_hist *h,
 	git_buf buf = { 0 };
 	time_t commit_time;
 	const git_signature *sig;
-	char *s;
+	char *s = NULL;
+	unsigned i;
 
 	if (!h->commit)
 		return stralloc("Uncommitted changes");
@@ -360,34 +376,15 @@ char *vcs_git_long_for_pango(struct vcs_hist *h,
 	commit_time = git_commit_time(h->commit);
 	sig = git_commit_committer(h->commit);
 
-	if (h->n_branches) {
-		unsigned i;
-		unsigned len = 1;
-
-		for (i = 0; i != h->n_branches; i++)
-			len += strlen(h->branches[i]) + 1;
-
-		char b[len + 1];
-
-		*b = ' ';
-		len = 1;
-		for (i = 0; i != h->n_branches; i++) {
-			strcpy(b + len, h->branches[i]);
-			len += strlen(h->branches[i]);
-			b[len++] = ' ';
-		}
-		b[len] = 0;
-
-		s = formatter(
-		    "<span background=\"#00e00080\"><b>%s</b></span>\n"
-		    "<b>%s</b> %s%s &lt;%s&gt;<small>\n%s</small>",
-		    b, buf.ptr, ctime(&commit_time), sig->name, sig->email,
-		    git_commit_summary(h->commit));
-	} else {
-		s = formatter("<b>%s</b> %s%s &lt;%s&gt;<small>\n%s</small>",
-		    buf.ptr, ctime(&commit_time), sig->name, sig->email,
-		    git_commit_summary(h->commit));
-	}
+	for (i = 0; i != h->n_branches; i++)
+		s = append(s, formatter(
+		    "%s<span background=\"#00e00080\"><b> %s </b></span>",
+		    i ? " " : "", h->branches[i]));
+	s = append(s, formatter(
+	    "%s<b>%s</b> %s%s &lt;%s&gt;<small>\n%s</small>",
+	    h->n_branches ? "\n" : "",
+	    buf.ptr, ctime(&commit_time), sig->name, sig->email,
+	    git_commit_summary(h->commit)));
 	git_buf_free(&buf);
 	return s;
 
