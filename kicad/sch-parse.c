@@ -438,14 +438,19 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 			free(italic);
 			return 1;
 		}
-		if (sscanf(line, "Text GLabel %d %d %d %d %ms %ms %d",
+		n = sscanf(line, "Text GLabel %d %d %d %d %ms %ms %d",
 		    &obj->x, &obj->y, &text->dir, &text->dim, &s,
-		    &italic, &bold) == 7) {
+		    &italic, &bold);
+		if (n == 5 || n == 7) {
 			ctx->state = sch_text;
 			obj->u.text.fn = dwg_glabel;
 			obj->u.text.shape = decode_shape(s);
-			obj->u.text.style = decode_style(italic, bold);
-			free(italic);
+			if (n == 5) {
+				obj->u.text.style = text_normal;
+			} else {
+				obj->u.text.style = decode_style(italic, bold);
+				free(italic);
+			}
 			return 1;
 		}
 		if (sscanf(line, "Text HLabel %d %d %d %d %ms %ms %d",
