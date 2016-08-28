@@ -32,9 +32,18 @@
  */
 
 
+struct branch {
+	const char *name;
+	git_commit *commit;
+	
+};
+
+
 struct vcs_history {
 	struct vcs_hist *head;
 	git_repository *repo;
+	struct branch *branches;
+	unsigned n_branches;
 	struct vcs_hist *history;	/* any order */
 };
 
@@ -61,37 +70,53 @@ static struct vcs_hist *new_commit(struct vcs_history *history, unsigned branch)
 }
 
 
-static const char **get_branches(git_repository *repo,
-    struct git_commit *commit, unsigned *res_n)
+static struct branch *get_branches(git_repository *repo, unsigned *res_n)
 {
 	git_branch_iterator *iter;
 	git_reference *ref;
 	git_branch_t type;
 	git_object *obj;
-	const char **res = NULL;
+	struct branch *res = NULL;
 	unsigned n = 0;
 
 	if (git_branch_iterator_new(&iter, repo, GIT_BRANCH_ALL))
 		pfatal_git("git_branch_iterator");
 	while (!git_branch_next(&ref, &type, iter)) {
-
 		/*
 		 * @@@ is it okay to just ignore symbolic references ?
 		 * E.g., remotes/origin/HEAD -> origin/master
 		 */
 		if (git_reference_type(ref) != GIT_REF_OID)
 			continue;
-
 		if (git_reference_peel(&obj, ref, GIT_OBJ_COMMIT))
 			pfatal_git("git_reference_peel");
-		if ((git_commit *) obj != commit)
-			continue;
-		res = realloc_type_n(res, const char *, n + 1);
-		if (git_branch_name(res + n, ref))
+
+		res = realloc_type_n(res, struct branch, n + 1);
+		if (git_branch_name(&res[n].name, ref))
 			pfatal_git("git_branch_name");
+		res[n].commit = (git_commit *) obj;
 		n++;
 	}
 	git_branch_iterator_free(iter);
+	*res_n = n;
+	return res;
+}
+
+
+static const char **matching_branches(struct vcs_history *history,
+    const struct git_commit *commit, unsigned *res_n)
+{
+	unsigned i, n = 0;
+	const char **res;
+
+	for (i = 0; i != history->n_branches; i++)
+		if (history->branches[i].commit == commit)
+			n++;
+	res = alloc_type_n(const char *, n);
+	n = 0;
+	for (i = 0; i != history->n_branches; i++)
+		if (history->branches[i].commit == commit)
+			res[n++] = history->branches[i].name;
 	*res_n = n;
 	return res;
 }
@@ -151,7 +176,7 @@ static void recurse(struct vcs_history *history, struct vcs_hist *h,
 
 			new = new_commit(history, n_branches);
 			new->commit = commit;
-			new->branches = get_branches(history->repo, commit,
+			new->branches = matching_branches(history, commit,
 			    &new->n_branches);
 			h->older[i] = new;
 			n_branches++;
@@ -192,13 +217,15 @@ struct vcs_history *vcs_git_history(const char *path)
 	    GIT_REPOSITORY_OPEN_CROSS_FS, NULL))
 		pfatal_git(path);
 
+	history->branches = get_branches(history->repo, &history->n_branches);
+
 	if (git_reference_name_to_id(&oid, history->repo, "HEAD"))
 		pfatal_git(git_repository_path(history->repo));
 
 	if (git_commit_lookup(&head->commit, history->repo, &oid))
 		pfatal_git(git_repository_path(history->repo));
 
-	head->branches = get_branches(history->repo, head->commit,
+	head->branches = matching_branches(history, head->commit,
 	    &head->n_branches);
 
 	recurse(history, head, 1);
