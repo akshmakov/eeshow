@@ -52,6 +52,8 @@ struct vcs_history {
 
 	struct vcs_hist **sorted_hist;
 	unsigned n_hist;
+
+	unsigned max_threads;
 };
 
 
@@ -509,7 +511,130 @@ static void sort_history(struct vcs_history *history)
 }
 
 
-/* ----- Iteration (public) ------------------------------------------------ */
+/* ----- Assign thread positions ------------------------------------------- */
+
+
+static void grow(const struct vcs_hist ***t, unsigned *n)
+{
+	*t = realloc_type_n(*t, const struct vcs_hist *, *n + 1);
+	(*t)[*n] = NULL;
+	(*n)++;
+}
+
+
+static unsigned find_pos(const struct vcs_hist ***t, unsigned *n,
+    const struct vcs_hist *h)
+{
+	unsigned pos, i;
+
+	for (pos = 0; pos != *n; pos++)
+		for (i = 0; i != h->n_newer; i++)
+			if (h->newer[i] == (*t)[pos])
+				return pos;
+	for (pos = 0; pos != *n; pos++)
+		if (!(*t)[pos])
+			return pos;
+	grow(t, n);
+	return *n  - 1;
+}
+
+
+static void clear_children(const struct vcs_hist **t, unsigned n,
+    const struct vcs_hist *h)
+{
+	unsigned i, j;
+
+	for (i = 0; i != h->n_newer; i++) {
+		for (j = 0; j != n; j++)
+			if (t[j] == h->newer[i])
+				goto clear;
+		fatal("child thread not found");
+clear:
+		t[j] = NULL;
+	}
+}
+
+
+static unsigned assign_threads(struct vcs_history *history)
+{
+	struct vcs_hist **h;
+	unsigned n = 0;
+	const struct vcs_hist **t = 0;
+	unsigned i, j;
+
+	for (h = history->sorted_hist;
+	    h != history->sorted_hist + history->n_hist; h++) {
+		(*h)->n_threads = n;
+		(*h)->threads = alloc_type_n(const struct vcs_hist *, n);
+		memcpy((*h)->threads, t, sizeof(const struct vcs_hist *) * n);
+
+		(*h)->pos = find_pos(&t, &n, *h);
+		clear_children(t, n, *h);
+		for (i = 0; i != (*h)->n_older; i++) {
+			if (!i) {
+				t[(*h)->pos] = *h;
+				continue;
+			}
+			for (j = 0; j != n; j++)
+				if (!t[j]) {
+					t[j] = *h;
+					break;
+				}
+			if (j == n) {
+				grow(&t, &n);
+				t[n - 1] = *h;
+			}
+		}
+	}
+	return n;
+}
+
+
+/* ----- Thread vector ----------------------------------------------------- */
+
+
+
+enum thread *classify_threads(const struct vcs_history *history,
+    const struct vcs_hist *h, const struct vcs_hist *next, unsigned *n)
+{
+	enum thread *t;
+	unsigned i, j;
+
+	*n = history->max_threads;
+	t = alloc_type_n(enum thread, *n);
+	for (i = 0; i != history->max_threads; i++)
+		t[i] = thread_none;
+	for (i = 0; i != h->n_threads; i++)
+		for (j = 0; j != h->n_newer; j++)
+			if (h->newer[j] == h->threads[i] &&
+			    (!next || h->newer[j] != next->threads[i]))
+				t[i] |= thread_newer;
+	if (next) {
+		for (i = 0; i != next->n_threads; i++) {
+			if (next->threads[i] == h)
+				t[i] |= thread_older;
+			else if (next->threads[i])
+				t[i] |= thread_other;
+		}
+	} else {
+		for (i = 0; i != h->n_threads; i++)
+			if (h->threads[i]) {
+				/* we don't have |-. type of branches */
+				assert(!(t[i] & thread_older));
+				t[i] |= thread_other;
+			}
+	}
+	while (i != history->max_threads) {
+		t[i] = thread_none;
+		i++;
+	}
+	t[h->pos] |= thread_self;
+
+	return t;
+}
+
+
+/* ----- Iteration --------------------------------------------------------- */
 
 
 void hist_iterate(struct vcs_history *history,
@@ -517,8 +642,10 @@ void hist_iterate(struct vcs_history *history,
 {
 	unsigned i;
 
-	if (!history->sorted_hist)
+	if (!history->sorted_hist) {
 		sort_history(history);
+		history->max_threads = assign_threads(history);
+	}
 	for (i = 0; i != history->n_hist; i++)
 		fn(user, history->sorted_hist[i]);
 }
@@ -527,12 +654,20 @@ void hist_iterate(struct vcs_history *history,
 /* ----- Textual dump (mainly for debugging) ------------------------------- */
 
 
+/* @@@ still haven't tested -+- */
+ 
+//#define DEBUG
+
 // http://stackoverflow.com/questions/12132862/how-do-i-get-the-name-of-the-current-branch-in-libgit2
 
 static void dump_one(void *user, struct vcs_hist *h)
 {
+	struct vcs_history *history = user;
 	git_buf buf = { 0 };
-	unsigned i;
+	enum thread *t;
+	unsigned n, i, j;
+	const struct vcs_hist *next;
+	bool before, here, after;
 
 	if (!h->commit) {
 		printf("dirty\n");
@@ -541,7 +676,59 @@ static void dump_one(void *user, struct vcs_hist *h)
 
 	if (git_object_short_id(&buf, (git_object *) h->commit))
 		pfatal_git("git_object_short_id");
-	printf("%*s%s  ", 2 * h->branch, "", buf.ptr);
+
+	next = NULL;
+	for (i = 0; i < history->n_hist; i++)
+		if (history->sorted_hist[i] == h) {
+			next = history->sorted_hist[i + 1];
+			break;
+		}
+#ifdef DEBUG
+fprintf(stderr, "%p (%u/%u):", h, h->n_newer, h->n_older);
+for (i = 0; i != h->n_threads; i++)
+	fprintf(stderr, " %p", h->threads[i]);
+fprintf(stderr, " (%p)\n", next);
+#endif
+	t = classify_threads(history, h, next, &n);
+#ifdef DUMP
+for (i = 0; i != n; i++)
+   fprintf(stderr, "%d ", t[i]);
+fprintf(stderr, "\n");
+#endif
+	for (i = 0; i != n; i++) {
+		before = 0;
+		for (j = 0; j != i; j++)
+			if (t[j] &
+			    (thread_self | thread_newer | thread_older)) {
+				before = 1;
+				break;
+			}
+		here = t[i] & (thread_self | thread_newer | thread_older);
+		after = 0;
+		for (j = i + 1; j != n; j++)
+			if (t[j] &
+			    (thread_self | thread_newer | thread_older)) {
+				after = 1;
+				break;
+			}
+		if (t[i] & thread_self)
+			putchar('o');
+		else if ((t[i] & (thread_newer | thread_older)) ==
+		    (thread_newer | thread_older))
+			putchar('+');
+		else if (t[i] & thread_newer)
+			putchar('\'');
+		else if (t[i] & thread_older)
+			putchar('.');
+		else if (t[i] & thread_other)
+			putchar('|');
+		else
+			putchar(after && before ? '-' : ' ');
+		putchar(after && (here || before) ? '-' : ' ');
+	}
+	free(t);
+
+	printf("  %s  ", buf.ptr);
 	git_buf_free(&buf);
 
 
@@ -558,5 +745,5 @@ static void dump_one(void *user, struct vcs_hist *h)
 
 void dump_hist(struct vcs_history *history)
 {
-	hist_iterate(history, dump_one, NULL);
+	hist_iterate(history, dump_one, history);
 }

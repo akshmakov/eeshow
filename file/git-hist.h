@@ -18,6 +18,14 @@
 #include <git2.h>
 
 
+enum thread {
+	thread_none	=	0,
+	thread_self	=	1 << 0,		/* -o- */
+	thread_newer	= 	1 << 1,		/* -'- or -+- */
+	thread_older	=	1 << 2,		/* -.- or -+- */
+	thread_other	=	1 << 3,		/* -|- or -+- */
+};
+
 struct vcs_hist {
 	struct git_commit *commit; /* NULL if uncommitted changes */
 
@@ -34,6 +42,10 @@ struct vcs_hist {
 
 	struct vcs_hist *next;	/* no specific order */
 	unsigned seen;		/* for traversal */
+
+	unsigned pos;		/* position in thread vector */
+	const struct vcs_hist **threads; /* previous thread members, or NULL */
+	unsigned n_threads;
 };
 
 struct vcs_history;
@@ -49,6 +61,9 @@ char *vcs_git_summary_for_pango(struct vcs_hist *hist,
     char *(*formatter)(const char *fmt, ...));
 char *vcs_git_long_for_pango(struct vcs_hist *hist,
     char *(*formatter)(const char *fmt, ...));
+
+enum thread *classify_threads(const struct vcs_history *history,
+    const struct vcs_hist *h, const struct vcs_hist *next, unsigned *n);
 
 void hist_iterate(struct vcs_history *history,
     void (*fn)(void *user, struct vcs_hist *h), void *user);
