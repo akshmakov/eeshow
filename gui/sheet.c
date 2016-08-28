@@ -364,7 +364,7 @@ void go_to_sheet(struct gui *gui, struct gui_sheet *sheet)
 	gui->curr_sheet = sheet;
 	if (gui->old_hist)
 		render_delta(gui);
-	if (gui->vcs_history && vcs_head(gui->vcs_history))
+	if (gui->vcs_history && !vcs_is_empty(gui->vcs_history))
 		do_revision_overlays(gui);
 	do_sheet_overlays(gui);
 	zoom_to_extents(gui);

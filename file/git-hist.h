@@ -41,17 +41,17 @@ struct vcs_history;
 
 bool vcs_git_try(const char *path);
 struct vcs_history *vcs_git_history(const char *path);
-struct vcs_hist *vcs_head(const struct vcs_history *history);
 
 char *vcs_git_get_rev(struct vcs_hist *h);
+bool vcs_is_empty(const struct vcs_history *history);
 const char *vcs_git_summary(struct vcs_hist *hist);
 char *vcs_git_summary_for_pango(struct vcs_hist *hist,
     char *(*formatter)(const char *fmt, ...));
 char *vcs_git_long_for_pango(struct vcs_hist *hist,
     char *(*formatter)(const char *fmt, ...));
 
-void hist_iterate(struct vcs_history *history, struct vcs_hist *h, 
+void hist_iterate(struct vcs_history *history,
     void (*fn)(void *user, struct vcs_hist *h), void *user);
-void dump_hist(struct vcs_history *history, struct vcs_hist *h);
+void dump_hist(struct vcs_history *history);
 
 #endif /* !FILE_GIT_HIST_H */

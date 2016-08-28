@@ -392,8 +392,7 @@ static void get_revisions(struct gui *gui, const struct file_names *fn,
 	};
 
 	if (gui->vcs_history)
-		hist_iterate(gui->vcs_history, vcs_head(gui->vcs_history),
-		    add_hist, &add_hist_ctx);
+		hist_iterate(gui->vcs_history, add_hist, &add_hist_ctx);
 	else
 		add_hist(&add_hist_ctx, NULL);
 }
@@ -421,8 +420,7 @@ static void get_history(struct gui *gui, const char *sch_name, int limit)
 	if (limit)
 		gui->hist_size = limit > 0 ? limit : -limit;
 	else
-		hist_iterate(gui->vcs_history, vcs_head(gui->vcs_history),
-		    count_history, gui);
+		hist_iterate(gui->vcs_history, count_history, gui);
 }
 
 

@@ -38,12 +38,15 @@ struct branch {
 	
 };
 
-
 struct vcs_history {
-	struct vcs_hist *head;
 	git_repository *repo;
+
+	struct vcs_hist **heads;
+	unsigned n_heads;
+
 	struct branch *branches;
 	unsigned n_branches;
+
 	struct vcs_hist *history;	/* any order */
 };
 
@@ -137,7 +140,7 @@ static struct vcs_hist *find_commit(struct vcs_history *history,
 
 	/*
 	 * @@@ should probably use
-	 * git_oid_equal(git_object_id(a), git_object_id(b))
+	 * git_oid_equal(git_commit_id(a), git_commit_id(b))
 	 */
 
 	for (h = history->history; h; h = h->next)
@@ -200,14 +203,41 @@ bool vcs_git_try(const char *path)
 }
 
 
+static void add_head(struct vcs_history *history, struct vcs_hist *head)
+{
+	history->heads = realloc_type_n(history->heads, struct vcs_hist *,
+	    history->n_heads + 1);
+	history->heads[history->n_heads] = head;
+	history->n_heads++;
+}
+
+
+static void merge_head(struct vcs_history *history, git_commit *commit)
+{
+	struct vcs_hist *new;
+
+	if (find_commit(history, commit))
+		return;
+	new = new_commit(history, 0);
+	new->commit = commit;
+	new->branches = matching_branches(history, new->commit,
+	    &new->n_branches);
+	recurse(history, new, 1);
+	add_head(history, new);
+}
+
+
 struct vcs_history *vcs_git_history(const char *path)
 {
 	struct vcs_history *history;
 	struct vcs_hist *head, *dirty;
 	git_oid oid;
+	unsigned i;
 
 	history = alloc_type(struct vcs_history);
 	history->history = NULL;
+	history->heads = NULL;
+	history->n_heads = 0;
 
 	head = new_commit(history, 0);
 
@@ -227,31 +257,32 @@ struct vcs_history *vcs_git_history(const char *path)
 
 	head->branches = matching_branches(history, head->commit,
 	    &head->n_branches);
-
 	recurse(history, head, 1);
 
-	if (!git_repo_is_dirty(history->repo)) {
-		history->head = head;
-		return history;
+	if (git_repo_is_dirty(history->repo)) {
+		dirty = new_commit(history, 0);
+		dirty->older = alloc_type(struct vcs_hist *);
+		dirty->older[0] = head;
+		dirty->n_older = 1;
+		uplink(head, dirty);
+		add_head(history, dirty);
+	} else {
+		add_head(history, head);
 	}
 
-	dirty = new_commit(history, 0);
-	dirty->older = alloc_type(struct vcs_hist *);
-	dirty->older[0] = head;
-	dirty->n_older = 1;
-	uplink(head, dirty);
+	for (i = 0; i != history->n_branches; i++)
+		merge_head(history, history->branches[i].commit);
 
-	history->head = dirty;
 	return history;
 }
 
 
-/* ----- Get the head ------------------------------------------------------ */
+/* ----- See if history is empty ------------------------------------------- */
 
 
-struct vcs_hist *vcs_head(const struct vcs_history *history)
+bool vcs_is_empty(const struct vcs_history *history)
 {
-	return history->head;
+	return !history->n_heads;
 }
 
 
@@ -382,14 +413,17 @@ static void hist_iterate_recurse(struct vcs_hist *h,
 }
 
 
-void hist_iterate(struct vcs_history *history, struct vcs_hist *hist,
+void hist_iterate(struct vcs_history *history,
     void (*fn)(void *user, struct vcs_hist *h), void *user)
 {
-	struct vcs_hist *h;
+	struct vcs_hist *h, **head;
 
 	for (h = history->history; h; h = h->next)
 		h->seen = 0;
-	hist_iterate_recurse(hist, fn, user);
+	for (head = history->heads; head != history->heads + history->n_heads;
+	    head++)
+		if (!(*head)->n_newer)
+			hist_iterate_recurse(*head, fn, user);
 }
 
 
@@ -425,7 +459,7 @@ static void dump_one(void *user, struct vcs_hist *h)
 }
 
 
-void dump_hist(struct vcs_history *history, struct vcs_hist *h)
+void dump_hist(struct vcs_history *history)
 {
-	hist_iterate(history, h, dump_one, NULL);
+	hist_iterate(history, dump_one, NULL);
 }
