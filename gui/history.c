@@ -116,14 +116,12 @@ static bool hover_history(void *user, bool on, int dx, int dy)
 	if (dy)
 		overlay_size(h->over, gtk_widget_get_pango_context(gui->da),
 		    NULL, &before);
-	if (on) {
+	if (on)
 		s = vcs_git_long_for_pango(h->vcs_hist, fmt_pango);
-		overlay_text_raw(h->over, s);
-		free(s);
-	} else {
-		overlay_text(h->over, "<small>%s</small>",
-		    vcs_git_summary(h->vcs_hist));
-	}
+	else
+		s = vcs_git_summary_for_pango(h->vcs_hist, fmt_pango);
+	overlay_text_raw(h->over, s);
+	free(s);
 	set_history_style(h, on);
 	if (dy)
 		overlay_size(h->over, gtk_widget_get_pango_context(gui->da),
