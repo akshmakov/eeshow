@@ -216,12 +216,15 @@ static struct gui_hist *skip_history(struct gui *gui, struct gui_hist *h)
 		return h;
 
 	/* need at least two entries */
-	if (!h->identical || !h->next || !h->next->identical)
+	if (!h->next || !h->next->identical)
 		return h;
 
 	/* don't skip the last entry */
-	for (n = 0; h->next && h->identical; h = h->next)
+	for (n = 0; h->next && h->identical && !h->vcs_hist->n_branches;
+	    h = h->next)
 		n++;
+	if (!n)
+		return h;
 
 	h->over = overlay_add(&gui->hist_overlays, &gui->aois,
 	    NULL, ignore_click, h);
