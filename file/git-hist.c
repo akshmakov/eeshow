@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <time.h>	/* for vcs_long_for_pango */
 #include <alloca.h>
+#include <assert.h>
 
 #include <git2.h>
 
@@ -48,6 +49,9 @@ struct vcs_history {
 	unsigned n_branches;
 
 	struct vcs_hist *history;	/* any order */
+
+	struct vcs_hist **sorted_hist;
+	unsigned n_hist;
 };
 
 
@@ -238,6 +242,8 @@ struct vcs_history *vcs_git_history(const char *path)
 	history->history = NULL;
 	history->heads = NULL;
 	history->n_heads = 0;
+	history->sorted_hist = NULL;
+	history->n_hist = 0;
 
 	head = new_commit(history, 0);
 
@@ -390,8 +396,10 @@ fail:
 }
 
 
-/* ----- Iteration --------------------------------------------------------- */
+/* ----- Iteration (obsolete) ---------------------------------------------- */
 
+
+#if 0
 
 /*
  * We use the "seen" counter to make sure we only show a commit after all newer
@@ -413,7 +421,7 @@ static void hist_iterate_recurse(struct vcs_hist *h,
 }
 
 
-void hist_iterate(struct vcs_history *history,
+static void hist_iterate(struct vcs_history *history,
     void (*fn)(void *user, struct vcs_hist *h), void *user)
 {
 	struct vcs_hist *h, **head;
@@ -424,6 +432,98 @@ void hist_iterate(struct vcs_history *history,
 	    head++)
 		if (!(*head)->n_newer)
 			hist_iterate_recurse(*head, fn, user);
+}
+
+#endif
+
+
+/* ----- Sorted commit history --------------------------------------------- */
+
+
+static bool older(const struct vcs_hist *a, const struct vcs_hist *b)
+{
+	unsigned i;
+
+	for (i = 0; i != a->n_newer; i++) {
+		if (a->newer[i] == b)
+			return 1;
+		if (older(a->newer[i], b))
+			return 1;
+	}
+	return 0;
+}
+
+
+static bool newer(const struct vcs_hist *a, const struct vcs_hist *b)
+{
+	unsigned i;
+
+	for (i = 0; i != a->n_older; i++) {
+		if (a->older[i] == b)
+			return 1;
+		if (newer(a->older[i], b))
+			return 1;
+	}
+	return 0;
+}
+
+
+static int comp_hist(const void *a, const void *b)
+{
+	const struct vcs_hist *ha = *(const struct vcs_hist **) a;
+	const struct vcs_hist *hb = *(const struct vcs_hist **) b;
+	time_t ta, tb;
+
+	if (!ha->commit)
+		return -1;
+	if (!hb->commit)
+		return 1;
+
+	ta = git_commit_time(ha->commit);
+	tb = git_commit_time(hb->commit);
+
+	assert(ha->commit != hb->commit);
+	if (older(ha, hb))
+		return 1;
+	if (newer(ha, hb))
+		return -1;
+	return ta == tb ? 0 : ta < tb ? 1 : -1;
+}
+
+
+static void sort_history(struct vcs_history *history)
+{
+	struct vcs_hist **vec;
+	struct vcs_hist *h;
+	unsigned n = 0;
+
+	for (h = history->history; h; h = h->next)
+		n++;
+
+	vec = alloc_type_n(struct vcs_hist *, n);
+	n = 0;
+	for (h = history->history; h; h = h->next)
+		vec[n++] = h;
+
+	qsort(vec, n, sizeof(const struct vcs_hist *), comp_hist);
+
+	history->sorted_hist = vec;
+	history->n_hist = n;
+}
+
+
+/* ----- Iteration (public) ------------------------------------------------ */
+
+
+void hist_iterate(struct vcs_history *history,
+    void (*fn)(void *user, struct vcs_hist *h), void *user)
+{
+	unsigned i;
+
+	if (!history->sorted_hist)
+		sort_history(history);
+	for (i = 0; i != history->n_hist; i++)
+		fn(user, history->sorted_hist[i]);
 }
 
 
