@@ -63,8 +63,6 @@ GUI/history
 - add manual selection with Up/Down/Enter
 - "what I am selecting" indication (color of frames of sheets in history)
   is not very clear.
-- commits in branch can be shown long after the branch has started in the
-  alternative timeline
 - clearly visualize branches as such (like gitk, tig)
 
 GUI/sheets:
