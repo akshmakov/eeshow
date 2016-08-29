@@ -270,6 +270,21 @@ static void history_drag_move(void *user, int dx, int dy)
 }
 
 
+static void history_scroll(void *user, int x, int y, int dy)
+{
+	struct gui *gui = user;
+
+	if (dy < 0) {
+		gui->hist_y_offset += 20;
+		if (gui->hist_y_offset > 0)
+			gui->hist_y_offset = 0;
+	} else {
+		gui->hist_y_offset -= 20;
+	}
+	redraw(gui);
+}
+
+
 static void history_key(void *user, int x, int y, int keyval)
 {
 	struct gui *gui = user;
@@ -291,6 +306,7 @@ static const struct input_ops history_input_ops = {
 	.hover_click	= history_click,
 	.drag_begin	= input_accept,
 	.drag_move	= history_drag_move,
+	.scroll		= history_scroll,
 	.key		= history_key,
 };
 

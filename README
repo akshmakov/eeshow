@@ -182,7 +182,7 @@ Click			jump to sheet (on sub-sheet, sheet stack, global
 			label hover box, index), open index page, open history,
 			select revision
 Click and drag		pan sheet, scroll history
-Scroll wheel		zoom in or out
+Scroll wheel		zoom in or out; scroll through history
 
 
 Key functions in GUI mode
