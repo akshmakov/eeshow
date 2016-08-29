@@ -15,6 +15,7 @@
 
 #include <stdbool.h>
 
+#include <cairo/cairo.h>
 #include <gtk/gtk.h>
 
 #include "gfx/cro.h"
