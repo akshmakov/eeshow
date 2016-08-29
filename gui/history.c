@@ -28,6 +28,9 @@
 #include "gui/common.h"
 
 
+/* ----- Overlay interaction ----------------------------------------------- */
+
+
 static void hide_history(struct gui *gui)
 {
 	input_pop();
@@ -199,6 +202,9 @@ static void click_history(void *user)
 	do_revision_overlays(gui);
 	redraw(gui);
 }
+
+
+/* ----- Skip commits that don't change our schematics --------------------- */
 
 
 static void ignore_click(void *user)
