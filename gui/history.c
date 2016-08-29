@@ -50,7 +50,7 @@ static const struct color skipped_rgb = { 0.7, 0.7, 0.7, 1 };
 static void do_render_commit(const struct gui *gui, struct gui_hist *h,
     cairo_t *cr, unsigned x, unsigned y, unsigned dx,
     unsigned d_up, unsigned d_down,
-    const struct color *cc, const struct color *tc)
+    const struct color *cc, const struct color *tc, bool top, bool bottom)
 {
 	unsigned n = threads_number(gui->vcs_history);
 	enum thread *t = threads_classify(gui->vcs_history, h->vcs_hist,
@@ -73,25 +73,38 @@ static void do_render_commit(const struct gui *gui, struct gui_hist *h,
 			cairo_rel_line_to(cr, dx, 0);
 			cairo_stroke(cr);
 		}
-		if (t[i] & thread_newer) {
+		if (top && (t[i] & thread_newer)) {
 			cairo_move_to(cr, x, y);
 			cairo_rel_line_to(cr, 0, -d_up);
 			cairo_stroke(cr);
 		}
-		if (t[i] & thread_older) {
+		if (bottom && (t[i] & thread_older)) {
 			cairo_move_to(cr, x, y);
 			cairo_rel_line_to(cr, 0, d_down);
 			cairo_stroke(cr);
 		}
 		if (t[i] & thread_other) {
 			if (i >= from && i < to) {
-				cairo_move_to(cr, x, y - GAP_Y);
-				cairo_rel_line_to(cr, 0, -d_up + GAP_Y);
-				cairo_move_to(cr, x, y + GAP_Y);
-				cairo_rel_line_to(cr, 0, d_down - GAP_Y);
+				if (top) {
+					cairo_move_to(cr, x, y - GAP_Y);
+					cairo_rel_line_to(cr, 0, -d_up + GAP_Y);
+				}
+				if (bottom) {
+					cairo_move_to(cr, x, y + GAP_Y);
+					cairo_rel_line_to(cr,
+					    0, d_down - GAP_Y);
+				}
 			} else {
-				cairo_move_to(cr, x, y - d_up);
-				cairo_rel_line_to(cr, 0, d_up + d_down);
+				if (top && bottom) {
+					cairo_move_to(cr, x, y - d_up);
+					cairo_rel_line_to(cr, 0, d_up + d_down);
+				} else if (top) {
+					cairo_move_to(cr, x, y - d_up);
+					cairo_rel_line_to(cr, 0, d_up);
+				} else if (bottom) {
+					cairo_move_to(cr, x, y);
+					cairo_rel_line_to(cr, 0, d_down);
+				}
 			}
 			cairo_stroke(cr);
 		}
@@ -117,7 +130,8 @@ static void render_commit(void *user, void *user_over, int x, int y,
 			do_render_commit(walk->gui, walk, cr,
 			    VCS_OVERLAYS_X + COMMIT_R,
 		            y + h / 2, THREAD_DX, h / 2, dy - h  / 2,
-			    &skipped_rgb, &skipped_rgb);
+			    &skipped_rgb, &skipped_rgb,
+			    walk == hist, walk->next && !walk->next->skipped);
 		return;
 	}
 
@@ -125,7 +139,8 @@ static void render_commit(void *user, void *user_over, int x, int y,
 		return;
 
 	do_render_commit(hist->gui, hist, cr, VCS_OVERLAYS_X + COMMIT_R,
-	    y + h / 2, THREAD_DX, h / 2, dy - h  / 2, &commit_rgb, &thread_rgb);
+	    y + h / 2, THREAD_DX, h / 2, dy - h  / 2, &commit_rgb, &thread_rgb,
+	    1, 1);
 }
 
 
