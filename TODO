@@ -63,7 +63,6 @@ GUI/history
 - add manual selection with Up/Down/Enter
 - "what I am selecting" indication (color of frames of sheets in history)
   is not very clear.
-- clearly visualize branches as such (like gitk, tig)
 
 GUI/sheets:
 - need a way to change new/old sheet association, in case automatic selection
