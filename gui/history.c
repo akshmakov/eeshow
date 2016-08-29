@@ -33,11 +33,11 @@
 
 void history_draw_event(const struct gui *gui, cairo_t *cr)
 {
+	cairo_set_source_rgba(cr, 1, 1, 1, 0.7);
+	cairo_paint(cr);
+
 	overlay_draw_all_d(gui->hist_overlays, cr,
-	    VCS_OVERLAYS_X,
-	    VCS_OVERLAYS_Y +
-	    (gui->mode == showing_history ? gui->hist_y_offset : 0),
-	    0, 1);
+	    VCS_OVERLAYS_X, VCS_OVERLAYS_Y + gui->hist_y_offset, 0, 1);
 }
 
 
