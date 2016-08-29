@@ -669,17 +669,10 @@ static void dump_one(void *user, struct vcs_hist *h)
 	struct vcs_history *history = user;
 	git_buf buf = { 0 };
 	enum thread *t;
-	unsigned n, i, j;
+	unsigned n = threads_number(history);
+	unsigned i, j;
 	const struct vcs_hist *next;
 	bool before, here, after;
-
-	if (!h->commit) {
-		printf("dirty\n");
-		return;
-	}
-
-	if (git_object_short_id(&buf, (git_object *) h->commit))
-		pfatal_git("git_object_short_id");
 
 	next = NULL;
 	if (history->n_hist)
@@ -694,7 +687,6 @@ for (i = 0; i != h->n_threads; i++)
 	fprintf(stderr, " %p", h->threads[i]);
 fprintf(stderr, " (%p)\n", next);
 #endif
-	n = threads_number(history);
 	t = threads_classify(history, h, next);
 #ifdef DUMP
 for (i = 0; i != n; i++)
@@ -733,6 +725,14 @@ fprintf(stderr, "\n");
 		putchar(after && (here || before) ? '-' : ' ');
 	}
 	free(t);
+
+	if (!h->commit) {
+		printf("  dirty\n");
+		return;
+	}
+
+	if (git_object_short_id(&buf, (git_object *) h->commit))
+		pfatal_git("git_object_short_id");
 
 	printf("  %s  ", buf.ptr);
 	git_buf_free(&buf);
