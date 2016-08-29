@@ -593,15 +593,19 @@ static unsigned assign_threads(struct vcs_history *history)
 /* ----- Thread vector ----------------------------------------------------- */
 
 
+unsigned threads_number(const struct vcs_history *history)
+{
+	return history->max_threads;
+}
 
-enum thread *classify_threads(const struct vcs_history *history,
-    const struct vcs_hist *h, const struct vcs_hist *next, unsigned *n)
+
+enum thread *threads_classify(const struct vcs_history *history,
+    const struct vcs_hist *h, const struct vcs_hist *next)
 {
 	enum thread *t;
 	unsigned i, j;
 
-	*n = history->max_threads;
-	t = alloc_type_n(enum thread, *n);
+	t = alloc_type_n(enum thread, history->max_threads);
 	for (i = 0; i != history->max_threads; i++)
 		t[i] = thread_none;
 	for (i = 0; i != h->n_threads; i++)
@@ -689,7 +693,8 @@ for (i = 0; i != h->n_threads; i++)
 	fprintf(stderr, " %p", h->threads[i]);
 fprintf(stderr, " (%p)\n", next);
 #endif
-	t = classify_threads(history, h, next, &n);
+	n = threads_number(history);
+	t = threads_classify(history, h, next);
 #ifdef DUMP
 for (i = 0; i != n; i++)
    fprintf(stderr, "%d ", t[i]);

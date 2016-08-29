@@ -62,8 +62,9 @@ char *vcs_git_summary_for_pango(struct vcs_hist *hist,
 char *vcs_git_long_for_pango(struct vcs_hist *hist,
     char *(*formatter)(const char *fmt, ...));
 
-enum thread *classify_threads(const struct vcs_history *history,
-    const struct vcs_hist *h, const struct vcs_hist *next, unsigned *n);
+unsigned threads_number(const struct vcs_history *history);
+enum thread *threads_classify(const struct vcs_history *history,
+    const struct vcs_hist *h, const struct vcs_hist *next);
 
 void hist_iterate(struct vcs_history *history,
     void (*fn)(void *user, struct vcs_hist *h), void *user);
