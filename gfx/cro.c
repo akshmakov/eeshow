@@ -816,6 +816,7 @@ uint32_t *cro_img(struct cro_ctx *cc, struct cro_ctx *cc_extra,
 	uint32_t *data;
 	cairo_t *cr;
 	cairo_surface_t *s;
+	int line_width;
 
 	stride = cairo_format_stride_for_width(CAIRO_FORMAT_RGB24, w);
 	data = alloc_size(stride * h);
@@ -827,7 +828,17 @@ uint32_t *cro_img(struct cro_ctx *cc, struct cro_ctx *cc_extra,
 	cairo_set_source_rgb(cr, 1, 1, 1);
 	cairo_paint(cr);
 
-	cairo_set_line_width(cr, 2);
+	/*
+	 * @@@ hack ! we should use a properly scaled width for each
+	 * individual line, with the cavas offset based on the width of
+	 * the default line width for non-bus lines.
+	 */
+	line_width = 24 * scale;
+	if (line_width < 1)
+		line_width = 1;
+	if (line_width & 1)
+		cairo_translate(cr, 0.5, 0.5);
+	cairo_set_line_width(cr, line_width);
 	cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
 
 	cc->cr = cr;
