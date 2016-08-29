@@ -71,6 +71,8 @@ struct gui_hist {
 	struct lib lib;		/* combined library */
 	bool identical;		/* identical with previous entry */
 
+	bool skipped;		/* to synchronize thread display */
+
 	struct gui_hist *next;
 };
 

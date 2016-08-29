@@ -13,6 +13,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include <gtk/gtk.h>
 #include <pango/pangocairo.h>
@@ -28,6 +29,98 @@
 #include "gui/common.h"
 
 
+/* ----- Render threads ---------------------------------------------------- */
+
+
+#define		THREAD_MARGIN	(VCS_OVERLAYS_X + 4)  /* offset padding */
+
+#define		COMMIT_RGB	0.2, 0.2, 0.9
+#define		THREAD_RGB	0.1, 0.4, 1.0
+
+#define		COMMIT_R	4
+#define		CORNER_R	4
+#define		THREAD_WIDTH	2
+#define		GAP_Y		4
+
+#define		THREAD_DX	12
+
+
+static void do_render_commit(const struct gui *gui, struct gui_hist *h,
+    cairo_t *cr, unsigned x, unsigned y, unsigned dx,
+    unsigned d_up, unsigned d_down)
+{
+	unsigned n = threads_number(gui->vcs_history);
+	enum thread *t = threads_classify(gui->vcs_history, h->vcs_hist,
+	    h->next ? h->next->vcs_hist : NULL);
+	unsigned from, to;
+	unsigned i;
+
+	cairo_set_line_width(cr, THREAD_WIDTH);
+
+	for (from = 0; from != n; from++)
+		if (t[from] & ~thread_other)
+			break;
+	for (i = 0; i != n; i++)
+		if (t[i] & ~thread_other)
+			to = i;
+	for (i = 0; i != n; i++) {
+		if (i >= from && i < to) {
+			cairo_set_source_rgb(cr, THREAD_RGB);
+			cairo_move_to(cr, x, y);
+			cairo_rel_line_to(cr, dx, 0);
+			cairo_stroke(cr);
+		}
+		if (t[i] & thread_newer) {
+			cairo_set_source_rgb(cr, THREAD_RGB);
+			cairo_move_to(cr, x, y);
+			cairo_rel_line_to(cr, 0, -d_up);
+			cairo_stroke(cr);
+		}
+		if (t[i] & thread_older) {
+			cairo_set_source_rgb(cr, THREAD_RGB);
+			cairo_move_to(cr, x, y);
+			cairo_rel_line_to(cr, 0, d_down);
+			cairo_stroke(cr);
+		}
+		if (t[i] & thread_other) {
+			cairo_set_source_rgb(cr, THREAD_RGB);
+			if (i >= from && i < to) {
+				cairo_move_to(cr, x, y - GAP_Y);
+				cairo_rel_line_to(cr, 0, -d_up + GAP_Y);
+				cairo_move_to(cr, x, y + GAP_Y);
+				cairo_rel_line_to(cr, 0, d_down - GAP_Y);
+			} else {
+				cairo_move_to(cr, x, y - d_up);
+				cairo_rel_line_to(cr, 0, d_up + d_down);
+			}
+			cairo_stroke(cr);
+		}
+		if (t[i] & thread_self) {
+			cairo_set_source_rgb(cr, COMMIT_RGB);
+			cairo_arc(cr, x, y, COMMIT_R, 0, 2 * M_PI);
+			cairo_fill(cr);
+		}
+		x += dx;
+	}
+}
+
+
+static void render_commit(void *user, void *user_over, int x, int y,
+    unsigned w, unsigned h, int dy)
+{
+	struct gui_hist *hist = user_over;
+	cairo_t *cr = user;
+
+	if (hist->skipped)
+		return;
+	if (y + (int) h < 0)
+		return;
+
+	do_render_commit(hist->gui, hist, cr, VCS_OVERLAYS_X + COMMIT_R,
+	    y + h / 2, THREAD_DX, h / 2, dy - h  / 2);
+}
+
+
 /* ----- Drawing ----------------------------------------------------------- */
 
 
@@ -37,7 +130,10 @@ void history_draw_event(const struct gui *gui, cairo_t *cr)
 	cairo_paint(cr);
 
 	overlay_draw_all_d(gui->hist_overlays, cr,
-	    VCS_OVERLAYS_X, VCS_OVERLAYS_Y + gui->hist_y_offset, 0, 1);
+	    VCS_OVERLAYS_X + THREAD_MARGIN +
+	    (threads_number(gui->vcs_history) - 1) * THREAD_DX + 2 * COMMIT_R,
+	    VCS_OVERLAYS_Y + gui->hist_y_offset, 0, 1);
+	over_iterate_geometry(gui->hist_overlays, render_commit, cr);
 }
 
 
@@ -227,6 +323,7 @@ static void ignore_click(void *user)
 
 static struct gui_hist *skip_history(struct gui *gui, struct gui_hist *h)
 {
+	struct gui_hist *start = h;
 	struct overlay_style style = overlay_style_dense;
 	unsigned n;
 
@@ -246,8 +343,9 @@ static struct gui_hist *skip_history(struct gui *gui, struct gui_hist *h)
 		return h;
 
 	h->over = overlay_add(&gui->hist_overlays, &gui->aois,
-	    NULL, ignore_click, h);
+	    NULL, ignore_click, start);
 	overlay_text(h->over, "<small>%u commits without changes</small>", n);
+	start->skipped = 1;
 
 	style.width = 0;
 	style.pad = 0;
@@ -347,6 +445,7 @@ void show_history(struct gui *gui, enum selecting sel)
 		h = skip_history(gui, h);
 		h->over = overlay_add(&gui->hist_overlays, &gui->aois,
 		    hover_history, click_history, h);
+		h->skipped = 0;
 		set_history_style(h, 0);
 		hover_history(h, 0, 0, 0);
 	}
