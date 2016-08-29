@@ -84,6 +84,9 @@ void usage(const char *name)
 "  -e    show extra information (e.g., pin types)\n"
 "  -v    increase verbosity of diagnostic output\n"
 "  -C    'cat' the file to standard output\n"
+"  -E shell_command ...\n"
+"        execute the specified shell command when the GUI is ready.\n"
+"        Sets EESHOW_WINDOW_ID to the X11 window ID.\n"
 "  -H    show history of repository on standard output\n"
 "  -N n  limit history to n revisions (unlimited if omitted or 0)\n"
 "  -S    parse S-expressions from stdin and dump to stdout\n"
@@ -129,6 +132,8 @@ int main(int argc, char **argv)
 	const char *cat = NULL;
 	const char *history = NULL;
 	const char *fmt = NULL;
+	const char **commands = NULL;
+	unsigned n_commands = 0;
 	struct pl_ctx *pl = NULL;
 	int limit = 0;
 	char c;
@@ -167,7 +172,7 @@ int main(int argc, char **argv)
 	if (!have_dashdash)
 		gtk_init(&argc, &argv);
 
-	while ((c = getopt(dashdash, argv, "1evC:F:H:LN:OPSV")) != EOF)
+	while ((c = getopt(dashdash, argv, "1evC:E:F:H:LN:OPSV")) != EOF)
 		switch (c) {
 		case '1':
 			one_sheet = 1;
@@ -180,6 +185,11 @@ int main(int argc, char **argv)
 			break;
 		case 'C':
 			cat = optarg;
+			break;
+		case 'E':
+			commands = realloc_type_n(commands, const char *,
+			    n_commands + 1);
+			commands[n_commands++] = optarg;
 			break;
 		case 'F':
 			fmt = optarg;
@@ -244,7 +254,8 @@ int main(int argc, char **argv)
 
 	if (!have_dashdash) {
 		optind = 0; /* reset getopt */
-		return run_gui(&file_names, !one_sheet, limit);
+		return run_gui(&file_names, !one_sheet, limit,
+		    commands, n_commands);
 	}
 
 	if (dashdash == argc) {

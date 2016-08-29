@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <gdk/gdkx.h>
 #include <gtk/gtk.h>
 
 #include "version.h"
@@ -448,7 +449,8 @@ static void size_allocate_event(GtkWidget *widget, GdkRectangle *allocation,
 /* ----- Initialization ---------------------------------------------------- */
 
 
-int run_gui(const struct file_names *fn, bool recurse, int limit)
+int run_gui(const struct file_names *fn, bool recurse, int limit,
+    const char **commands, unsigned n_commands)
 {
 	GtkWidget *window;
 	char *title;
@@ -509,6 +511,23 @@ int run_gui(const struct file_names *fn, bool recurse, int limit)
 
 	go_to_sheet(&gui, gui.new_hist->sheets);
 	gtk_widget_show_all(window);
+
+	if (n_commands) {
+		long xid =
+		    gdk_x11_window_get_xid(gtk_widget_get_window(window));
+		char *s;
+
+		if (asprintf(&s, "0x%lx", xid)) {}
+		setenv("EESHOW_WINDOW_ID", s, 1);
+
+		while (n_commands--) {
+			while (gtk_events_pending())
+				gtk_main_iteration();
+
+			system(*commands);
+			commands++;
+		}
+	}
 
 	/* for performance testing, use -N-depth */
 	if (limit >= 0)
