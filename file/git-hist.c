@@ -682,11 +682,12 @@ static void dump_one(void *user, struct vcs_hist *h)
 		pfatal_git("git_object_short_id");
 
 	next = NULL;
-	for (i = 0; i < history->n_hist; i++)
-		if (history->sorted_hist[i] == h) {
-			next = history->sorted_hist[i + 1];
-			break;
-		}
+	if (history->n_hist)
+		for (i = 0; i != history->n_hist - 1; i++)
+			if (history->sorted_hist[i] == h) {
+				next = history->sorted_hist[i + 1];
+				break;
+			}
 #ifdef DEBUG
 fprintf(stderr, "%p (%u/%u):", h, h->n_newer, h->n_older);
 for (i = 0; i != h->n_threads; i++)
