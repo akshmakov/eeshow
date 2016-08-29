@@ -67,6 +67,10 @@ void overlay_style(struct overlay *over, const struct overlay_style *style);
 void overlay_set_related(struct overlay *over, struct overlay *related);
 void overlay_set_related_all(struct overlay *overlays, struct overlay *related);
 
+void over_iterate_geometry(const struct overlay *over,
+    void (*fn)(void *user, void *user_over, int x, int y, unsigned w,
+    unsigned h, int dy), void *user);
+
 void overlay_remove(struct overlay **overlays, struct overlay *over);
 void overlay_remove_all(struct overlay **overlays);
 

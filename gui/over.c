@@ -52,6 +52,9 @@ struct overlay {
 	struct aoi *aoi;
 	const struct overlay *related;
 
+	int x,y;		/* for over_iterate_geometry */
+	unsigned w, h;
+
 	struct overlay *next, *prev;
 };
 
@@ -104,6 +107,10 @@ static void post_aoi(struct overlay *over, int x, int y, unsigned w, unsigned h)
 		.user	= over->user,
 	};
 
+	over->x = x;
+	over->y = y;
+	over->w = w;
+	over->h = h;
 
 	if (!over->hover && !over->click)
 		return;
@@ -504,6 +511,21 @@ void overlay_set_related_all(struct overlay *overlays, struct overlay *related)
 
 	for (over = overlays; over; over = over->next)
 		overlay_set_related(over, related);
+}
+
+
+/* ----- Iterate for geometry ---------------------------------------------- */
+
+
+void over_iterate_geometry(const struct overlay *over,
+    void (*fn)(void *user, void *user_over, int x, int y, unsigned w,
+    unsigned h, int dy), void *user)
+{
+	while (over) {
+		fn(user, over->user, over->x, over->y, over->w, over->h,
+		    over->next ? over->next->y - over->y : 0);
+		over = over->next;
+	}
 }
 
 
