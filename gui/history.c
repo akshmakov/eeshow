@@ -34,9 +34,6 @@
 
 #define		THREAD_MARGIN	(VCS_OVERLAYS_X + 4)  /* offset padding */
 
-#define		COMMIT_RGB	0.2, 0.2, 0.9
-#define		THREAD_RGB	0.1, 0.4, 1.0
-
 #define		COMMIT_R	4
 #define		CORNER_R	4
 #define		THREAD_WIDTH	2
@@ -45,9 +42,15 @@
 #define		THREAD_DX	12
 
 
+static const struct color commit_rgb = { 0.2, 0.2, 0.9, 1 };
+static const struct color thread_rgb = { 0.1, 0.4, 1.0, 1 };
+static const struct color skipped_rgb = { 0.7, 0.7, 0.7, 1 };
+
+
 static void do_render_commit(const struct gui *gui, struct gui_hist *h,
     cairo_t *cr, unsigned x, unsigned y, unsigned dx,
-    unsigned d_up, unsigned d_down)
+    unsigned d_up, unsigned d_down,
+    const struct color *cc, const struct color *tc)
 {
 	unsigned n = threads_number(gui->vcs_history);
 	enum thread *t = threads_classify(gui->vcs_history, h->vcs_hist,
@@ -64,26 +67,23 @@ static void do_render_commit(const struct gui *gui, struct gui_hist *h,
 		if (t[i] & ~thread_other)
 			to = i;
 	for (i = 0; i != n; i++) {
+		cairo_set_source_rgb(cr, tc->r, tc->g, tc->b);
 		if (i >= from && i < to) {
-			cairo_set_source_rgb(cr, THREAD_RGB);
 			cairo_move_to(cr, x, y);
 			cairo_rel_line_to(cr, dx, 0);
 			cairo_stroke(cr);
 		}
 		if (t[i] & thread_newer) {
-			cairo_set_source_rgb(cr, THREAD_RGB);
 			cairo_move_to(cr, x, y);
 			cairo_rel_line_to(cr, 0, -d_up);
 			cairo_stroke(cr);
 		}
 		if (t[i] & thread_older) {
-			cairo_set_source_rgb(cr, THREAD_RGB);
 			cairo_move_to(cr, x, y);
 			cairo_rel_line_to(cr, 0, d_down);
 			cairo_stroke(cr);
 		}
 		if (t[i] & thread_other) {
-			cairo_set_source_rgb(cr, THREAD_RGB);
 			if (i >= from && i < to) {
 				cairo_move_to(cr, x, y - GAP_Y);
 				cairo_rel_line_to(cr, 0, -d_up + GAP_Y);
@@ -96,7 +96,7 @@ static void do_render_commit(const struct gui *gui, struct gui_hist *h,
 			cairo_stroke(cr);
 		}
 		if (t[i] & thread_self) {
-			cairo_set_source_rgb(cr, COMMIT_RGB);
+			cairo_set_source_rgb(cr, cc->r, cc->g, cc->b);
 			cairo_arc(cr, x, y, COMMIT_R, 0, 2 * M_PI);
 			cairo_fill(cr);
 		}
@@ -110,14 +110,22 @@ static void render_commit(void *user, void *user_over, int x, int y,
 {
 	struct gui_hist *hist = user_over;
 	cairo_t *cr = user;
+	struct gui_hist *walk;
 
-	if (hist->skipped)
+	if (hist->skipped) {
+		for (walk = hist; walk && walk->skipped; walk = walk->next)
+			do_render_commit(walk->gui, walk, cr,
+			    VCS_OVERLAYS_X + COMMIT_R,
+		            y + h / 2, THREAD_DX, h / 2, dy - h  / 2,
+			    &skipped_rgb, &skipped_rgb);
 		return;
+	}
+
 	if (y + (int) h < 0)
 		return;
 
 	do_render_commit(hist->gui, hist, cr, VCS_OVERLAYS_X + COMMIT_R,
-	    y + h / 2, THREAD_DX, h / 2, dy - h  / 2);
+	    y + h / 2, THREAD_DX, h / 2, dy - h  / 2, &commit_rgb, &thread_rgb);
 }
 
 
@@ -337,15 +345,16 @@ static struct gui_hist *skip_history(struct gui *gui, struct gui_hist *h)
 
 	/* don't skip the last entry */
 	for (n = 0; h->next && h->identical && !h->vcs_hist->n_branches;
-	    h = h->next)
+	    h = h->next) {
+		h->skipped = 1;
 		n++;
+	}
 	if (!n)
 		return h;
 
 	h->over = overlay_add(&gui->hist_overlays, &gui->aois,
 	    NULL, ignore_click, start);
 	overlay_text(h->over, "<small>%u commits without changes</small>", n);
-	start->skipped = 1;
 
 	style.width = 0;
 	style.pad = 0;
