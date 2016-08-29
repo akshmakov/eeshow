@@ -134,7 +134,7 @@ neo900.pdf:	$(NAME) sch2pdf neo900-template.fig
 		    $(NEO900_HW)/neo900.sch
 
 pdf:		$(NAME)
-		./eeshow -r $(NEO900_HW)/neo900.pro -- pdf -o neo900.pdf
+		./eeshow $(NEO900_HW)/neo900.pro -- pdf -o neo900.pdf
 
 #----- Regression test based on Neo900 schematics -----------------------------
 

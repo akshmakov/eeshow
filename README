@@ -63,11 +63,11 @@ Invocation
 
 The general form of invocation for rendering is as follows:
 
-eeshow [-r] [-e] file.lib ... file.sch -- format [options]
+eeshow [-1] [-e] file.lib ... file.sch -- format [options]
 
-Common if using PDF, the option -r can be used (after "eeshow") to
-recursively process sub-sheets. -e enables the rendering of additional
-information, e.g., pin types.
+Common if using PDF, the option -1 can be used (after "eeshow") to
+process only one sheet, not recursing into sub-sheets. -e enables
+the rendering of additional information, e.g., pin types.
 
 For PDF and PNG, the options -s scale and -o output-file can be used to
 control the size of the output and the output file. By default, eeshow
@@ -77,7 +77,7 @@ Examples:
 
 eeshow test.lib test.sch -- png -s 2 -o test.png
 
-eeshow -r neo900.lib kicad-libs/components/powered.lib neo900.sch \
+eeshow neo900.lib kicad-libs/components/powered.lib neo900.sch \
   -- pdf -o neo900.pdf
 
 More details on the above example can be found in the file DEMO.
@@ -156,15 +156,13 @@ The basic invocation of GUI mode is as follows:
 
 eeshow file.lib ... file.sch
 
-Add the option -r to recursively load sub-sheets of file.sch
-
 If file.sch is in a git repository, eeshow automatically loads the
 revision history. The depth of the history can be limited with the
 option -N number-of-commits
 
 Examples:
 
-eeshow -N 30 -r neo900.lib kicad-libs/components/powered.lib neo900.sch
+eeshow -N 30 neo900.lib kicad-libs/components/powered.lib neo900.sch
 
 eeshow `sed -n '/pcbnew/q;/^LibName[0-9]*=/{s///;s/$/.lib/p;};d' anelok.pro` \
   anelok.sch

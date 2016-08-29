@@ -28,7 +28,7 @@ qiv -t diff.png old.png new.png
 
 # Interactively view the schematics
 
-eda-tools/eeshow/eeshow -r $LIBS neo900.sch
+eda-tools/eeshow/eeshow $LIBS neo900.sch
 
 
 # Other projects: c4puter
@@ -39,10 +39,10 @@ git clone https://github.com/c4puter/motherboard.git
 cd motherboard
 git submodule init
 git submodule update
-eeshow -r schlib/library/*.lib *.lib motherboard.sch 
+eeshow schlib/library/*.lib *.lib motherboard.sch 
 
 # Other projects: Olimex A64-OLinuXino
 
 git clone https://github.com/OLIMEX/OLINUXINO.git
 cd OLINUXINO/HARDWARE/A64-OLinuXino/A64-OlinuXino_Rev_A
-eeshow -r A64-OlinuXino_Rev_A-cache.lib A64-OlinuXino_Rev_A.sch
+eeshow A64-OlinuXino_Rev_A-cache.lib A64-OlinuXino_Rev_A.sch

@@ -67,8 +67,8 @@ static void sexpr(void)
 void usage(const char *name)
 {
 	fprintf(stderr,
-"usage: %s [gtk_flags] [-r] [-N n] kicad_file ...\n"
-"       %s [-r] [-e] [-v ...] kicad_file ...\n"
+"usage: %s [gtk_flags] [-1] [-N n] kicad_file ...\n"
+"       %s [-1] [-e] [-v ...] kicad_file ...\n"
 "       %*s[-- driver_spec]\n"
 "       %s [-v ...] -C [rev:]file\n"
 "       %s [-v ...] -H path_into_repo\n"
@@ -80,8 +80,8 @@ void usage(const char *name)
 "    ext       .pro, .lib, .sch, or .kicad_wks\n"
 "    rev       git revision\n"
 "\n"
+"  -1    show only one sheet - do not recurse into sub-sheets\n"
 "  -e    show extra information (e.g., pin types)\n"
-"  -r    recurse into sub-sheets\n"
 "  -v    increase verbosity of diagnostic output\n"
 "  -C    'cat' the file to standard output\n"
 "  -H    show history of repository on standard output\n"
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
 	struct sch_ctx sch_ctx;
 	struct file pro_file, sch_file;
 	bool extra = 0;
-	bool recurse = 0;
+	bool one_sheet = 0;
 	const char *cat = NULL;
 	const char *history = NULL;
 	const char *fmt = NULL;
@@ -167,13 +167,13 @@ int main(int argc, char **argv)
 	if (!have_dashdash)
 		gtk_init(&argc, &argv);
 
-	while ((c = getopt(dashdash, argv, "ervC:F:H:LN:OPSV")) != EOF)
+	while ((c = getopt(dashdash, argv, "1evC:F:H:LN:OPSV")) != EOF)
 		switch (c) {
+		case '1':
+			one_sheet = 1;
+			break;
 		case 'e':
 			extra = 1;
-			break;
-		case 'r':
-			recurse = 1;
 			break;
 		case 'v':
 			verbose++;
@@ -244,7 +244,28 @@ int main(int argc, char **argv)
 
 	if (!have_dashdash) {
 		optind = 0; /* reset getopt */
-		return run_gui(&file_names, recurse, limit);
+		return run_gui(&file_names, !one_sheet, limit);
+	}
+
+	if (dashdash == argc) {
+		gfx_argc = 1;
+		gfx_argv = alloc_type_n(char *, 2);
+		gfx_argv[0] = (char *) (*ops)->name;
+		gfx_argv[1] = NULL;
+	} else {
+		gfx_argc = argc - dashdash - 1;
+		if (!gfx_argc)
+			usage(*argv);
+		gfx_argv = alloc_type_n(char *, gfx_argc + 1);
+		memcpy(gfx_argv, argv + dashdash + 1,
+		    sizeof(const char *) * (gfx_argc + 1));
+
+		for (ops = ops_list; ops != ARRAY_END(ops_list); ops++)
+			if (!strcmp((*ops)->name, *gfx_argv))
+				goto found;
+		fatal("graphics backend \"%s\" not found\n", *gfx_argv);
+found:
+		;
 	}
 
 	if (file_names.pro) {
@@ -253,7 +274,13 @@ int main(int argc, char **argv)
 		fn = pro_parse_file(&pro_file, &file_names);
 	}
 
-	sch_init(&sch_ctx, recurse);
+	gfx = gfx_init(*ops);
+	if (!gfx_args(gfx, gfx_argc, gfx_argv))
+		return 1;
+	if (!gfx_multi_sheet(gfx))
+		one_sheet = 1;
+
+	sch_init(&sch_ctx, !one_sheet);
 	if (!file_open(&sch_file, fn->sch, file_names.pro ? &pro_file : NULL))
 		return 1;
 
@@ -283,39 +310,19 @@ int main(int argc, char **argv)
 	}
 	free_file_names(&file_names);
 
-	if (dashdash == argc) {
-		gfx_argc = 1;
-		gfx_argv = alloc_type_n(char *, 2);
-		gfx_argv[0] = (char *) (*ops)->name;
-		gfx_argv[1] = NULL;
-	} else {
-		gfx_argc = argc - dashdash - 1;
-		if (!gfx_argc)
-			usage(*argv);
-		gfx_argv = alloc_type_n(char *, gfx_argc + 1);
-		memcpy(gfx_argv, argv + dashdash + 1,
-		    sizeof(const char *) * (gfx_argc + 1));
-
-		for (ops = ops_list; ops != ARRAY_END(ops_list); ops++)
-			if (!strcmp((*ops)->name, *gfx_argv))
-				goto found;
-		fatal("graphics backend \"%s\" not found\n", *gfx_argv);
-found:
-		;
-	}
-
 	if (!sch_parse(&sch_ctx, &sch_file, &lib, NULL))
 		return 1;
 	file_close(&sch_file);
 
-	gfx = gfx_init(*ops);
-	if (!gfx_args(gfx, gfx_argc, gfx_argv))
-		return 1;
-	if (recurse) {
+	if (one_sheet) {
+		sch_render(sch_ctx.sheets, gfx);
+		if (extra)
+			sch_render_extra(sch_ctx.sheets, gfx);
+		if (pl)
+			pl_render(pl, gfx, sch_ctx.sheets, sch_ctx.sheets);
+	} else {
 		const struct sheet *sheet;
 
-		if (!gfx_multi_sheet(gfx))
-			fatal("graphics backend only supports single sheet\n");
 		for (sheet = sch_ctx.sheets; sheet; sheet = sheet->next) {
 			gfx_sheet_name(gfx, sheet->title);
 			sch_render(sheet, gfx);
@@ -326,12 +333,6 @@ found:
 			if (sheet->next)
 				gfx_new_sheet(gfx);
 		}
-	} else {
-		sch_render(sch_ctx.sheets, gfx);
-		if (extra)
-			sch_render_extra(sch_ctx.sheets, gfx);
-		if (pl)
-			pl_render(pl, gfx, sch_ctx.sheets, sch_ctx.sheets);
 	}
 	retval = gfx_end(gfx);
 
