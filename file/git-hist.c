@@ -642,7 +642,8 @@ enum thread *threads_classify(const struct vcs_history *history,
 
 
 void hist_iterate(struct vcs_history *history,
-    void (*fn)(void *user, struct vcs_hist *h), void *user)
+    void (*fn)(void *user, struct vcs_hist *h, const struct vcs_hist *next),
+    void *user)
 {
 	unsigned i;
 
@@ -651,7 +652,9 @@ void hist_iterate(struct vcs_history *history,
 		history->max_threads = assign_threads(history);
 	}
 	for (i = 0; i != history->n_hist; i++)
-		fn(user, history->sorted_hist[i]);
+		fn(user, history->sorted_hist[i],
+		    i + 1 == history->n_hist ?
+		    NULL : history->sorted_hist[i + 1]);
 }
 
 
@@ -664,23 +667,16 @@ void hist_iterate(struct vcs_history *history,
 
 // http://stackoverflow.com/questions/12132862/how-do-i-get-the-name-of-the-current-branch-in-libgit2
 
-static void dump_one(void *user, struct vcs_hist *h)
+static void dump_one(void *user, struct vcs_hist *h,
+    const struct vcs_hist *next)
 {
 	struct vcs_history *history = user;
 	git_buf buf = { 0 };
 	enum thread *t;
 	unsigned n = threads_number(history);
 	unsigned i, j;
-	const struct vcs_hist *next;
 	bool before, here, after;
 
-	next = NULL;
-	if (history->n_hist)
-		for (i = 0; i != history->n_hist - 1; i++)
-			if (history->sorted_hist[i] == h) {
-				next = history->sorted_hist[i + 1];
-				break;
-			}
 #ifdef DEBUG
 fprintf(stderr, "%p (%u/%u):", h, h->n_newer, h->n_older);
 for (i = 0; i != h->n_threads; i++)

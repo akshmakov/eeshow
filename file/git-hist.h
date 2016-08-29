@@ -67,7 +67,8 @@ enum thread *threads_classify(const struct vcs_history *history,
     const struct vcs_hist *h, const struct vcs_hist *next);
 
 void hist_iterate(struct vcs_history *history,
-    void (*fn)(void *user, struct vcs_hist *h), void *user);
+    void (*fn)(void *user, struct vcs_hist *h, const struct vcs_hist *next),
+    void *user);
 void dump_hist(struct vcs_history *history);
 
 #endif /* !FILE_GIT_HIST_H */

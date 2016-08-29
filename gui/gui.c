@@ -349,7 +349,8 @@ struct add_hist_ctx {
 };
 
 
-static void add_hist(void *user, struct vcs_hist *h)
+static void add_hist(void *user, struct vcs_hist *h,
+    const struct vcs_hist *next)
 {
 	struct add_hist_ctx *ahc = user;
 	struct gui *gui = ahc->gui;
@@ -399,14 +400,15 @@ static void get_revisions(struct gui *gui, const struct file_names *fn,
 	if (gui->vcs_history)
 		hist_iterate(gui->vcs_history, add_hist, &add_hist_ctx);
 	else
-		add_hist(&add_hist_ctx, NULL);
+		add_hist(&add_hist_ctx, NULL, NULL);
 }
 
 
 /* ----- Retrieve and count history ---------------------------------------- */
 
 
-static void count_history(void *user, struct vcs_hist *h)
+static void count_history(void *user, struct vcs_hist *h,
+    const struct vcs_hist *next)
 {
 	struct gui *gui = user;
 
