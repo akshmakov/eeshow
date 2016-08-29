@@ -28,6 +28,19 @@
 #include "gui/common.h"
 
 
+/* ----- Drawing ----------------------------------------------------------- */
+
+
+void history_draw_event(const struct gui *gui, cairo_t *cr)
+{
+	overlay_draw_all_d(gui->hist_overlays, cr,
+	    VCS_OVERLAYS_X,
+	    VCS_OVERLAYS_Y +
+	    (gui->mode == showing_history ? gui->hist_y_offset : 0),
+	    0, 1);
+}
+
+
 /* ----- Overlay interaction ----------------------------------------------- */
 
 

@@ -33,9 +33,6 @@
 #include "gui/common.h"
 
 
-#define	VCS_OVERLAYS_X		5
-#define	VCS_OVERLAYS_Y		5
-
 #define	SHEET_OVERLAYS_X	-10
 #define	SHEET_OVERLAYS_Y	10
 
@@ -227,11 +224,9 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 
 	overlay_draw_all(gui->sheet_overlays, cr,
 	    SHEET_OVERLAYS_X, SHEET_OVERLAYS_Y);
-	overlay_draw_all_d(gui->hist_overlays, cr,
-	    VCS_OVERLAYS_X,
-	    VCS_OVERLAYS_Y +
-	    (gui->mode == showing_history ? gui->hist_y_offset : 0),
-	    0, 1);
+	if (gui->mode != showing_history)
+		overlay_draw_all_d(gui->hist_overlays, cr,
+		    VCS_OVERLAYS_X, VCS_OVERLAYS_Y, 0, 1);
 	overlay_draw_all_d(gui->pop_underlays, cr, gui->pop_x, gui->pop_y,
 	    gui->pop_dx, gui->pop_dy);
 	overlay_draw_all_d(gui->pop_overlays, cr,
@@ -239,8 +234,17 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	    gui->pop_y + gui->pop_dy * GLABEL_STACK_PADDING,
 	    gui->pop_dx, gui->pop_dy);
 
-	if (gui->mode == showing_index)
+	switch (gui->mode) {
+	case showing_history:
+		history_draw_event(gui, cr);
+		break;
+	case showing_index:
 		index_draw_event(gui, cr);
+		break;
+	default:
+		break;
+	}
+	if (gui->mode == showing_index)
 
 	timer_show(cr);
 

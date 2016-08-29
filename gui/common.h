@@ -134,6 +134,9 @@ struct gui {
 };
 
 
+#define	VCS_OVERLAYS_X		5
+#define	VCS_OVERLAYS_Y		5
+
 #define	GLABEL_STACK_PADDING	5
 
 
@@ -167,6 +170,7 @@ void sheet_setup(struct gui *gui);
 
 /* history.c */
 
+void history_draw_event(const struct gui *gui, cairo_t *cr);
 void show_history(struct gui *gui, enum selecting sel);
 
 /* index.c */
