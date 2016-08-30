@@ -155,6 +155,7 @@ newref:
 SUPP = dl-init cairo-font
 
 leak:		$(NAME)
-		valgrind --leak-check=full --num-callers=50 \
+		valgrind --leak-check=full --show-leak-kinds=all \
+		    --num-callers=50 \
 		    $(SUPP:%=--suppressions=%.supp) \
 		    eeshow -N 1 $(NEO900_HW)/neo900.pro -- png >/dev/null
