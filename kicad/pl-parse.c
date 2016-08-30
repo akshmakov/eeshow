@@ -116,10 +116,15 @@ static bool get_size(const struct expr *e, float *x, float *y)
 
 static bool get_float(const struct expr *e, float *f)
 {
+	char *end;
+
 	for (; e; e = e->next)
 		if (e->s) {
-			*f = atof(e->s);	// @@@ error checking
-			return 1;
+			*f = strtod(e->s, &end);
+			if (!*end)
+				return 1;
+			error("invalid number \"%s\"", e->s);
+			return 0;
 		}
 	error("no number found");
 	return 0;
@@ -129,10 +134,18 @@ static bool get_float(const struct expr *e, float *f)
 
 static bool get_int(const struct expr *e, int *n)
 {
+	long tmp;
+	char *end;
+
 	for (; e; e = e->next)
 		if (e->s) {
-			*n = atoi(e->s);	// @@@ error checking
-			return 1;
+			tmp = strtol(e->s, &end, 0);
+			if (!*end && (int) tmp == tmp) {
+				*n = (int) tmp;
+				return 1;
+			}
+			error("invalid number \"%s\"", e->s);
+			return 0;
 		}
 	error("no number foundn");
 	return 0;
