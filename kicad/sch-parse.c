@@ -127,6 +127,7 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 	txt = &field->txt;
 	txt->s = NULL;
 
+	/* ignore fields with empty string as content */
 	if (sscanf(line, "F %d \"\" %c %d %d %u %u %c %c%c%c",
 	    &n, &hv, &txt->x, &txt->y, &txt->size, &flags, &hor, &vert,
 	    &italic, &bold) == 10) {
@@ -134,13 +135,17 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 		return 1;
 	}
 
-	if (sscanf(line, "F %d \"%n", &n, &pos) != 1 || !pos)
+	if (sscanf(line, "F %d \"%n", &n, &pos) != 1 || !pos) {
+		free(field);
 		return 0;
+	}
 	for (p = line + pos; *p && *p != '"'; p++)
 		if (*p == '\\' && p[1])
 			p++;
-	if (*p != '"')
+	if (*p != '"') {
+		free(field);
 		return 0;
+	}
 
 	len = p - (line + pos);
 	s = alloc_size(len + 1);
@@ -151,6 +156,7 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 	    &hv, &txt->x, &txt->y, &txt->size, &flags,
 	    &hor, &vert, &italic, &bold) != 9) {
 		free(s);
+		free(field);
 		return 0;
 	}
 	txt->s = s;
