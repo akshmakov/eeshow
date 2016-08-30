@@ -10,7 +10,6 @@
  * (at your option) any later version.
  */
 
-#define _GNU_SOURCE 	/* for asprintf */
 #include <stdbool.h>
 #include <stdio.h>
 #include <sys/time.h>
@@ -64,9 +63,8 @@ void timer_show(cairo_t *cr)
 		now.tv_usec += 1000000;
 	}
 
-		
-	if (asprintf(&s , "%u.%03d",
-	    (unsigned) now.tv_sec, (int) now.tv_usec / 1000)) {}
+	alloc_printf(&s , "%u.%03d",
+	    (unsigned) now.tv_sec, (int) now.tv_usec / 1000);
 	timer_show_cairo(cr, s);
 }
 

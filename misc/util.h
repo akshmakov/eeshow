@@ -70,4 +70,8 @@ static inline bool strbegins(const char *s, const char *prefix)
 	return !strncmp(s, prefix, strlen(prefix));
 }
 
+
+int alloc_printf(char **s, const char *fmt, ...)
+    __attribute__((format(printf, 2, 3)));
+
 #endif /* !MISC_UTIL_H */

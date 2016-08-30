@@ -11,7 +11,6 @@
  */
 
 
-#define	_GNU_SOURCE	/* for asprintf */
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -267,7 +266,7 @@ void dwg_glabel(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
 	if (bbox)
 		bbox_from_poly(bbox, n, vx, vy);
 
-	if (asprintf(&tag, "G:%s", s)) {}
+	alloc_printf(&tag, "G:%s", s);
 	gfx_tag(gfx, tag, n, vx, vy);
 }
 

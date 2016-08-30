@@ -11,10 +11,10 @@
  */
 
 
-#define	_GNU_SOURCE	/* for asprintf */
 #include <stdio.h>
 #include <assert.h>
 
+#include "misc/util.h"
 #include "misc/diag.h"
 #include "gfx/misc.h"
 #include "gfx/style.h"
@@ -82,7 +82,7 @@ static void do_hsheet_text(const struct sch_obj *obj,
 		.vert	= text_min,
 		.style	= text_normal,
 	};
-	if (asprintf(&s, "Sheet: %s", sheet->name)) {}
+	alloc_printf(&s, "Sheet: %s", sheet->name);
 	sheet_txt.s = s; /* work around "const" mismatch */
 
 	struct text file_txt = {
@@ -94,7 +94,7 @@ static void do_hsheet_text(const struct sch_obj *obj,
 		.vert	= text_max,
 		.style	= text_normal,
 	};
-	if (asprintf(&s, "File: %s", sheet->file)) {}
+	alloc_printf(&s, "File: %s", sheet->file);
 	file_txt.s = s; /* work around "const" mismatch */
 
 	if (sheet->rotated) {

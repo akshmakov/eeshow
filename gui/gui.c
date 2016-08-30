@@ -17,7 +17,6 @@
  * https://developer.gnome.org/gtk3/stable/gtk-migrating-2-to-3.html
  */
 
-#define	_GNU_SOURCE	/* for asprintf */
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -478,7 +477,7 @@ int run_gui(const struct file_names *fn, bool recurse, int limit,
 	gtk_container_add(GTK_CONTAINER(window), gui.da);
 
 	gtk_window_set_default_size(GTK_WINDOW(window), 640, 480);
-	if (asprintf(&title, "eeshow (rev %s)", version)) {};
+	alloc_printf(&title, "eeshow (rev %s)", version);
 	gtk_window_set_title(GTK_WINDOW(window), title);
 
 	gtk_widget_set_events(gui.da,
@@ -517,7 +516,7 @@ int run_gui(const struct file_names *fn, bool recurse, int limit,
 		    gdk_x11_window_get_xid(gtk_widget_get_window(window));
 		char *s;
 
-		if (asprintf(&s, "0x%lx", xid)) {}
+		alloc_printf(&s, "0x%lx", xid);
 		setenv("EESHOW_WINDOW_ID", s, 1);
 
 		while (n_commands--) {

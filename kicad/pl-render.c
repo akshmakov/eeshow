@@ -10,7 +10,6 @@
  * (at your option) any later version.
  */
 
-#define	_GNU_SOURCE	/* for asprintf */
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -88,7 +87,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			n = 0;
 			for (sch = sheets; sch; sch = sch->next)
 				n++;
-			if (asprintf(&x, "%u", n)) {}
+			alloc_printf(&x, "%u", n);
 			break;
 		case 'P':
 			x = "%P";	// sheet path
@@ -101,7 +100,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			for (sch = sheets; sch != sheet;
 			    sch = sch->next)
 				n++;
-			if (asprintf(&x, "%u", n)) {}
+			alloc_printf(&x, "%u", n);
 			break;
 		case 'T':
 			x = (char *) sheet->title;

@@ -11,7 +11,6 @@
  */
 
 
-#define	_GNU_SOURCE	/* for asprintf */
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -48,7 +47,7 @@ unsigned vsfmt_pango(char *buf, const char *fmt, va_list ap)
 		switch (*q) {
 		case 's':
 			s = va_arg(ap, const char *);
-			len = asprintf(&tmp, tmp_fmt, s);
+			len = alloc_printf(&tmp, tmp_fmt, s);
 
 			extra = 0;
 			for (t = tmp; *t; t++)
@@ -97,13 +96,13 @@ unsigned vsfmt_pango(char *buf, const char *fmt, va_list ap)
 			/* @@@ we don't filter markup meta-characters */
 		case 'd':
 		case 'x':
-			len = asprintf(&tmp, tmp_fmt, va_arg(ap, int));
+			len = alloc_printf(&tmp, tmp_fmt, va_arg(ap, int));
 			if (buf)
 				memcpy(res, tmp, len);
 			res += len;
 			break;
 		case 'u':
-			len = asprintf(&tmp, tmp_fmt, va_arg(ap, unsigned));
+			len = alloc_printf(&tmp, tmp_fmt, va_arg(ap, unsigned));
 			if (buf)
 				memcpy(res, tmp, len);
 			res += len;
