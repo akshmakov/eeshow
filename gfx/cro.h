@@ -41,6 +41,8 @@ void cro_get_size(const struct cro_ctx *cc, int *w, int *h, int *x, int *y);
 
 uint32_t *cro_img_end(struct cro_ctx *cc, int *w, int *h, int *stride);
 void cro_img_write(cairo_surface_t *s, const char *name);
+void cro_img_reset(struct cro_ctx *cc);
+void cro_img_destroy(struct cro_ctx *cc);
 
 void cro_canvas_end(struct cro_ctx *cc, int *w, int *h, int *xmin, int *ymin);
 void cro_canvas_prepare(cairo_t *cr);

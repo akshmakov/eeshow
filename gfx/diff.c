@@ -450,6 +450,9 @@ static int diff_end(void *ctx)
 	assert(diff->gfx);
 	assert(diff->new_gfx);
 
+	cro_img_reset(gfx_user(diff->new_gfx));
+	cro_img_reset(gfx_user(diff->gfx));
+	
 	old_cr = make_diff(NULL, 0, 0, diff->scale,
 	    gfx_user(diff->gfx), NULL, gfx_user(diff->new_gfx), NULL, NULL,
 	    &changed);
@@ -457,10 +460,15 @@ static int diff_end(void *ctx)
 
 	cro_img_write(s, diff->output_name);
 
-	cairo_surface_destroy(s);
-	cairo_destroy(old_cr);
+	cro_img_reset(gfx_user(diff->new_gfx));
+	cro_img_reset(gfx_user(diff->gfx));
 
-	gfx_end(diff->new_gfx);
+	cro_img_destroy(gfx_user(diff->new_gfx));
+	cro_img_destroy(gfx_user(diff->gfx));
+	gfx_destroy(diff->new_gfx);
+	gfx_destroy(diff->gfx);
+
+	free(diff);
 
 	return changed;
 }

@@ -778,6 +778,22 @@ void cro_img_write(cairo_surface_t *s, const char *name)
 }
 
 
+void cro_img_reset(struct cro_ctx *cc)
+{
+	cairo_surface_destroy(cc->s);
+	cairo_destroy(cc->cr);
+	cc->cr = NULL;
+	cc->s = NULL;
+}
+
+
+void cro_img_destroy(struct cro_ctx *cc)
+{
+	record_destroy(&cc->record);
+	free(cc);
+}
+
+
 /* ----- Canvas (using redraw) --------------------------------------------- */
 
 
@@ -844,7 +860,6 @@ uint32_t *cro_img(struct cro_ctx *cc, struct cro_ctx *cc_extra,
 		cairo_set_source_rgba(cr, 1, 1, 1, alpha);
 		cairo_paint(cr);
 		cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
-
 	}
 
 	/*

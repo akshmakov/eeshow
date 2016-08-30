@@ -74,10 +74,13 @@ unsigned gfx_text_width(struct gfx *gfx, const char *s, unsigned size,
 
 struct gfx *gfx_init(const struct gfx_ops *ops);
 bool gfx_args(struct gfx *gfx, int argc, char *const *argv);
+
 void gfx_sheet_name(struct gfx *gfx, const char *name);
 void gfx_new_sheet(struct gfx *gfx);
 bool gfx_multi_sheet(struct gfx *gfx);
 void *gfx_user(struct gfx *gfx);	/* transitional kludge */
+
+void gfx_destroy(struct gfx *gfx);
 int gfx_end(struct gfx *gfx);
 
 #endif /* !GFX_GFX_H */

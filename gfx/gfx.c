@@ -148,12 +148,18 @@ void *gfx_user(struct gfx *gfx)
 }
 
 
+void gfx_destroy(struct gfx *gfx)
+{
+	free(gfx);
+}
+
+
 int gfx_end(struct gfx *gfx)
 {
 	int res = 0;
 
 	if (gfx->ops->end)
 		res = gfx->ops->end(gfx->user);
-	free(gfx);
+	gfx_destroy(gfx);
 	return res;
 }
