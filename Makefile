@@ -56,6 +56,7 @@ endif
 include Makefile.c-common
 
 .PHONY:		test neo900 sch test testref png pngref pdf diff view newref
+.PHONY:		leak
 
 all::		$(NAME)
 
@@ -148,3 +149,9 @@ view:
 
 newref:
 		test/genpng test ref
+
+#----- Memory leak checking ---------------------------------------------------
+
+leak:		$(NAME)
+		valgrind --leak-check=full \
+		    eeshow -N 1 $(NEO900_HW)/neo900.pro -- png >/dev/null
