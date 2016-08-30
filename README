@@ -63,6 +63,10 @@ Invocation
 
 The general form of invocation for rendering is as follows:
 
+eeshow file.pro [file.sch]
+
+or
+
 eeshow [-1] [-e] file.lib ... file.sch -- format [options]
 
 Common if using PDF, the option -1 can be used (after "eeshow") to
@@ -79,6 +83,8 @@ eeshow test.lib test.sch -- png -s 2 -o test.png
 
 eeshow neo900.lib kicad-libs/components/powered.lib neo900.sch \
   -- pdf -o neo900.pdf
+
+eeshow neo900.pro neo900_SS_4.sch -- pdf -o neo900-sheet04.pdf
 
 More details on the above example can be found in the file DEMO.
 
@@ -153,6 +159,10 @@ Invocation
 ----------
 
 The basic invocation of GUI mode is as follows:
+
+eeshow file.pro
+
+or
 
 eeshow file.lib ... file.sch
 
