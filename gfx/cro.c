@@ -810,7 +810,7 @@ void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr, int xo, int yo,
 
 uint32_t *cro_img(struct cro_ctx *cc, struct cro_ctx *cc_extra,
     int xo, int yo, int w, int h,
-    float scale, cairo_t **res_cr, int *res_stride)
+    float scale, double alpha, cairo_t **res_cr, int *res_stride)
 {
 	int stride;
 	uint32_t *data;
@@ -822,11 +822,20 @@ uint32_t *cro_img(struct cro_ctx *cc, struct cro_ctx *cc_extra,
 	data = alloc_size(stride * h);
 
 	s = cairo_image_surface_create_for_data((unsigned char *) data,
-	    CAIRO_FORMAT_RGB24, w, h, stride);
+	    alpha == 1 ? CAIRO_FORMAT_RGB24 : CAIRO_FORMAT_ARGB32,
+	    w, h, stride);
 	cr = cairo_create(s);
 
-	cairo_set_source_rgb(cr, 1, 1, 1);
-	cairo_paint(cr);
+	if (alpha == 1) {
+		cairo_set_source_rgb(cr, 1, 1, 1);
+		cairo_paint(cr);
+	} else {
+		cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+		cairo_set_source_rgba(cr, 1, 1, 1, alpha);
+		cairo_paint(cr);
+		cairo_set_operator(cr, CAIRO_OPERATOR_OVER);
+
+	}
 
 	/*
 	 * @@@ hack ! we should use a properly scaled width for each

@@ -78,5 +78,3 @@ GUI/index:
 - needs keyboard shortcut to invoke
 - add keyboard shortcuts (cursor, Enter)
 - examine interaction with background, suppress conflicts
-- try to use alpha instead of "yellow"; consider CAIRO_OPERATOR_SOURCE:
-  https://www.cairographics.org/FAQ/#paint_from_a_surface

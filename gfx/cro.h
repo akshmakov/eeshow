@@ -49,7 +49,7 @@ void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr,
 
 uint32_t *cro_img(struct cro_ctx *cc, struct cro_ctx *cc_extra,
     int x0, int yo, int w, int h,
-    float scale, cairo_t **res_cr, int *res_stride);
+    float scale, double alpha, cairo_t **res_cr, int *res_stride);
 cairo_surface_t *cro_img_surface(struct cro_ctx *cc);
 
 #endif /* !GFX_CRO_H */

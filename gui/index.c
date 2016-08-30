@@ -143,7 +143,7 @@ static void thumb_set_style(struct gui_sheet *sheet, bool selected)
 	}
 
 	if (sheet->thumb_yellow)
-			style.bg = RGBA(1.0, 1.0, 0, 1);
+		style.bg = RGBA(1.0, 1.0, 0, 1);
 
 	overlay_style(sheet->thumb_over, &style);
 }
@@ -229,32 +229,6 @@ static bool best_ratio(const struct gui *gui)
 }
 
 
-/*
- * @@@ We should use Cairo's alpha blending instead of manipulating pixels.
- * The idea would be to make an ARGB32 surface for the thumbnail and then
- * pre-fill it with alpha = 0. Then we make a solid background and paint the
- * thumbnail over it. Alas, this produces artefacts, spots where background
- * color shines through.
- */
-
-#define	MASK 0xffffff
-
-
-static void paint_yellow(uint32_t *data, int w, int h, int stride)
-{
-	uint32_t *p;
-	int line = stride >> 2;
-	int x, y;
-
-	for (y = 0; y != h; y++) {
-		p = data + y * line;
-		for (x = 0; x != w; x++)
-			if ((p[x] & MASK) == MASK)
-				p[x] = 0xffff00;
-	}
-}
-
-
 static void index_render_sheet(const struct gui *gui,
     struct gui_sheet *sheet)
 {
@@ -262,7 +236,6 @@ static void index_render_sheet(const struct gui *gui,
 	float fw, fh, f;
 	bool yellow = 0;
 	int xo, yo;
-	uint32_t *data;
 	int stride;
 
 	if (!sheet->gfx_thumb) {
@@ -303,11 +276,8 @@ static void index_render_sheet(const struct gui *gui,
 
 	xo = -(xmin + w / 2) * f + thumb_w / 2;
 	yo = -(ymin + h / 2) * f + thumb_h / 2;
-	data = cro_img(gfx_user(sheet->gfx_thumb), NULL,
-	    xo, yo, thumb_w, thumb_h,  f, NULL, &stride);
-
-	if (yellow)
-		paint_yellow(data, thumb_w, thumb_h, stride);
+	cro_img(gfx_user(sheet->gfx_thumb), NULL,
+	    xo, yo, thumb_w, thumb_h,  f, 0, NULL, &stride);
 
 	sheet->thumb_surf = cro_img_surface(gfx_user(sheet->gfx_thumb));
 	sheet->thumb_w = thumb_w;

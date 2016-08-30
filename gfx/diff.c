@@ -403,9 +403,9 @@ static cairo_t *make_diff(cairo_t *cr, int cx, int cy, float scale,
 		yo = -ymin * scale;
 	}
 
-	img_old = cro_img(old, old_extra, xo, yo, sw, sh, scale,
+	img_old = cro_img(old, old_extra, xo, yo, sw, sh, scale, 1,
 	    &old_cr, &stride);
-	img_new = cro_img(new, new_extra, xo, yo, sw, sh, scale,
+	img_new = cro_img(new, new_extra, xo, yo, sw, sh, scale, 1,
 	    NULL, NULL);
 
 	struct diff diff = {
