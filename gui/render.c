@@ -244,7 +244,6 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	default:
 		break;
 	}
-	if (gui->mode == showing_index)
 
 	timer_show(cr);
 
