@@ -851,8 +851,11 @@ uint32_t *cro_img(struct cro_ctx *cc, struct cro_ctx *cc_extra,
 	setup_font(cc);
 
 	if (cc_extra) {
+		void *old = cc_extra->record.user;
+
 		cc_extra->record.user = cc->record.user;  /* @@@ eww ! */
 		record_replay(&cc_extra->record);
+		cc_extra->record.user = old;
 	}
 	record_replay(&cc->record);
 
