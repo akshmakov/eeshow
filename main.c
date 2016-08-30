@@ -18,6 +18,7 @@
 #include <string.h>
 #include <locale.h>
 
+#include <cairo/cairo.h>
 #include <gtk/gtk.h>
 
 #include "misc/util.h"
@@ -353,6 +354,8 @@ found:
 	lib_free(&lib);
 	if (pl)
 		pl_free(pl);
+
+	cairo_debug_reset_static_data();
 
 	return retval;
 }

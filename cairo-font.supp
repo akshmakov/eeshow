@@ -1,13 +1,4 @@
 {
-	<cairo_select_font_face>
-	Memcheck:Leak
-	...
-	fun:cairo_toy_font_face_create
-	fun:cairo_select_font_face
-	...
-}
-
-{
 	<cairo_text_extents>
 	Memcheck:Leak
 	...
