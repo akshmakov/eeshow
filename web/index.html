@@ -172,6 +172,21 @@ history viewer for changing the version.
 <P>
 <IMG src="wt-diff-new.png"><P>
 <P>
+When showing differences, sub-sheets containing changes (or that have
+sub-sheets with changes) are highlighted. The same highlighting is
+also applied on the index page.
+<P>
+<IMG src="wt-diff-index.png"><P>
+<P>
+Note: eeshow bases this highlighting on comparing objects and their
+parameters ("delta mode"), not on rendering them and then comparing
+images ("diff mode").
+<BR>
+This can sometimes produce diverging results,
+e.g., a sheet may be highlighted but have no visible changes.
+<BR>
+Delta mode can also be selected for visualization, by pressing Shift-D.
+
 
 <H2>Non-interactive use</H2>
 

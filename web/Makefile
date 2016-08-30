@@ -1,5 +1,5 @@
 FIGS = wt-start wt-plain wt-pin-type wt-glabel wt-index wt-history wt-diff \
-       wt-diff-old wt-diff-new
+       wt-diff-old wt-diff-new wt-diff-index
 
 .PHONY:		upload
 
