@@ -319,14 +319,14 @@ static bool obj_eq(const struct sch_obj *a, const struct sch_obj *b,
 			return 1;
 		if (a->u.sheet.error != b->u.sheet.error)
 			return 0;
-		return sheet_eq(a->u.sheet.sheet, b->u.sheet.sheet);
+		return sheet_eq(a->u.sheet.sheet, b->u.sheet.sheet, 1);
 	default:
 		BUG("invalid type %d", a->type);
 	}
 }
 
 
-bool sheet_eq(const struct sheet *a, const struct sheet *b)
+bool sheet_eq(const struct sheet *a, const struct sheet *b, bool recurse)
 {
 	const struct sch_obj *obj_a, *obj_b;
 
@@ -345,7 +345,7 @@ bool sheet_eq(const struct sheet *a, const struct sheet *b)
 	obj_a = a->objs;
 	obj_b = b->objs;
 	while (obj_a && obj_b) {
-		if (!obj_eq(obj_a, obj_b, 1))
+		if (!obj_eq(obj_a, obj_b, recurse))
 			return 0;
 		obj_a = obj_a->next;
 		obj_b = obj_b->next;

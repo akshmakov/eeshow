@@ -17,7 +17,7 @@
 #include "kicad/sch.h"
 
 
-bool sheet_eq(const struct sheet *a, const struct sheet *b);
+bool sheet_eq(const struct sheet *a, const struct sheet *b, bool recurse);
 
 void delta(const struct sheet *a, const struct sheet *b,
     struct sheet *res_a, struct sheet *res_b, struct sheet *res_ab);

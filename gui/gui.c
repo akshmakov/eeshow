@@ -319,7 +319,7 @@ static const struct sheet *parse_files(struct gui_hist *hist,
 	 */
 
 	if (prev && prev->sheets &&
-	    sheet_eq(prev->sch_ctx.sheets, hist->sch_ctx.sheets))
+	    sheet_eq(prev->sch_ctx.sheets, hist->sch_ctx.sheets, 1))
 		prev->identical = 1;
 
 	/*

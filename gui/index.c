@@ -277,7 +277,7 @@ static void index_render_sheet(const struct gui *gui,
 
 		old = find_corresponding_sheet(gui->old_hist->sheets,
 		    gui->new_hist->sheets, sheet);
-		if (!sheet_eq(sheet->sch, old->sch))
+		if (!sheet_eq(sheet->sch, old->sch, 0))
 			yellow = 1;
 	}
 
