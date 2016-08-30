@@ -218,6 +218,9 @@ static bool diff_args(void *ctx, int argc, char *const *argv)
 	sch_render(new_sch.sheets, diff->gfx);
 	diff->new_gfx = diff->gfx;
 
+	sch_free(&new_sch);
+	lib_free(&new_lib);
+
 	diff->gfx = gfx_init(&cro_img_ops);
 	if (!gfx_args(diff->gfx, argc, argv))
 		goto fail_open;
@@ -456,6 +459,8 @@ static int diff_end(void *ctx)
 
 	cairo_surface_destroy(s);
 	cairo_destroy(old_cr);
+
+	gfx_end(diff->new_gfx);
 
 	return changed;
 }
