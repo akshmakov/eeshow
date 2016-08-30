@@ -690,6 +690,9 @@ static int cr_pdf_end(void *ctx)
 	if (cc->toc)
 		pdftoc_end(cc->toc);
 
+	free(cc->sheets);
+	free(cc);
+
 	return 0;
 }
 

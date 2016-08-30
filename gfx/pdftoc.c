@@ -346,5 +346,6 @@ void pdftoc_end(struct pdftoc *ctx)
 		ctx->titles = next;
 	}
 	free(ctx->buf);
+	free(ctx->objs);
 	free(ctx);
 }

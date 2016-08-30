@@ -268,6 +268,7 @@ void dwg_glabel(struct gfx *gfx, int x, int y, const char *s, int dir, int dim,
 
 	alloc_printf(&tag, "G:%s", s);
 	gfx_tag(gfx, tag, n, vx, vy);
+	free(tag);
 }
 
 

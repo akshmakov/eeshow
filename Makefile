@@ -158,4 +158,5 @@ leak:		$(NAME)
 		valgrind --leak-check=full --show-leak-kinds=all \
 		    --num-callers=50 \
 		    $(SUPP:%=--suppressions=%.supp) \
-		    eeshow -N 1 $(NEO900_HW)/neo900.pro -- png >/dev/null
+		    eeshow -N 1 $(NEO900_HW)/neo900.pro -- pdf >/dev/null
+#		    eeshow -N 1 $(NEO900_HW)/neo900.pro -- png >/dev/null
