@@ -43,6 +43,21 @@ struct sexpr_ctx {
 /* ----- Parser ------------------------------------------------------------ */
 
 
+static bool pop(struct sexpr_ctx *ctx)
+{
+	struct stack *prev;
+
+	if (!ctx->sp->prev) {
+		error("too many )");
+		return 0;
+	}
+	prev = ctx->sp->prev;
+	free(ctx->sp);
+	ctx->sp = prev;
+	return 1;
+}
+
+
 static void new_expr(struct sexpr_ctx *ctx)
 {
 	struct stack *st = alloc_type(struct stack);
@@ -134,12 +149,8 @@ bool sexpr_parse(struct sexpr_ctx *ctx, const char *s)
 				new_expr(ctx);
 				break;
 			case ')':
-				if (!ctx->sp->prev) {
+				if (!pop(ctx))
 					ctx->state = failed;
-					error("too many )");
-					break;
-				}
-				ctx->sp = ctx->sp->prev;
 				break;
 			case '"':
 				ctx->state = string;

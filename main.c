@@ -291,6 +291,8 @@ found:
 	if (!gfx_multi_sheet(gfx))
 		one_sheet = 1;
 
+	free(gfx_argv);
+
 	sch_init(&sch_ctx, !one_sheet);
 	if (!file_open(&sch_file, fn->sch, file_names.pro ? &pro_file : NULL))
 		return 1;
@@ -349,6 +351,8 @@ found:
 
 	sch_free(&sch_ctx);
 	lib_free(&lib);
+	if (pl)
+		pl_free(pl);
 
 	return retval;
 }
