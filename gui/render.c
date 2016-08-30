@@ -286,7 +286,7 @@ void render_delta(struct gui *gui)
 	sch_b = alloc_type(struct sheet);
 	sch_ab = alloc_type(struct sheet);
 
-	delta(a->sch, b->sch, sch_a, sch_b, sch_ab);
+	delta(a->sch, b->sch, sch_b, sch_a, sch_ab);
 	gui->delta_a.sch = sch_a,
 	gui->delta_b.sch = sch_b,
 	gui->delta_ab.sch = sch_ab,
@@ -299,12 +299,12 @@ void render_delta(struct gui *gui)
 	render_sheet(&gui->delta_ab);
 
 	cro_color_override(gfx_user(gui->delta_ab.gfx), COLOR_LIGHT_GREY);
-	cro_color_override(gfx_user(gui->delta_b.gfx), COLOR_RED);
-	cro_color_override(gfx_user(gui->delta_a.gfx), COLOR_GREEN2);
+	cro_color_override(gfx_user(gui->delta_a.gfx), COLOR_RED);
+	cro_color_override(gfx_user(gui->delta_b.gfx), COLOR_GREEN2);
 
 	cro_color_override(gfx_user(gui->delta_ab.gfx_extra), COLOR_LIGHT_GREY);
-	cro_color_override(gfx_user(gui->delta_b.gfx_extra), COLOR_RED);
-	cro_color_override(gfx_user(gui->delta_a.gfx_extra), COLOR_GREEN2);
+	cro_color_override(gfx_user(gui->delta_a.gfx_extra), COLOR_RED);
+	cro_color_override(gfx_user(gui->delta_b.gfx_extra), COLOR_GREEN2);
 
 	// @@@ clean up when leaving sheet
 #endif
