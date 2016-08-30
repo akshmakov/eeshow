@@ -152,6 +152,8 @@ newref:
 
 #----- Memory leak checking ---------------------------------------------------
 
+SUPP = dl-init
+
 leak:		$(NAME)
-		valgrind --leak-check=full \
+		valgrind --leak-check=full $(SUPP:%=--suppressions=%.supp) \
 		    eeshow -N 1 $(NEO900_HW)/neo900.pro -- png >/dev/null
