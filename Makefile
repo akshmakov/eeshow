@@ -152,8 +152,9 @@ newref:
 
 #----- Memory leak checking ---------------------------------------------------
 
-SUPP = dl-init
+SUPP = dl-init cairo-font
 
 leak:		$(NAME)
-		valgrind --leak-check=full $(SUPP:%=--suppressions=%.supp) \
+		valgrind --leak-check=full --num-callers=50 \
+		    $(SUPP:%=--suppressions=%.supp) \
 		    eeshow -N 1 $(NEO900_HW)/neo900.pro -- png >/dev/null
