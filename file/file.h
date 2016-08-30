@@ -42,4 +42,6 @@ bool file_read(struct file *file,
     void *user);
 void file_close(struct file *file);
 
+void file_cleanup(void);
+
 #endif /* !FILE_FILE_H */

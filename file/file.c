@@ -22,6 +22,10 @@
 #include "file/file.h"
 
 
+static char *getline_buf = NULL;
+static size_t getline_n = 0;
+
+
 void *file_oid(const struct file *file)
 {
 	if (!file->vcs)
@@ -220,18 +224,16 @@ bool file_read(struct file *file,
     bool (*parse)(const struct file *file, void *user, const char *line),
     void *user)
 {
-	static char *buf = NULL;
-	static size_t n = 0;
 	char *nl;
 
 	if (file->vcs)
 		return vcs_read(file->vcs, file, parse, user);
-	while (getline(&buf, &n, file->file) > 0) {
-		nl = strchr(buf, '\n');
+	while (getline(&getline_buf, &getline_n, file->file) > 0) {
+		nl = strchr(getline_buf, '\n');
 		if (nl)
 			*nl = 0;
 		file->lineno++;
-		if (!parse(file, user, buf))
+		if (!parse(file, user, getline_buf))
 			return 0;
 	}
 	return 1;
@@ -245,4 +247,10 @@ void file_close(struct file *file)
 	if (file->vcs)
 		vcs_close(file->vcs);
 	free((char *) file->name);
+}
+
+
+void file_cleanup(void)
+{
+	free(getline_buf);
 }

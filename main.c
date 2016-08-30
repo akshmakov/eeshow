@@ -355,6 +355,7 @@ found:
 	if (pl)
 		pl_free(pl);
 
+	file_cleanup();
 	cairo_debug_reset_static_data();
 
 	return retval;
