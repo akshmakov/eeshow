@@ -198,7 +198,7 @@ Key functions in GUI mode
 
 + or =			zoom in
 -			zoom out
-*			zoom to extents
+*			fit to window
 Home			go to the top sheet
 Delete or Backspace	go to the next higher sheet in hierarchy
 PgUp			go to the previous sheet in sequence

@@ -1,7 +1,7 @@
 <span font_desc="Mono 10">
 + or =      zoom in
 -           zoom out
-*           zoom to extents
+*           fit to window
 Home        go to the top sheet
 Delete or
 Backspace   go to the next higher sheet in hierarchy
