@@ -601,6 +601,7 @@ static void *cr_pdf_init(void)
 
 	cc->s = cairo_pdf_surface_create(NULL, 16, 16);
 	cc->cr = cairo_create(cc->s);
+	setup_font(cc);
 
 	if (cc->add_toc)
 		cc->toc = pdftoc_begin();
