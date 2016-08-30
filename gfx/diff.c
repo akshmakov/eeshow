@@ -433,6 +433,8 @@ static cairo_t *make_diff(cairo_t *cr, int cx, int cy, float scale,
 	}
 	cairo_surface_mark_dirty(s);
 
+	free(img_new);
+
 	return old_cr;
 }
 
@@ -459,6 +461,7 @@ static int diff_end(void *ctx)
 	s = cairo_get_target(old_cr);
 
 	cro_img_write(s, diff->output_name);
+	free(cairo_image_surface_get_data(s));
 
 	cro_img_reset(gfx_user(diff->new_gfx));
 	cro_img_reset(gfx_user(diff->gfx));
@@ -492,11 +495,10 @@ void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
 	cairo_set_source_surface(cr, s, 0, 0);
 	cairo_paint(cr);
 
+	free(cairo_image_surface_get_data(s));
+
 	cairo_surface_destroy(s);
 	cairo_destroy(old_cr);
-
-//	free(img_old);
-//	free(img_new);
 }
 
 
