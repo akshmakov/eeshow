@@ -61,9 +61,11 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 	unsigned size = 0;
 	unsigned len;
 	char *x;
+	bool do_free;
 	unsigned n;
 
 	while (1) {
+		do_free = 0;
 		p = strchr(s, '%');
 		if (!p)
 			break;
@@ -88,6 +90,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			for (sch = sheets; sch; sch = sch->next)
 				n++;
 			alloc_printf(&x, "%u", n);
+			do_free = 1;
 			break;
 		case 'P':
 			x = "%P";	// sheet path
@@ -101,6 +104,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			    sch = sch->next)
 				n++;
 			alloc_printf(&x, "%u", n);
+			do_free = 1;
 			break;
 		case 'T':
 			x = (char *) sheet->title;
@@ -122,6 +126,8 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 		s = p + 2;
 		memcpy(res + size, x, len);
 		size += len;
+		if (do_free)
+			free(x);
 	}
 
 	len = strlen(s);

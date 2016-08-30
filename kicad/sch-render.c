@@ -111,8 +111,8 @@ static void do_hsheet_text(const struct sch_obj *obj,
 	text_show(&sheet_txt, gfx, COLOR_HSHEET_SHEET, LAYER_HSHEET_FIELD);
 	text_show(&file_txt, gfx, COLOR_HSHEET_FILE, LAYER_HSHEET_FIELD);
 
-//	free((void *) ctx->sheet);
-//	free((void *) ctx->file);
+	free((void *) sheet_txt.s);
+	free((void *) file_txt.s);
 }
 
 

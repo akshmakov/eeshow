@@ -360,6 +360,10 @@ static void free_objs(struct lib_obj *objs)
 	while (objs) {
 		next = objs->next;
 		switch (objs->type) {
+		case lib_obj_poly:
+			free(objs->u.poly.x);
+			free(objs->u.poly.y);
+			break;
 		case lib_obj_text:
 			free((char *) objs->u.text.s);
 			break;

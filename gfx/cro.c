@@ -714,9 +714,15 @@ static int cr_png_end(void *ctx)
 {
 	struct cro_ctx *cc = ctx;
 	int w, h, stride;
+	uint32_t *data;
 
-	cro_img_end(cc, &w, &h, &stride);
+	data = cro_img_end(cc, &w, &h, &stride);
 	cro_img_write(cc->s, cc->output_name);
+
+	cairo_surface_destroy(cc->s);
+	cairo_destroy(cc->cr);
+	free(data);
+	free(cc);
 
 	return 0;
 }
