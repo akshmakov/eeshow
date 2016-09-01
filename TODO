@@ -63,6 +63,10 @@ GUI/history
 - add manual selection with Up/Down/Enter
 - "what I am selecting" indication (color of frames of sheets in history)
   is not very clear.
+- list expansion: at top and bottom, heuristics should reverse, and assume
+  U-turn
+- list expansion: Joerg suggested to add pop-up, offset to the right, and
+  keep list items fixed
 
 GUI/sheets:
 - need a way to change new/old sheet association, in case automatic selection
