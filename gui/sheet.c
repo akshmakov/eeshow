@@ -319,8 +319,10 @@ static bool hover_sheet(void *user, bool on, int dx, int dy)
 			if (s == sheet)
 				this = n;
 		}
-		overlay_text(sheet->over, "<b>%s</b>\n<big>%d / %d</big>",
-		    title, this, n);
+		overlay_text(sheet->over, "<b>%s</b>\n<big>%d / %d</big>%s%s",
+		    title, this, n,
+		    sheet->sch->file ? "\n" : "",
+		    sheet->sch->file ? sheet->sch->file : "");
 	} else {
 		overlay_text(sheet->over, "<b>%s</b>", title);
 	}
