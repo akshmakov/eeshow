@@ -73,32 +73,32 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 		case '%':
 			x = "%";
 			break;
-		case 'C':
-			x = "%C";	// comment #n
+		case 'C':		// comment #n
+			x = "%C";
 			break;
-		case 'D':
-			x = "%D";	// date
+		case 'D':		// date
+			x = "%D";
 			break;
-		case 'F':
-			x = "%F";	// file name
+		case 'F':		// file name
+			x = "%F";
 			break;
-		case 'K':
-			x = "%K";	// KiCad version
+		case 'K':		// KiCad version
+			x = "%K";
 			break;
-		case 'N':
+		case 'N':		// number of sheets
 			n = 0;
 			for (sch = sheets; sch; sch = sch->next)
 				n++;
 			alloc_printf(&x, "%u", n);
 			do_free = 1;
 			break;
-		case 'P':
-			x = "%P";	// sheet path
+		case 'P':		// sheet path
+			x = "%P";
 			break;
-		case 'R':
-			x = "%R";	// revision
+		case 'R':		// revision
+			x = "%R";
 			break;
-		case 'S':
+		case 'S':		// sheet number
 			n = 1;
 			for (sch = sheets; sch != sheet;
 			    sch = sch->next)
@@ -106,14 +106,14 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			alloc_printf(&x, "%u", n);
 			do_free = 1;
 			break;
-		case 'T':
+		case 'T':		// title
 			x = (char *) sheet->title;
 			break;
-		case 'Y':
-			x = "%Y";	// company name
+		case 'Y':		// company name
+			x = "%Y";
 			break;
-		case 'Z':
-			x = "%Z";	// paper format
+		case 'Z':		// paper format
+			x = "%Z";
 			break;
 		default:
 			x = "???";
