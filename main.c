@@ -162,16 +162,16 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	setlocale(LC_ALL, "C");	/* restore sanity */
-
 	for (dashdash = 1; dashdash != argc; dashdash++)
 		if (!strcmp(argv[dashdash], "--")) {
 			have_dashdash = 1;
 			break;
 		}
 
-	if (!have_dashdash)
+	if (!have_dashdash) {
 		gtk_init(&argc, &argv);
+		setlocale(LC_ALL, "C");	/* restore sanity */
+	}
 
 	while ((c = getopt(dashdash, argv, "1evC:E:F:H:LN:OPSV")) != EOF)
 		switch (c) {
