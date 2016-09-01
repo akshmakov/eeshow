@@ -80,7 +80,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			x = "%D";
 			break;
 		case 'F':		// file name
-			x = "%F";
+			x = sheet->file ? (char *) sheet->file : "";
 			break;
 		case 'K':		// KiCad version
 			x = "%K";
@@ -93,7 +93,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			do_free = 1;
 			break;
 		case 'P':		// sheet path
-			x = "%P";
+			x = sheet->path ? (char *) sheet->path : "";
 			break;
 		case 'R':		// revision
 			x = "%R";
