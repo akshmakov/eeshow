@@ -27,6 +27,27 @@
 #include "kicad/sch.h"
 
 
+/* ----- Helper functions -------------------------------------------------- */
+
+
+static const char *sanitize_file_name(const char *name)
+{
+	const char *slash = strrchr(name, '/');
+	const char *colon = strrchr(name, ':');
+
+	if (!slash && !colon)
+		return name;
+	if (slash && !colon)
+		return slash + 1;
+	if (!slash && colon)
+		return colon + 1;
+	if (slash > colon)
+		return slash + 1;
+	else
+		return colon + 1;
+}
+
+
 /* ----- (Global) Labels --------------------------------------------------- */
 
 
@@ -338,6 +359,8 @@ static struct sheet *new_sheet(struct sch_ctx *ctx)
 
 	sheet = alloc_type(struct sheet);
 	sheet->title = NULL;
+	sheet->file = NULL;
+	sheet->path = NULL;
 	sheet->objs = NULL;
 	sheet->next_obj = &sheet->objs;
 	sheet->next = NULL;
@@ -366,6 +389,7 @@ static struct sheet *recurse_sheet(struct sch_ctx *ctx,
 	const char *name = ctx->obj.u.sheet.file;
 	struct sheet *parent, *sheet;
 	struct file file;
+	char *tmp;
 	void *oid;
 	bool res;
 
@@ -374,6 +398,11 @@ static struct sheet *recurse_sheet(struct sch_ctx *ctx,
 
 	parent = ctx->curr_sheet;
 	sheet = new_sheet(ctx);
+	// should get what file_open really uses @@@
+	sheet->file = stralloc(sanitize_file_name(file.name));
+	alloc_printf(&tmp, "%s%s/", parent->path,
+	    ctx->obj.u.sheet.name ? ctx->obj.u.sheet.name : "");
+	sheet->path = tmp;
 	oid = file_oid(&file);
 	sheet->oid = oid;
 
@@ -660,6 +689,8 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 bool sch_parse(struct sch_ctx *ctx, struct file *file, const struct lib *lib,
     const struct sch_ctx *prev)
 {
+	ctx->curr_sheet->file = stralloc(sanitize_file_name(file->name));
+	ctx->curr_sheet->path = stralloc("/");
 	ctx->lib = lib;
 	ctx->prev = prev;
 	return file_read(file, parse_line, ctx);

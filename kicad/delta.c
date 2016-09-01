@@ -438,6 +438,8 @@ static void free_obj(struct sch_obj *obj)
 static void init_res(struct sheet *res)
 {
 	res->title = NULL;
+	res->file = NULL;
+	res->path = NULL;
         res->objs = NULL;
         res->next_obj = &res->objs;
         res->next = NULL;
@@ -460,6 +462,20 @@ void delta(const struct sheet *a, const struct sheet *b,
 	} else {
 		res_a->title = a->title;
 		res_b->title = b->title;
+	}
+
+	if (a->file && b->file && !strcmp(a->file, b->file)) {
+		res_ab->file = a->file;
+	} else {
+		res_a->file = a->file;
+		res_b->file = b->file;
+	}
+
+	if (a->path && b->path && !strcmp(a->path, b->path)) {
+		res_ab->path = a->path;
+	} else {
+		res_a->path = a->path;
+		res_b->path = b->path;
 	}
 
 	objs_a = objs_clone(a->objs);

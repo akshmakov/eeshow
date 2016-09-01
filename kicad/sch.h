@@ -103,6 +103,8 @@ struct sch_obj {
 
 struct sheet {
 	const char *title;		/* malloced, unless delta */
+	const char *file;		/* file name; idem */
+	const char *path;		/* schematics path; idem */
 	struct sch_obj *objs;
 	struct sch_obj **next_obj;
 	struct sheet *next;
