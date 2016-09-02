@@ -27,6 +27,9 @@ struct gfx {
 };
 
 
+/* ----- Wrappers for graphis primitives ----------------------------------- */
+
+
 void gfx_line(struct gfx *gfx,
     int sx, int sy, int ex, int ey, int color, unsigned layer)
 {
@@ -104,6 +107,9 @@ unsigned gfx_text_width(struct gfx *gfx, const char *s, unsigned size,
 }
 
 
+/* ----- Initialization ---------------------------------------------------- */
+
+
 struct gfx *gfx_init(const struct gfx_ops *ops)
 {
 	struct gfx *new;
@@ -120,6 +126,9 @@ bool gfx_args(struct gfx *gfx, int argc, char *const *argv)
 	optind = 0;
 	return gfx->ops->args && gfx->ops->args(gfx->user, argc, argv);
 }
+
+
+/* ----- Access ------------------------------------------------------------ */
 
 
 void gfx_sheet_name(struct gfx *gfx, const char *name)
@@ -146,6 +155,9 @@ void *gfx_user(struct gfx *gfx)
 {
 	return gfx->user;
 }
+
+
+/* ----- Termination ------------------------------------------------------- */
 
 
 void gfx_destroy(struct gfx *gfx)
