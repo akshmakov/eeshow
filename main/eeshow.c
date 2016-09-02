@@ -1,5 +1,5 @@
 /*
- * main.c - Visualize and convert Eeschema schematics
+ * main/eeshow.c - Visualize Eeschema schematics
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
