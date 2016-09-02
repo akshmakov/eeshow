@@ -23,7 +23,7 @@ OBJS_FILE = \
 OBJS_MISC = \
 	misc/diag.o misc/util.o
 
-EESHOW_OBJS = main/eeshow.o main/common.o version.o \
+EESHOW_OBJS = main/eeshow.o main/common.o \
 	$(OBJS_KICAD) \
 	gui/gui.o gui/over.o gui/style.o gui/aoi.o gui/fmt-pango.o gui/input.o \
 	gui/progress.o gui/glabel.o gui/sheet.o gui/history.o gui/render.o \
@@ -32,19 +32,19 @@ EESHOW_OBJS = main/eeshow.o main/common.o version.o \
 	gfx/style.o gfx/fig.o gfx/record.o gfx/cro.o gfx/diff.o gfx/gfx.o \
 	gfx/text.o gfx/misc.o gfx/pdftoc.o \
 	$(OBJS_MISC)
-EEPLOT_OBJS = main/eeplot.o main/common.o version.o \
+EEPLOT_OBJS = main/eeplot.o main/common.o \
 	$(OBJS_KICAD) \
 	$(OBJS_FILE) \
 	gfx/style.o gfx/fig.o gfx/record.o gfx/cro.o gfx/gfx.o \
 	gfx/text.o gfx/misc.o gfx/pdftoc.o \
 	$(OBJS_MISC)
-EEDIFF_OBJS = main/eediff.o main/common.o version.o \
+EEDIFF_OBJS = main/eediff.o main/common.o \
 	$(OBJS_KICAD) \
 	$(OBJS_FILE) \
 	gfx/style.o gfx/record.o gfx/cro.o gfx/diff.o gfx/gfx.o \
 	gfx/text.o gfx/misc.o gfx/pdftoc.o \
 	$(OBJS_MISC)
-EETEST_OBJS = main/eetest.o main/common.o version.o \
+EETEST_OBJS = main/eetest.o main/common.o \
 	kicad/sexpr.o \
 	gui/fmt-pango.o \
 	$(OBJS_FILE) \
@@ -87,19 +87,19 @@ all::		eeshow eeplot eediff eetest
 
 eeshow:		$(EESHOW_OBJS)
 		$(MAKE) -B version.o
-		$(CC) -o $@ $(EESHOW_OBJS) $(LDLIBS)
+		$(CC) -o $@ $(EESHOW_OBJS) version.o $(LDLIBS)
 
 eeplot:		$(EEPLOT_OBJS)
 		$(MAKE) -B version.o
-		$(CC) -o $@ $(EEPLOT_OBJS) $(LDLIBS)
+		$(CC) -o $@ $(EEPLOT_OBJS) version.o $(LDLIBS)
 
 eediff:		$(EEDIFF_OBJS)
 		$(MAKE) -B version.o
-		$(CC) -o $@ $(EEDIFF_OBJS) $(LDLIBS)
+		$(CC) -o $@ $(EEDIFF_OBJS) version.o $(LDLIBS)
 
 eetest:		$(EETEST_OBJS)
 		$(MAKE) -B version.o
-		$(CC) -o $@ $(EETEST_OBJS) $(LDLIBS)
+		$(CC) -o $@ $(EETEST_OBJS) version.o $(LDLIBS)
 
 #----- Help texts -------------------------------------------------------------
 
