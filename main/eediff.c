@@ -1,5 +1,5 @@
 /*
- * main/eeplot.c - Plots eeschema schematics
+ * main/eediff.c - Show differences between eeschema schematics
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -21,8 +21,7 @@
 
 #include "misc/util.h"
 #include "misc/diag.h"
-#include "gfx/fig.h"
-#include "gfx/cro.h"
+#include "gfx/diff.h"
 #include "gfx/gfx.h"
 #include "file/file.h"
 #include "kicad/ext.h"
@@ -33,13 +32,6 @@
 #include "version.h"
 #include "main/common.h"
 #include "main.h"
-
-
-static struct gfx_ops const *ops_list[] = {
-	&fig_ops,
-	&cro_png_ops,
-	&cro_pdf_ops,
-};
 
 
 void usage(const char *name)
@@ -63,23 +55,10 @@ void usage(const char *name)
 "  -V    print revision (version) number and exit\n"
 "  gdb   run eeshow under gdb\n"
 "\n"
-"FIG driver spec:\n"
-"  fig [-t template.fig] [var=value ...]\n"
+"Diff driver spec:\n"
+"  diff [-o output.png] [-s scale] [file.lib ...] file.sch\n"
 "\n"
-"  var=value        substitute \"<var>\" with \"value\" in template\n"
-"  -t template.fig  merge this file with generated output\n"
-"\n"
-"Cairo PNG driver spec:\n"
-"  png [-o output.png] [-s scale]\n"
-"\n"
-"  -o output.png  write PNG to specified file (default; standard output)\n"
-"  -s scale       scale by indicated factor (default: 1.0)\n"
-"\n"
-"Cairo PDF driver spec:\n"
-"  pdf [-o output.pdf] [-s scale] [-T]\n"
-"\n"
-"  see PNG for -o and -s\n"
-"  -T  do not add table of contents\n"
+"  see PNG\n"
     , name, (int) strlen(name) + 1, "", name, name);
 	exit(1);
 }
@@ -100,7 +79,6 @@ int main(int argc, char **argv)
 	struct file_names *fn = &file_names;
 	int gfx_argc;
 	char **gfx_argv;
-	const struct gfx_ops **ops = ops_list;
 	struct gfx *gfx;
 	int retval;
 
@@ -149,7 +127,7 @@ int main(int argc, char **argv)
 	if (dashdash == argc) {
 		gfx_argc = 1;
 		gfx_argv = alloc_type_n(char *, 2);
-		gfx_argv[0] = (char *) (*ops)->name;
+		gfx_argv[0] = (char *) diff_ops.name;
 		gfx_argv[1] = NULL;
 	} else {
 		gfx_argc = argc - dashdash - 1;
@@ -158,13 +136,6 @@ int main(int argc, char **argv)
 		gfx_argv = alloc_type_n(char *, gfx_argc + 1);
 		memcpy(gfx_argv, argv + dashdash + 1,
 		    sizeof(const char *) * (gfx_argc + 1));
-
-		for (ops = ops_list; ops != ARRAY_END(ops_list); ops++)
-			if (!strcmp((*ops)->name, *gfx_argv))
-				goto found;
-		fatal("graphics backend \"%s\" not found\n", *gfx_argv);
-found:
-		;
 	}
 
 	if (file_names.pro) {
@@ -173,7 +144,7 @@ found:
 		fn = pro_parse_file(&pro_file, &file_names);
 	}
 
-	gfx = gfx_init(*ops);
+	gfx = gfx_init(&diff_ops);
 	if (!gfx_args(gfx, gfx_argc, gfx_argv))
 		return 1;
 	if (!gfx_multi_sheet(gfx))

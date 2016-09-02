@@ -35,7 +35,13 @@ EESHOW_OBJS = main/eeshow.o main/common.o version.o \
 EEPLOT_OBJS = main/eeplot.o main/common.o version.o \
 	$(OBJS_KICAD) \
 	$(OBJS_FILE) \
-	gfx/style.o gfx/fig.o gfx/record.o gfx/cro.o gfx/diff.o gfx/gfx.o \
+	gfx/style.o gfx/fig.o gfx/record.o gfx/cro.o gfx/gfx.o \
+	gfx/text.o gfx/misc.o gfx/pdftoc.o \
+	$(OBJS_MISC)
+EEDIFF_OBJS = main/eediff.o main/common.o version.o \
+	$(OBJS_KICAD) \
+	$(OBJS_FILE) \
+	gfx/style.o gfx/record.o gfx/cro.o gfx/diff.o gfx/gfx.o \
 	gfx/text.o gfx/misc.o gfx/pdftoc.o \
 	$(OBJS_MISC)
 EETEST_OBJS = main/eetest.o main/common.o version.o \
@@ -77,7 +83,7 @@ include Makefile.c-common
 .PHONY:		test neo900 sch test testref png pngref pdf diff view newref
 .PHONY:		leak
 
-all::		eeshow eeplot eetest
+all::		eeshow eeplot eediff eetest
 
 eeshow:		$(EESHOW_OBJS)
 		$(MAKE) -B version.o
@@ -86,6 +92,10 @@ eeshow:		$(EESHOW_OBJS)
 eeplot:		$(EEPLOT_OBJS)
 		$(MAKE) -B version.o
 		$(CC) -o $@ $(EEPLOT_OBJS) $(LDLIBS)
+
+eediff:		$(EEDIFF_OBJS)
+		$(MAKE) -B version.o
+		$(CC) -o $@ $(EEDIFF_OBJS) $(LDLIBS)
 
 eetest:		$(EETEST_OBJS)
 		$(MAKE) -B version.o
@@ -181,11 +191,11 @@ newref:
 
 SUPP = dl-init cairo-font
 
-leak:		eeplot
+leak:		eediff
 		valgrind --leak-check=full --show-leak-kinds=all \
 		    --num-callers=50 \
 		    $(SUPP:%=--suppressions=%.supp) \
-		    ./eeplot $(NEO900_HW)/neo900.pro -- \
+		    ./eediff $(NEO900_HW)/neo900.pro -- \
 		      diff $(NEO900_HW)/neo900.pro >/dev/null
 #		    ./eeplot -N 1 $(NEO900_HW)/neo900.pro -- pdf >/dev/null
 #		    ./eeplot -N 1 $(NEO900_HW)/neo900.pro -- png >/dev/null
@@ -193,4 +203,4 @@ leak:		eeplot
 #----- Cleanup ----------------------------------------------------------------
 
 spotless::
-		rm -f eeshow eeplot eetest
+		rm -f eeshow eeplot eediff eetest
