@@ -38,6 +38,7 @@
 #include "file/git-hist.h"
 #include "gui/gui.h"
 #include "version.h"
+#include "main/common.h"
 #include "main.h"
 
 
@@ -149,18 +150,7 @@ int main(int argc, char **argv)
 	struct gfx *gfx;
 	int retval;
 
-	if (argc > 1 && !strcmp(argv[1], "gdb")) {
-		char **args;
-
-		args = alloc_type_n(char *, argc + 2);
-		args[0] = "gdb";
-		args[1] = "--args";
-		args[2] = *argv;
-		memcpy(args + 3, argv + 2, sizeof(char *) * (argc - 1));
-		execvp("gdb", args);
-		perror(*argv);
-		return 1;
-	}
+	run_under_gdb(argc, argv);
 
 	for (dashdash = 1; dashdash != argc; dashdash++)
 		if (!strcmp(argv[dashdash], "--")) {

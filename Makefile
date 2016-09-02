@@ -14,6 +14,7 @@ SHELL = /bin/bash
 
 NAME = eeshow
 OBJS = main.o version.o \
+       main/common.o \
        kicad/sch-parse.o kicad/sch-render.o kicad/lib-parse.o \
        kicad/lib-render.o kicad/dwg.o kicad/delta.o kicad/sexpr.o \
        kicad/pl-parse.o kicad/pl-render.o kicad/ext.o kicad/pro.o \
