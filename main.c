@@ -29,13 +29,10 @@
 #include "gfx/gfx.h"
 #include "file/file.h"
 #include "kicad/ext.h"
-#include "kicad/sexpr.h"
 #include "kicad/pl.h"
 #include "kicad/lib.h"
 #include "kicad/sch.h"
 #include "kicad/pro.h"
-#include "gui/fmt-pango.h"
-#include "file/git-hist.h"
 #include "gui/gui.h"
 #include "version.h"
 #include "main/common.h"
@@ -50,31 +47,12 @@ static struct gfx_ops const *ops_list[] = {
 };
 
 
-static void sexpr(void)
-{
-	struct sexpr_ctx *parser = sexpr_new();
-	struct expr *expr;
-	char *buf = NULL;
-	size_t n = 0;
-
-	while (getline(&buf, &n, stdin) > 0)
-		sexpr_parse(parser, buf);
-	if (sexpr_finish(parser, &expr))
-		dump_expr(expr);
-	else
-		exit(1);
-}
-
-
 void usage(const char *name)
 {
 	fprintf(stderr,
 "usage: %s [gtk_flags] [-1] [-N n] kicad_file ...\n"
 "       %s [-1] [-e] [-v ...] kicad_file ...\n"
 "       %*s[-- driver_spec]\n"
-"       %s [-v ...] -C [rev:]file\n"
-"       %s [-v ...] -H path_into_repo\n"
-"       %s -S\n"
 "       %s -V\n"
 "       %s gdb ...\n"
 "\n"
@@ -85,13 +63,10 @@ void usage(const char *name)
 "  -1    show only one sheet - do not recurse into sub-sheets\n"
 "  -e    show extra information (e.g., pin types)\n"
 "  -v    increase verbosity of diagnostic output\n"
-"  -C    'cat' the file to standard output\n"
 "  -E shell_command ...\n"
 "        execute the specified shell command when the GUI is ready.\n"
 "        Sets EESHOW_WINDOW_ID to the X11 window ID.\n"
-"  -H    show history of repository on standard output\n"
 "  -N n  limit history to n revisions (unlimited if omitted or 0)\n"
-"  -S    parse S-expressions from stdin and dump to stdout\n"
 "  -V    print revision (version) number and exit\n"
 "  gdb   run eeshow under gdb\n"
 "\n"
@@ -119,7 +94,7 @@ void usage(const char *name)
 "  diff [-o output.pdf] [-s scale] [file.lib ...] file.sch\n"
 "\n"
 "  see PNG\n"
-    , name, name, (int) strlen(name) + 1, "", name, name, name, name, name);
+    , name, name, (int) strlen(name) + 1, "", name, name);
 	exit(1);
 }
 
@@ -131,9 +106,6 @@ int main(int argc, char **argv)
 	struct file pro_file, sch_file;
 	bool extra = 0;
 	bool one_sheet = 0;
-	const char *cat = NULL;
-	const char *history = NULL;
-	const char *fmt = NULL;
 	const char **commands = NULL;
 	unsigned n_commands = 0;
 	struct pl_ctx *pl = NULL;
@@ -163,7 +135,7 @@ int main(int argc, char **argv)
 		setlocale(LC_ALL, "C");	/* restore sanity */
 	}
 
-	while ((c = getopt(dashdash, argv, "1evC:E:F:H:LN:OPSV")) != EOF)
+	while ((c = getopt(dashdash, argv, "1evE:LN:OPV")) != EOF)
 		switch (c) {
 		case '1':
 			one_sheet = 1;
@@ -174,19 +146,10 @@ int main(int argc, char **argv)
 		case 'v':
 			verbose++;
 			break;
-		case 'C':
-			cat = optarg;
-			break;
 		case 'E':
 			commands = realloc_type_n(commands, const char *,
 			    n_commands + 1);
 			commands[n_commands++] = optarg;
-			break;
-		case 'F':
-			fmt = optarg;
-			break;
-		case 'H':
-			history = optarg;
 			break;
 		case 'L':
 			suppress_page_layout = 1;
@@ -200,41 +163,12 @@ int main(int argc, char **argv)
 		case 'P':
 			use_pango = 1;
 			break;
-		case 'S':
-			sexpr();
-			return 0;
 		case 'V':
 			fprintf(stderr, "%s %sZ\n", version, build_date);
 			return 1;
 		default:
 			usage(*argv);
 		}
-
-	if (cat) {
-		struct file file;
-
-		if (argc != optind)
-			usage(*argv);
-		if (!file_open(&file, cat, NULL))
-			return 1;
-		if (!file_read(&file, file_cat, NULL))
-			return 1;
-		file_close(&file);
-		return 0;
-	}
-
-	if (history) {
-		dump_hist(vcs_git_history(history));
-		return 0;
-	}
-
-	if (fmt) {
-		char *buf;
-
-		buf = fmt_pango(fmt, argv[optind]);
-		printf("\"%s\"\n", buf);
-		return 0;
-	}
 
 	if (dashdash - optind < 1)
 		usage(*argv);

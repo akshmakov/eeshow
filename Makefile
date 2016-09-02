@@ -25,6 +25,11 @@ OBJS = main.o version.o \
        gfx/style.o gfx/fig.o gfx/record.o gfx/cro.o gfx/diff.o gfx/gfx.o \
        gfx/text.o gfx/misc.o gfx/pdftoc.o \
        misc/diag.o misc/util.o
+EETEST_OBJS = main/eetest.o main/common.o version.o \
+       kicad/sexpr.o \
+       gui/fmt-pango.o \
+       file/file.o file/git-util.o file/git-file.o file/git-hist.o \
+       misc/diag.o misc/util.o
 
 ICONS = delta diff
 
@@ -59,11 +64,15 @@ include Makefile.c-common
 .PHONY:		test neo900 sch test testref png pngref pdf diff view newref
 .PHONY:		leak
 
-all::		$(NAME)
+all::		$(NAME) eetest
 
 $(NAME):	$(OBJS)
 		$(MAKE) -B version.o
 		$(CC) -o $(NAME) $(OBJS) $(LDLIBS)
+
+eetest:		$(EETEST_OBJS)
+		$(MAKE) -B version.o
+		$(CC) -o eetest $(EETEST_OBJS) $(LDLIBS)
 
 #----- Help texts -------------------------------------------------------------
 
@@ -163,3 +172,8 @@ leak:		$(NAME)
 		      diff $(NEO900_HW)/neo900.pro >/dev/null
 #		    eeshow -N 1 $(NEO900_HW)/neo900.pro -- pdf >/dev/null
 #		    eeshow -N 1 $(NEO900_HW)/neo900.pro -- png >/dev/null
+
+#----- Cleanup ----------------------------------------------------------------
+
+spotless::
+		rm -f eetest
