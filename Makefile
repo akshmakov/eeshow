@@ -12,6 +12,8 @@
 
 SHELL = /bin/bash
 
+PREFIX ?= /usr/local
+
 NAME = eeshow
 
 OBJS_KICAD = \
@@ -81,7 +83,7 @@ endif
 include Makefile.c-common
 
 .PHONY:		test neo900 sch test testref png pngref pdf diff view newref
-.PHONY:		leak
+.PHONY:		leak install uninstall
 
 all::		eeshow eeplot eediff eetest
 
@@ -199,6 +201,16 @@ leak:		eediff
 		      diff $(NEO900_HW)/neo900.pro >/dev/null
 #		    ./eeplot -N 1 $(NEO900_HW)/neo900.pro -- pdf >/dev/null
 #		    ./eeplot -N 1 $(NEO900_HW)/neo900.pro -- png >/dev/null
+
+#----- Install / uninstall ---------------------------------------------------
+
+install:	eeshow eeplot eediff
+		mkdir -p $(DESTDIR)/$(PREFIX)/bin/
+		install -m 755 $^ $(DESTDIR)/$(PREFIX)/bin/
+
+uninstall:
+		for n in eeshow eeplot eediff; do \
+		    rm -f $(DESTDIR)/$(PREFIX)/bin/$$n; done
 
 #----- Cleanup ----------------------------------------------------------------
 
