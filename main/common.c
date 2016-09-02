@@ -24,7 +24,7 @@ void run_under_gdb(int argc, char *const *argv)
 {
 	char **args;
 
-	if (argc < 1 || strcmp(argv[1], "gdb"))
+	if (argc < 2 || strcmp(argv[1], "gdb"))
 		return;
 
 	args = alloc_type_n(char *, argc + 2);

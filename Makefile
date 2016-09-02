@@ -13,23 +13,37 @@
 SHELL = /bin/bash
 
 NAME = eeshow
+
+OBJS_KICAD = \
+	kicad/sch-parse.o kicad/sch-render.o kicad/lib-parse.o \
+	kicad/lib-render.o kicad/dwg.o kicad/delta.o kicad/sexpr.o \
+	kicad/pl-parse.o kicad/pl-render.o kicad/ext.o kicad/pro.o
+OBJS_FILE = \
+       file/file.o file/git-util.o file/git-file.o file/git-hist.o
+OBJS_MISC = \
+       misc/diag.o misc/util.o
+
 OBJS = main.o version.o \
        main/common.o \
-       kicad/sch-parse.o kicad/sch-render.o kicad/lib-parse.o \
-       kicad/lib-render.o kicad/dwg.o kicad/delta.o kicad/sexpr.o \
-       kicad/pl-parse.o kicad/pl-render.o kicad/ext.o kicad/pro.o \
+       $(OBJS_KICAD) \
        gui/gui.o gui/over.o gui/style.o gui/aoi.o gui/fmt-pango.o gui/input.o \
        gui/progress.o gui/glabel.o gui/sheet.o gui/history.o gui/render.o \
        gui/help.o gui/icons.o gui/index.o gui/timer.o \
-       file/file.o file/git-util.o file/git-file.o file/git-hist.o \
+       $(OBJS_FILE) \
        gfx/style.o gfx/fig.o gfx/record.o gfx/cro.o gfx/diff.o gfx/gfx.o \
        gfx/text.o gfx/misc.o gfx/pdftoc.o \
-       misc/diag.o misc/util.o
+       $(OBJS_MISC)
+EEPLOT_OBJS = main/eeplot.o main/common.o version.o \
+	$(OBJS_KICAD) \
+	$(OBJS_FILE) \
+	gfx/style.o gfx/fig.o gfx/record.o gfx/cro.o gfx/diff.o gfx/gfx.o \
+	gfx/text.o gfx/misc.o gfx/pdftoc.o \
+	$(OBJS_MISC)
 EETEST_OBJS = main/eetest.o main/common.o version.o \
-       kicad/sexpr.o \
-       gui/fmt-pango.o \
-       file/file.o file/git-util.o file/git-file.o file/git-hist.o \
-       misc/diag.o misc/util.o
+	kicad/sexpr.o \
+	gui/fmt-pango.o \
+	$(OBJS_FILE) \
+	$(OBJS_MISC)
 
 ICONS = delta diff
 
@@ -64,15 +78,19 @@ include Makefile.c-common
 .PHONY:		test neo900 sch test testref png pngref pdf diff view newref
 .PHONY:		leak
 
-all::		$(NAME) eetest
+all::		$(NAME) eeplot eetest
 
 $(NAME):	$(OBJS)
 		$(MAKE) -B version.o
 		$(CC) -o $(NAME) $(OBJS) $(LDLIBS)
 
+eeplot:		$(EEPLOT_OBJS)
+		$(MAKE) -B version.o
+		$(CC) -o $@ $(EEPLOT_OBJS) $(LDLIBS)
+
 eetest:		$(EETEST_OBJS)
 		$(MAKE) -B version.o
-		$(CC) -o eetest $(EETEST_OBJS) $(LDLIBS)
+		$(CC) -o $@ $(EETEST_OBJS) $(LDLIBS)
 
 #----- Help texts -------------------------------------------------------------
 
@@ -176,4 +194,4 @@ leak:		$(NAME)
 #----- Cleanup ----------------------------------------------------------------
 
 spotless::
-		rm -f eetest
+		rm -f eeplot eetest
