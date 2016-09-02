@@ -741,6 +741,8 @@ static void free_sheet(struct sheet *sch)
 	if (!sch)
 		return;
 	free((char *) sch->title);
+	free((char *) sch->file);
+	free((char *) sch->path);
 	free(sch->oid);
 	for (obj = sch->objs; obj; obj = next) {
 		next = obj->next;
