@@ -28,7 +28,7 @@ while [ $sheet -le 38 ]; do
 		in=$dir/neo900-ee/hw/neo900_SS_`expr $sheet - 1`.sch
 	fi
 	file=$dir/$prefix$sn.png
-	$dir/../eeshow $dir/neo900-ee/hw/neo900.lib \
+	$dir/../eeplot $dir/neo900-ee/hw/neo900.lib \
 	    $dir/kicad-libs/components/powered.lib "$in" \
 	    -- fig -t $dir/frame.fig SHEET=$sn |
 	    fig2dev -L png -m 2 >$file

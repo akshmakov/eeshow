@@ -120,25 +120,25 @@ clean::
 sch:
 		eeschema test.sch
 
-test:		$(NAME)
-		./$(NAME) test.lib test.sch -- fig >out.fig
+test:		eeplot
+		./eeplot test.lib test.sch -- fig >out.fig
 		fig2dev -L png -m 2 out.fig _out.png
 		[ ! -r ref.png ] || \
 		    compare -metric AE ref.png _out.png _diff.png || \
 		    qiv -t -R -D _diff.png ref.png _out.png
 
-testref:	$(NAME)
-		./$(NAME) test.lib test.sch -- fig | \
+testref:	eeplot
+		./eeplot test.lib test.sch -- fig | \
 		    fig2dev -L png -m 2 >ref.png
 
-png:		$(NAME)
-		./$(NAME) test.lib test.sch -- png -o _out.png -s 2
+png:		eeplot
+		./eeplot test.lib test.sch -- png -o _out.png -s 2
 		[ ! -r pngref.png ] || \
 		    compare -metric AE pngref.png _out.png _diff.png || \
 		    qiv -t -R -D _diff.png pngref.png _out.png
 
-pngref:		$(NAME)
-		./$(NAME) test.lib test.sch -- png -o pngref.png -s 2
+pngref:		eeplot
+		./eeplot test.lib test.sch -- png -o pngref.png -s 2
 
 clean::
 		rm -f out.fig _out.png _diff.png
@@ -150,23 +150,23 @@ KICAD_LIBS = ../../qi/kicad-libs/components
 
 SHEET ?= 12
 
-neo900:		$(NAME)
-		./$(NAME) $(NEO900_HW)/neo900.lib \
+neo900:		eeplot
+		./eeplot $(NEO900_HW)/neo900.lib \
 		    $(KICAD_LIBS)/powered.lib \
 		    $(NEO900_HW)/neo900_SS_$(SHEET).sch \
 		    >out.fig
 
-neo900.pdf:	$(NAME) sch2pdf neo900-template.fig
+neo900.pdf:	eeplot sch2pdf neo900-template.fig
 		./sch2pdf -o $@ -t neo900-template.fig \
 		    $(NEO900_HW)/neo900.lib $(KICAD_LIBS)/powered.lib \
 		    $(NEO900_HW)/neo900.sch
 
-pdf:		$(NAME)
-		./eeshow $(NEO900_HW)/neo900.pro -- pdf -o neo900.pdf
+pdf:		eeplot
+		./eeplot $(NEO900_HW)/neo900.pro -- pdf -o neo900.pdf
 
 #----- Regression test based on Neo900 schematics -----------------------------
 
-diff:		$(NAME)
+diff:		eeplot
 		test/genpng test out
 		test/comp test || $(MAKE) view
 
@@ -181,14 +181,14 @@ newref:
 
 SUPP = dl-init cairo-font
 
-leak:		$(NAME)
+leak:		eeplot
 		valgrind --leak-check=full --show-leak-kinds=all \
 		    --num-callers=50 \
 		    $(SUPP:%=--suppressions=%.supp) \
-		    eeshow $(NEO900_HW)/neo900.pro -- \
+		    ./eeplot $(NEO900_HW)/neo900.pro -- \
 		      diff $(NEO900_HW)/neo900.pro >/dev/null
-#		    eeshow -N 1 $(NEO900_HW)/neo900.pro -- pdf >/dev/null
-#		    eeshow -N 1 $(NEO900_HW)/neo900.pro -- png >/dev/null
+#		    ./eeplot -N 1 $(NEO900_HW)/neo900.pro -- pdf >/dev/null
+#		    ./eeplot -N 1 $(NEO900_HW)/neo900.pro -- png >/dev/null
 
 #----- Cleanup ----------------------------------------------------------------
 
