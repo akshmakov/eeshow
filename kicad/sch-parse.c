@@ -137,7 +137,7 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 	struct sch_comp *comp = &ctx->obj.u.comp;
 	int n;
 	unsigned flags;
-	char hv, hor, vert, italic, bold;
+	char hv, hor, vert, italic = 'N', bold = 'N';
 	struct comp_field *field;
 	struct text *txt;
 	char *s;
@@ -151,7 +151,7 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 	/* ignore fields with empty string as content */
 	if (sscanf(line, "F %d \"\" %c %d %d %u %u %c %c%c%c",
 	    &n, &hv, &txt->x, &txt->y, &txt->size, &flags, &hor, &vert,
-	    &italic, &bold) == 10) {
+	    &italic, &bold) >= 8) {
 		free(field);
 		return 1;
 	}
@@ -175,7 +175,7 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 
 	if (sscanf(p + 1, " %c %d %d %u %u %c %c%c%c",
 	    &hv, &txt->x, &txt->y, &txt->size, &flags,
-	    &hor, &vert, &italic, &bold) != 9) {
+	    &hor, &vert, &italic, &bold) < 7) {
 		free(s);
 		free(field);
 		return 0;
