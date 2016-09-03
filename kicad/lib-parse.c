@@ -283,6 +283,28 @@ static bool lib_parse_line(const struct file *file,
 			    &obj->u.text.dim, &zero, &obj->unit, &obj->convert,
 			    &obj->u.text.s, &style, &bold,
 			    &obj->u.text.hor_align, &obj->u.text.vert_align);
+
+			switch (n) {
+			case 8:
+				style= NULL;
+				n++;
+				/* fall through */
+			case 9:
+				bold = 0;
+				n++;
+				/* fall through */
+			case 10:
+				obj->u.text.hor_align = 'C';
+				n++;
+				/* fall through */
+			case 11:
+				obj->u.text.vert_align = 'C';
+				n++;
+				/* fall through */
+			default:
+				break;
+			}
+
 			while (n == 12) {
 				char *tilde;
 
@@ -296,7 +318,8 @@ static bool lib_parse_line(const struct file *file,
 			if (zero)
 				fatal("%u: only understand 0 x x\n"
 				    "\"%s\"", file->lineno, line);
-			obj->u.text.style = decode_style(style, bold);
+			obj->u.text.style =
+			    style ? decode_style(style, bold) : text_normal;
 			obj->type = lib_obj_text;
 			free(style);
 			return 1;
