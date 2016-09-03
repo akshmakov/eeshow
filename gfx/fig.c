@@ -27,6 +27,11 @@
 #include "gfx/fig.h"
 
 
+struct fig_ctx {
+	FILE *file;
+};
+
+
 /*
  * FIG works with 1/1200 in
  * KiCad works with mil
@@ -58,12 +63,15 @@ static inline float pt(int x)
 static void fig_line(void *ctx, int sx, int sy, int ex, int ey,
     int color, unsigned layer)
 {
-	//	TypeStyle   FillCol AreaFil  Cap  FwdAr
-	//	  SubTy  Color   Pen   StyleV  Rad  BwdAr
-	//	      Thick  Depth        Join       Points
-	printf("2 1 2 %d %d 7 %d -1 -1 3.0 1 1 -1 0 0 2\n",
+	struct fig_ctx *fig = ctx;
+
+	//   TypeStyle   FillCol AreaFil  Cap  FwdAr
+	//     SubTy  Color   Pen   StyleV  Rad  BwdAr
+	//         Thick  Depth        Join       Points
+	fprintf(fig->file,
+	    "2 1 2 %d %d 7 %d -1 -1 3.0 1 1 -1 0 0 2\n",
 	    WIDTH_LINE, color, layer);
-	printf("\t%d %d %d %d\n", cx(sx), cy(sy), cx(ex), cy(ey));
+	fprintf(fig->file, "\t%d %d %d %d\n", cx(sx), cy(sy), cx(ex), cy(ey));
 }
 
 
@@ -73,13 +81,16 @@ static void fig_line(void *ctx, int sx, int sy, int ex, int ey,
 static void fig_rect(void *ctx, int sx, int sy, int ex, int ey,
     int color, int fill_color, unsigned layer)
 {
-	//	Type  Thick    Depth    StyleV  Rad
-	//	  SubTy  Color    Pen       Join   FwdAr
-	//	    Style   FillCol  AreaFil  Cap    BwdAr
-	printf("2 2 0 %d %d %d %d -1 %d 0.0 1 1 -1 0 0 5\n",
+	struct fig_ctx *fig = ctx;
+
+	//   Type  Thick    Depth    StyleV  Rad
+	//     SubTy  Color    Pen       Join   FwdAr
+	//       Style   FillCol  AreaFil  Cap    BwdAr
+	fprintf(fig->file,
+	    "2 2 0 %d %d %d %d -1 %d 0.0 1 1 -1 0 0 5\n",
 	    color == -1 ? 0 : WIDTH_COMP_DWG, color, fill_color, layer,
 	    fill_color == -1 ? -1 : 20);
-	printf("\t%d %d %d %d %d %d %d %d %d %d\n",
+	fprintf(fig->file, "\t%d %d %d %d %d %d %d %d %d %d\n",
 	    cx(sx), cy(sy), cx(ex), cy(sy), cx(ex), cy(ey), cx(sx), cy(ey),
 	    cx(sx), cy(sy));
 }
@@ -89,30 +100,35 @@ static void fig_poly(void *ctx,
     int points, const int x[points], const int y[points],
     int color, int fill_color, unsigned layer)
 {
+	struct fig_ctx *fig = ctx;
 	int i;
 	char ch = '\t';
 
-	//	Type  Thick     Depth    StyleV  Rad
-	//	  SubTy  Color     Pen       Join   FwdAr
-	//	    Style   FillCol   AreaFil  Cap    BwdAr
-	printf("2 1 0 %d %d %d  %d -1 %d 0.0 1 1 -1 0 0 %d\n",
+	//   Type  Thick     Depth    StyleV  Rad
+	//     SubTy  Color     Pen       Join   FwdAr
+	//       Style   FillCol   AreaFil  Cap    BwdAr
+	fprintf(fig->file,
+	    "2 1 0 %d %d %d  %d -1 %d 0.0 1 1 -1 0 0 %d\n",
 	    color == -1 ? 0 : WIDTH_COMP_DWG, color, fill_color, layer,
 	    fill_color == -1 ? -1 : 20, points);
 	for (i = 0; i != points; i++) {
-		printf("%c%d %d", ch, cx(x[i]), cy(y[i]));
+		fprintf(fig->file, "%c%d %d", ch, cx(x[i]), cy(y[i]));
 		ch = ' ';
 	}
-	printf("\n");
+	fprintf(fig->file, "\n");
 }
 
 
 static void fig_circ(void *ctx, int x, int y, int r,
     int color, int fill_color, unsigned layer)
 {
-	//	Type  Thick    Depth   StyleV    Cx    Rx    Sx    Ex
-	//	  SubTy  Color    Pen       Dir      Cy    Ry    Sy    Ey
-	//	    Style   FillCol  AreaFil  Angle
-	printf("1 3 0 %d %d %d %d -1 %d 0.0 1 0.0 %d %d %d %d %d %d %d %d\n",
+	struct fig_ctx *fig = ctx;
+
+	//   Type  Thick    Depth   StyleV    Cx    Rx    Sx    Ex
+	//     SubTy  Color    Pen       Dir      Cy    Ry    Sy    Ey
+	//       Style   FillCol  AreaFil  Angle
+	fprintf(fig->file,
+	    "1 3 0 %d %d %d %d -1 %d 0.0 1 0.0 %d %d %d %d %d %d %d %d\n",
 	    color == -1 ? 0 : WIDTH_COMP_DWG, color, fill_color, layer,
 	    fill_color == -1 ? -1 : 20,
 	    cx(x), cy(y), r, r,
@@ -139,12 +155,14 @@ static int ay(int x, int y, int r, int angle)
 static void fig_arc(void *ctx, int x, int y, int r, int sa, int ea,
     int color, int fill_color, unsigned layer)
 {
+	struct fig_ctx *fig = ctx;
 	int ma = (sa + ea) / 2;
 
-	//	Type  Thick    Depth   StyleV   FwdAr
-	//	  SubTy  Color    Pen       Cap   BwdAr
-	//	    Style   FillCol  AreaFil  Dir   points
-	printf("5 1 0 %d %d %d %d -1 %d 0.0 1 1 0 0 %d %d %d %d %d %d %d %d\n",
+	//   Type  Thick    Depth   StyleV   FwdAr
+	//     SubTy  Color    Pen       Cap   BwdAr
+	//       Style   FillCol  AreaFil  Dir   points
+	fprintf(fig->file,
+	    "5 1 0 %d %d %d %d -1 %d 0.0 1 1 0 0 %d %d %d %d %d %d %d %d\n",
 	    color == -1 ? 0 : WIDTH_COMP_DWG, color, fill_color, layer,
 	    fill_color == -1 ? -1 : 20,
 	    cx(x), cy(y),
@@ -157,8 +175,10 @@ static void fig_arc(void *ctx, int x, int y, int r, int sa, int ea,
 static void fig_tag(void *ctx, const char *s,
     int points, const int x[points], const int y[points])
 {
-	printf("# href=\"%s\" alt=\"\"\n", s);
-	fig_poly(ctx, points, x, y, COLOR_NONE, COLOR_NONE, 999);
+	struct fig_ctx *fig = ctx;
+
+	fprintf(fig->file, "# href=\"%s\" alt=\"\"\n", s);
+	fig_poly(fig, points, x, y, COLOR_NONE, COLOR_NONE, 999);
 }
 
 
@@ -166,6 +186,7 @@ static void fig_text(void *ctx, int x, int y, const char *s, unsigned size,
     enum text_align align, int rot, enum text_style style,
     unsigned color, unsigned layer)
 {
+	struct fig_ctx *fig = ctx;
 	int font;
 
 	switch (style) {
@@ -183,10 +204,11 @@ static void fig_text(void *ctx, int x, int y, const char *s, unsigned size,
 		break;
 	}
 
-	//	Type   Depth     FontSiz Height
-	//	  Just    Pen       Angle    Length
-	//	    Color     Font     Flags     X  Y
-	printf("4 %u %d %d -1 %d %f %f 4 0.0 0.0 %d %d %s\\001\n",
+	//   Type   Depth     FontSiz Height
+	//     Just    Pen       Angle    Length
+	//       Color     Font     Flags     X  Y
+	fprintf(fig->file,
+	    "4 %u %d %d -1 %d %f %f 4 0.0 0.0 %d %d %s\\001\n",
 	    align, color, layer, font,
 	    pt(size), rot / 180.0 * M_PI, cx(x), cy(y), s);
 }
@@ -206,26 +228,26 @@ static unsigned fig_text_width(void *ctx, const char *s, unsigned size,
 /* ----- FIG file header --------------------------------------------------- */
 
 
-static void fig_header(void)
+static void fig_header(FILE *file)
 {
-	printf("#FIG 3.2\n");
-	printf("Landscape\n");
-	printf("Center\n");
-	printf("Metric\n");
-	printf("A4\n");
-	printf("100.00\n");
-	printf("Single\n");
-	printf("-2\n");
-	printf("1200 2\n");
+	fprintf(file, "#FIG 3.2\n");
+	fprintf(file, "Landscape\n");
+	fprintf(file, "Center\n");
+	fprintf(file, "Metric\n");
+	fprintf(file, "A4\n");
+	fprintf(file, "100.00\n");
+	fprintf(file, "Single\n");
+	fprintf(file, "-2\n");
+	fprintf(file, "1200 2\n");
 }
 
 
-static void fig_colors(void)
+static void fig_colors(FILE *file)
 {
 	unsigned i;
 
 	for (i = 32; i != n_color_rgb; i++)
-		printf("0 %d #%06x\n", i, color_rgb[i]);
+		fprintf(file, "0 %d #%06x\n", i, color_rgb[i]);
 
 }
 
@@ -258,15 +280,20 @@ static bool apply_vars(char *buf, int n_vars, const char **vars)
 
 static void *fig_init(void)
 {
-	/* @@@ this is asking for trouble ... */
-	return NULL;
+	struct fig_ctx *fig;
+
+	fig = alloc_type(struct fig_ctx);
+	fig->file = stdout;
+	return fig;
 }
 
 
 static bool fig_args(void *ctx, int argc, char *const *argv)
 {
+	struct fig_ctx *fig = ctx;
 	static char *buf = NULL;
 	static size_t n = 0;
+	const char *output = NULL;
 	const char *template = NULL;
 	const char **vars = NULL;
 	int n_vars = 0;
@@ -274,8 +301,11 @@ static bool fig_args(void *ctx, int argc, char *const *argv)
 	FILE *file;
 	int lines_to_colors = 8;
 
-	while ((c = getopt(argc, argv, "t:D:")) != EOF)
+	while ((c = getopt(argc, argv, "o:t:D:")) != EOF)
 		switch (c) {
+		case 'o':
+			output = optarg;
+			break;
 		case 't':
 			template = optarg;
 			break;
@@ -293,9 +323,15 @@ static bool fig_args(void *ctx, int argc, char *const *argv)
 	if (argc != optind)
 		usage(*argv);
 
+	if (output) {
+		fig->file = fopen(output, "w");
+		if (!fig->file)
+			diag_pfatal(output);
+	}
+
 	if (!template) {
-		fig_header();
-		fig_colors();
+		fig_header(fig->file);
+		fig_colors(fig->file);
 		return 1;
 	}
 
@@ -304,11 +340,11 @@ static bool fig_args(void *ctx, int argc, char *const *argv)
 		diag_pfatal(template);
 	while (getline(&buf, &n, file) > 0) {
 		while (apply_vars(buf, n_vars, vars));
-		printf("%s", buf);
+		fprintf(fig->file, "%s", buf);
 		if (*buf == '#')
 			continue;
 		if (!--lines_to_colors)
-			fig_colors();
+			fig_colors(fig->file);
 		/*
 		 * @@@ known bug: if the template is empty, we won't output
 		 * color 32.
@@ -317,6 +353,17 @@ static bool fig_args(void *ctx, int argc, char *const *argv)
 	fclose(file);
 
 	return 1;
+}
+
+
+static int fig_end(void *ctx)
+{
+	struct fig_ctx *fig = ctx;
+
+	if (fclose(fig->file) < 0)
+		diag_pfatal("fclose");
+	free(ctx);
+	return 0;
 }
 
 
@@ -334,5 +381,6 @@ const struct gfx_ops fig_ops = {
 	.tag		= fig_tag,
 	.text_width	= fig_text_width,
 	.init		= fig_init,
+	.end		= fig_end,
 	.args		= fig_args,
 };
