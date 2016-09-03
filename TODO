@@ -8,6 +8,8 @@ Parsing and input processing:
 - test immunity to deletions more thoroughly (top sheet, sub-sheet, library,
   component, project, page layout)
 - implement related_other_repo
+- eeshow'ing an untracked file when in a git repo directory fails because it
+  can't find the file in the repo
 
 Data model:
 - implement destructors
@@ -37,6 +39,10 @@ Rendering:
 - diff area algorithm will fill anything resembling a closed path, no matter
   how little is inside (e.g., a changed large but empty rectangle will be
   filled)
+- interaction with eda-tools/genkicat fails: catalog text is lost
+- eeplot to PDF sometimes chops off one line of pixels, ignores text size
+  (test with kicad-libs/components catalog)
+- should support PS output, too
 
 GUI:
 - dragging can be slow. maybe reusing old content and only redrawing new
