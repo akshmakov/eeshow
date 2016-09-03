@@ -130,6 +130,9 @@ void usage(const char *name)
 }
 
 
+#define	OPTIONS	"1evL:OPV"
+
+
 int main(int argc, char **argv)
 {
 	struct lib lib;
@@ -157,7 +160,7 @@ int main(int argc, char **argv)
 	if (dashdash == argc)
 		usage(*argv);
 
-	while ((c = getopt(dashdash, argv, "1evL:OPV")) != EOF)
+	while ((c = getopt(dashdash, argv, OPTIONS)) != EOF)
 		switch (c) {
 		case '1':
 			one_sheet = 1;
@@ -214,7 +217,7 @@ int main(int argc, char **argv)
 	}
 
 	gfx = gfx_init(ops);
-	if (!gfx_args(gfx, gfx_argc, gfx_argv))
+	if (!gfx_args(gfx, gfx_argc, gfx_argv, OPTIONS))
 		return 1;
 	if (!gfx_multi_sheet(gfx))
 		one_sheet = 1;

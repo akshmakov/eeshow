@@ -288,7 +288,7 @@ static void *fig_init(void)
 }
 
 
-static bool fig_args(void *ctx, int argc, char *const *argv)
+static bool fig_args(void *ctx, int argc, char *const *argv, const char *opts)
 {
 	struct fig_ctx *fig = ctx;
 	static char *buf = NULL;
@@ -302,7 +302,7 @@ static bool fig_args(void *ctx, int argc, char *const *argv)
 	FILE *file;
 	int lines_to_colors = 8;
 
-	while ((c = getopt(argc, argv, "o:t:D:")) != EOF)
+	while ((c = getopt(argc, argv, opts)) != EOF)
 		switch (c) {
 		case 'o':
 			colon = strchr(optarg, ':');
@@ -318,12 +318,11 @@ static bool fig_args(void *ctx, int argc, char *const *argv)
 			vars = realloc_type_n(vars, const char *, n_vars);
 			vars[n_vars - 1] = optarg;
 			break;
-		default:
+		case '?':
 			usage(*argv);
+		default:
+			break;
 		}
-
-	if (argc != optind)
-		usage(*argv);
 
 	if (output && strcmp(output, "-")) {
 		fig->file = fopen(output, "w");
@@ -377,6 +376,8 @@ static const char *const fig_ext[] = { "fig" };
 const struct gfx_ops fig_ops = {
 	.ext		= fig_ext,
 	.n_ext		= ARRAY_ELEMENTS(fig_ext),
+	.opts		= "o:t:D:",
+
 	.line		= fig_line,
 	.rect		= fig_rect,
 	.poly		= fig_poly,

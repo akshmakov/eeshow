@@ -150,7 +150,7 @@ static void *diff_init(void)
 }
 
 
-static bool diff_args(void *ctx, int argc, char *const *argv)
+static bool diff_args(void *ctx, int argc, char *const *argv, const char *opts)
 {
 	struct diff *diff = ctx;
 	const char *colon;
@@ -166,7 +166,7 @@ static bool diff_args(void *ctx, int argc, char *const *argv)
 	sch_init(&new_sch, 0);
 	lib_init(&new_lib);
 
-	while ((c = getopt(argc, argv, "o:s:")) != EOF)
+	while ((c = getopt(argc, argv, opts)) != EOF)
 		switch (c) {
 		case 'o':
 			colon = strchr(optarg, ':');
@@ -175,8 +175,10 @@ static bool diff_args(void *ctx, int argc, char *const *argv)
 		case 's':
 			diff->scale = atof(optarg) * DEFAULT_SCALE;
 			break;
-		default:
+		case '?':
 			usage(*argv);
+		default:
+			break;
 		}
 
 	if (argc - optind < 1)
@@ -215,7 +217,7 @@ static bool diff_args(void *ctx, int argc, char *const *argv)
 	suppress_page_layout = 1;
 
 	diff->gfx = gfx_init(&cro_img_ops);
-	if (!gfx_args(diff->gfx, argc, argv))
+	if (!gfx_args(diff->gfx, argc, argv, opts))
 		goto fail_open;
 	sch_render(new_sch.sheets, diff->gfx);
 	diff->new_gfx = diff->gfx;
@@ -224,7 +226,7 @@ static bool diff_args(void *ctx, int argc, char *const *argv)
 	lib_free(&new_lib);
 
 	diff->gfx = gfx_init(&cro_img_ops);
-	if (!gfx_args(diff->gfx, argc, argv))
+	if (!gfx_args(diff->gfx, argc, argv, opts))
 		goto fail_open;
 
 	return 1;
@@ -508,6 +510,8 @@ void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
 
 
 const struct gfx_ops diff_ops = {
+	.opts		= "o:s:",
+
 	.line		= diff_line,
 	.poly		= diff_poly,
 	.circ		= diff_circ,

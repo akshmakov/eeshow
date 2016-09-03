@@ -24,6 +24,8 @@ struct gfx;
 struct gfx_ops {
 	const char *const *ext;
 	int n_ext;
+	const char *opts;
+
 	void (*line)(void *ctx, int sx, int sy, int ex, int ey,
 	    int color, unsigned layer);
 	void (*rect)(void *ctx, int sx, int sy, int ex, int ey,
@@ -42,8 +44,9 @@ struct gfx_ops {
 	    int points, const int x[points], const int y[points]);
 	unsigned (*text_width)(void *ctx, const char *s, unsigned size,
 	    enum text_style style);
+
 	void *(*init)(void);
-	bool (*args)(void *ctx, int argc, char *const *argv);
+	bool (*args)(void *ctx, int argc, char *const *argv, const char *opts);
 	void (*sheet_name)(void *ctx, const char *name);
 	void (*new_sheet)(void *ctx);
 	int (*end)(void *ctx);
@@ -74,7 +77,7 @@ unsigned gfx_text_width(struct gfx *gfx, const char *s, unsigned size,
 /* inititalization and termination */
 
 struct gfx *gfx_init(const struct gfx_ops *ops);
-bool gfx_args(struct gfx *gfx, int argc, char *const *argv);
+bool gfx_args(struct gfx *gfx, int argc, char *const *argv, const char *opts);
 
 void gfx_sheet_name(struct gfx *gfx, const char *name);
 void gfx_new_sheet(struct gfx *gfx);

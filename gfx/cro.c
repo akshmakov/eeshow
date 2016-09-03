@@ -504,13 +504,13 @@ static void setup_font(struct cro_ctx *cc)
 }
 
 
-static bool cr_args(void *ctx, int argc, char *const *argv)
+static bool cr_args(void *ctx, int argc, char *const *argv, const char *opts)
 {
 	struct cro_ctx *cc = ctx;
 	const char *colon;
 	char c;
 
-	while ((c = getopt(argc, argv, "o:s:T")) != EOF)
+	while ((c = getopt(argc, argv, opts)) != EOF)
 		switch (c) {
 		case 'o':
 			colon = strchr(optarg, ':');
@@ -522,14 +522,11 @@ static bool cr_args(void *ctx, int argc, char *const *argv)
 		case 'T':
 			cc->add_toc = 0;
 			break;
-		default:
+		case '?':
 			usage(*argv);
+		default:
+			break;
 		}
-
-#if 0
-	if (argc != optind)
-		usage(*argv);
-#endif
 
 	return 1;
 }
@@ -617,11 +614,12 @@ static void *cr_pdf_init(void)
 }
 
 
-static bool cr_pdf_args(void *ctx, int argc, char *const *argv)
+static bool cr_pdf_args(void *ctx, int argc, char *const *argv,
+    const char *opts)
 {
 	struct cro_ctx *cc = ctx;
 
-	if (!cr_args(cc, argc, argv))
+	if (!cr_args(cc, argc, argv, opts))
 		return 0;
 	if (cc->add_toc && cc->output_name && strcmp(cc->output_name, "-"))
 		return pdftoc_set_file(cc->toc, cc->output_name);
@@ -925,6 +923,8 @@ static const char *const cro_png_ext[] = { "png" };
 const struct gfx_ops cro_png_ops = {
 	.ext		= cro_png_ext,
 	.n_ext		= ARRAY_ELEMENTS(cro_png_ext),
+	.opts		= "o:s:",
+
 	.line		= record_line,
 	.poly		= record_poly,
 	.circ		= record_circ,
@@ -941,6 +941,8 @@ static const char *const cro_pdf_ext[] = { "pdf" };
 const struct gfx_ops cro_pdf_ops = {
 	.ext		= cro_pdf_ext,
 	.n_ext		= ARRAY_ELEMENTS(cro_pdf_ext),
+	.opts		= "o:s:T",
+
 	.line		= record_line,
 	.poly		= record_poly,
 	.circ		= record_circ,

@@ -121,10 +121,18 @@ struct gfx *gfx_init(const struct gfx_ops *ops)
 }
 
 
-bool gfx_args(struct gfx *gfx, int argc, char *const *argv)
+bool gfx_args(struct gfx *gfx, int argc, char *const *argv, const char *opts)
 {
+	char *combined = (char *) opts;
+	bool res;
+
+	if (gfx->ops->opts)
+		alloc_printf(&combined, "%s%s", opts, gfx->ops->opts);
 	optind = 0;
-	return gfx->ops->args && gfx->ops->args(gfx->user, argc, argv);
+	res = gfx->ops->args && gfx->ops->args(gfx->user, argc, argv, combined);
+	if (gfx->ops->opts)
+		free(combined);
+	return res;
 }
 
 
