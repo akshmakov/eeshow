@@ -1,11 +1,12 @@
 eeshow - Eeschema schematics renderer and viewer
 ================================================
 
-Eeshow renders schematics made by KiCad Eeschema to FIG, PDF, or PNG,
-and generates graphical differences between different versions of
-schematics sheets. It can work in plain files but it can also
-retrieve design files directly from a git repository. Furthermore,
-eeshow has an interactive mode for viewing schematics and differences.
+Eeshow is a collection of programs to render schematics made by KiCad
+Eeschema to FIG, PDF, or PNG, and to generate graphical differences
+between different versions of schematics sheets. It can work in plain
+files but it can also retrieve design files directly from a git
+repository. Furthermore, eeshow has an interactive mode for viewing
+schematics and differences.
 
 This work is distributed under the terms of the GNU GENERAL PUBLIC
 LICENSE, Version 2:
@@ -63,11 +64,11 @@ Invocation
 
 The general form of invocation for rendering is as follows:
 
-eeshow file.pro [file.sch]
+eeplotfile.pro [file.sch] -- format [options]
 
 or
 
-eeshow [-1] [-e] file.lib ... file.sch -- format [options]
+eeplot [-1] [-e] file.lib ... file.sch -- format [options]
 
 Common if using PDF, the option -1 can be used (after "eeshow") to
 process only one sheet, not recursing into sub-sheets. -e enables
@@ -79,12 +80,12 @@ writes to standard output.
 
 Examples:
 
-eeshow test.lib test.sch -- png -s 2 -o test.png
+eeplot test.lib test.sch -- png -s 2 -o test.png
 
-eeshow neo900.lib kicad-libs/components/powered.lib neo900.sch \
+eeplot neo900.lib kicad-libs/components/powered.lib neo900.sch \
   -- pdf -o neo900.pdf
 
-eeshow neo900.pro neo900_SS_4.sch -- pdf -o neo900-sheet04.pdf
+eeplot neo900.pro neo900_SS_4.sch -- pdf -o neo900-sheet04.pdf
 
 More details on the above example can be found in the file DEMO.
 
@@ -95,7 +96,7 @@ Revision access
 If the files are stored in a git repository, a revisions can be selected
 by prefixing file names with the commit ID, e.g.,
 
-eeshow neo900.lib kicad-libs/components/powered.lib 6a9f71:neo900_SS_5.sch \
+eeplot neo900.lib kicad-libs/components/powered.lib 6a9f71:neo900_SS_5.sch \
   -- png -s 2 -o old.png
 
 Revision selection propagates to dependent files, unless explicitly
@@ -128,14 +129,14 @@ Invocation
 
 The general form of invocation for rendering is as follows:
 
-eeshow file.lib ... file.sch -- diff [options] file.lib ... file.sch
+eediff file.lib ... file.sch -- diff [options] file.lib ... file.sch
 
 The usual options and revision selection can be used here as well.
 
 Example:
 
 LIBS="neo900.lib kicad-libs/components/powered.lib"
-eeshow $LIBS  6a9f71:neo900_SS_5.sch \
+eediff $LIBS  6a9f71:neo900_SS_5.sch \
   -- diff -s 2 -o diff.png $LIBS neo900_SS_5.sch
 
 

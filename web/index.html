@@ -14,7 +14,7 @@ img {
 
 <H1>Eeshow &dash; Schematics renderer and viewer</H1>
 
-Eeshow reads schematics made by
+Eeshow is a collection of programs that read schematics made by
 <A href="http://kicad-pcb.org/">KiCad</A>
 <A href="http://kicad-pcb.org/discover/eeschema/">Eeschema</A>
 and can be used as
@@ -45,6 +45,7 @@ transfig and
 git clone http://neo900.org/git/eeshow
 cd eeshow
 make
+make install
 </PRE>
 
 
@@ -198,10 +199,19 @@ Delta mode can also be selected for visualization, by pressing Shift-D.
 <H2>Non-interactive use</H2>
 
 Eeshow can also be used from the command line to render schematics.
-The most common use may be to render the schematics as PDF. Example:
+The most common use may be to render the schematics as PDF, with the
+command <code>eeplot</code>. Example:
 <P>
 <PRE>
-eeshow neo900.pro -- pdf -o neo900.pdf
+eeplot neo900.pro -- pdf -o neo900.pdf
+</PRE>
+<P>
+The command <code>eediff</code> makes a pixel-wised comparison of two
+schematics sheets, like "diff mode" in eeshow does:
+<P>
+<PRE>
+eediff 6a9f71:neo900.pro neo900_SS_5.sch -- \
+  diff -o diff.png -s 2 neo900.pro neo900_SS_5.sch
 </PRE>
 <P>
 Additional functions are explained in the
