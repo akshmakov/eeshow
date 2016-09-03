@@ -42,15 +42,25 @@ enum ext identify(const char *path)
 }
 
 
-void classify_files(struct file_names *fn, char *const *args,
-    unsigned n_args)
+static void do_classify_files_ab(struct file_names *a, struct file_names *b,
+    char *const *args, unsigned n_args)
 {
+	struct file_names *fn = a;
+	bool may_advance = 0;
 	unsigned i;
 	enum ext ext;
 
-	fn->pro = fn->sch = fn->pl = NULL;
-	fn->libs = NULL;
-	fn->n_libs = 0;
+	a->pro = a->sch = a->pl = NULL;
+	a->libs = NULL;
+	a->n_libs = 0;
+
+	if (b) {
+		b->pro = b->sch = b->pl = NULL;
+		b->libs = NULL;
+		b->n_libs = 0;
+	}
+
+	fn = a;
 
 	for (i = 0; i != n_args; i++) {
 		ext = identify(args[i]);
@@ -58,24 +68,34 @@ void classify_files(struct file_names *fn, char *const *args,
 		case ext_unknown:
 			fatal("%s: unknown file type", args[i]);
 		case ext_project:
+			if ((a->pro || a->sch) && b)
+				fn = b;
 			if (fn->pro)
 				fatal("%s: there can only be one project",
 				    args[i]);
 			fn->pro = stralloc(args[i]);
+			may_advance = 1;
 			break;
 		case ext_sch:
+			if (a->sch && b)
+				fn = b;
 			if (fn->sch)
 				fatal("%s: there can only be one top sheet",
 				    args[i]);
 			fn->sch = stralloc(args[i]);
+			may_advance = 1;
 			break;
 		case ext_lib:
+			if (may_advance && b)
+				fn = b;
 			fn->n_libs++;
 			fn->libs = realloc_type_n(fn->libs, const char *,
 			    fn->n_libs);
 			fn->libs[fn->n_libs - 1] = stralloc(args[i]);
 			break;
 		case ext_pl:
+			if (may_advance && b)
+				fn = b;
 			if (fn->pl)
 				fatal("%s: there can only be one page layout",
 				    args[i]);
@@ -84,6 +104,26 @@ void classify_files(struct file_names *fn, char *const *args,
 		default:
 			BUG("invalid extension code %d", ext);
 		}
+	}
+}
+
+
+void classify_files(struct file_names *fn, char *const *args,
+    unsigned n_args)
+{
+	classify_files_ab(fn, NULL, args, n_args);
+}
+
+
+void classify_files_ab(struct file_names *a, struct file_names *b,
+    char *const *args, unsigned n_args)
+{
+	do_classify_files_ab(a, b, args, n_args);
+
+	/* resolve a.pro b.sch */
+	if (a->pro && a->sch && !b->pro && !b->sch) {
+		a->sch = NULL;
+		b->sch = a->sch;
 	}
 }
 
