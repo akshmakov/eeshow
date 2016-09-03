@@ -622,7 +622,7 @@ static bool cr_pdf_args(void *ctx, int argc, char *const *argv)
 
 	if (!cr_args(cc, argc, argv))
 		return 0;
-	if (cc->add_toc && cc->output_name)
+	if (cc->add_toc && cc->output_name && strcmp(cc->output_name, "-"))
 		return pdftoc_set_file(cc->toc, cc->output_name);
 	return 1;
 }
@@ -662,7 +662,7 @@ static int cr_pdf_end(void *ctx)
 	if (cc->toc)
 		cc->s = cairo_pdf_surface_create_for_stream(stream_to_pdftoc,
 		    cc, w, h);
-	else if (cc->output_name)
+	else if (cc->output_name && strcmp(cc->output_name, "-"))
 		cc->s = cairo_pdf_surface_create(cc->output_name, w, h);
 	else
 		cc->s = cairo_pdf_surface_create_for_stream(stream_to_stdout,
@@ -774,7 +774,7 @@ void cro_img_write(cairo_surface_t *s, const char *name)
 {
 	cairo_status_t status;
 
-	if (name)
+	if (name && strcmp(name, "-"))
 		status = cairo_surface_write_to_png(s, name);
 	else
 		status = cairo_surface_write_to_png_stream(s, stream_to_stdout,

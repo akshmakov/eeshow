@@ -323,7 +323,7 @@ static bool fig_args(void *ctx, int argc, char *const *argv)
 	if (argc != optind)
 		usage(*argv);
 
-	if (output) {
+	if (output && strcmp(output, "-")) {
 		fig->file = fopen(output, "w");
 		if (!fig->file)
 			diag_pfatal(output);
