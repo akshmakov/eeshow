@@ -150,21 +150,70 @@ static void *diff_init(void)
 }
 
 
+static void *diff_process_file(struct diff *diff, struct file_names *file_names,
+    int argc, char *const *argv, const char *opts)
+{
+	struct file_names *fn = file_names;
+	struct sch_ctx new_sch;
+	struct file pro_file;
+	struct file sch_file;
+	struct lib new_lib;
+	unsigned i;
+
+	sch_init(&new_sch, 0);
+	lib_init(&new_lib);
+
+	if (file_names->pro) {
+		if (!file_open(&pro_file, file_names->pro, NULL))
+			return 0;
+		fn = pro_parse_file(&pro_file, file_names);
+		if (!fn) {
+			file_close(&pro_file);
+			free_file_names(file_names);
+			return NULL;
+		}
+        }
+
+	if (!file_open(&sch_file, fn->sch, file_names->pro ? &pro_file : NULL)) 
+		goto fail_open;
+	for (i = 0 ; i != fn->n_libs; i++)
+		if (!lib_parse(&new_lib, fn->libs[i], &sch_file))
+			goto fail_parse;
+	if (!sch_parse(&new_sch, &sch_file, &new_lib, NULL))
+		goto fail_parse;
+	file_close(&sch_file);
+	if (file_names->pro)
+		file_close(&pro_file);
+	if (fn != file_names) {
+		free_file_names(fn);
+		free(fn);
+	}
+
+	diff->gfx = gfx_init(&cro_img_ops);
+	if (!gfx_args(diff->gfx, argc, argv, opts))
+		goto fail_open;
+	sch_render(new_sch.sheets, diff->gfx);
+
+	sch_free(&new_sch);
+	lib_free(&new_lib);
+
+	return diff->gfx;
+
+fail_parse:
+	file_close(&sch_file);
+fail_open:
+	sch_free(&new_sch);
+	lib_free(&new_lib);
+	return NULL;
+}
+
+
 static bool diff_args(void *ctx, int argc, char *const *argv, const char *opts)
 {
 	struct diff *diff = ctx;
 	const char *colon;
 	char c;
-	unsigned i;
 	struct file_names file_names;
-	struct file_names *fn = &file_names;
-	struct sch_ctx new_sch;
-	struct file pro_file;
-	struct file sch_file;
-	struct lib new_lib;
-
-	sch_init(&new_sch, 0);
-	lib_init(&new_lib);
 
 	while ((c = getopt(argc, argv, opts)) != EOF)
 		switch (c) {
@@ -184,59 +233,20 @@ static bool diff_args(void *ctx, int argc, char *const *argv, const char *opts)
 	if (argc - optind < 1)
 		usage(*argv);
 
+	suppress_page_layout = 1;
+
 	classify_files(&file_names, argv + optind, argc - optind);
 	if (!file_names.pro && !file_names.sch)
 		fatal("project or top sheet name required");
-	if (file_names.pro) {
-		if (!file_open(&pro_file, file_names.pro, NULL))
-			return 0;
-		fn = pro_parse_file(&pro_file, &file_names);
-		if (!fn) {
-			file_close(&pro_file);
-			free_file_names(&file_names);
-			return 0;
-		}
-        }
 
-	if (!file_open(&sch_file, fn->sch,  file_names.pro ? &pro_file : NULL)) 
-		goto fail_open;
-	for (i = 0 ; i != fn->n_libs; i++)
-		if (!lib_parse(&new_lib, fn->libs[i], &sch_file))
-			goto fail_parse;
-	if (!sch_parse(&new_sch, &sch_file, &new_lib, NULL))
-		goto fail_parse;
-	file_close(&sch_file);
-	if (file_names.pro)
-		file_close(&pro_file);
-	if (fn != &file_names) {
-		free_file_names(fn);
-		free(fn);
-	}
+	diff->new_gfx = diff_process_file(diff, &file_names, argc, argv, opts);
 	free_file_names(&file_names);
 
-	suppress_page_layout = 1;
-
 	diff->gfx = gfx_init(&cro_img_ops);
-	if (!gfx_args(diff->gfx, argc, argv, opts))
-		goto fail_open;
-	sch_render(new_sch.sheets, diff->gfx);
-	diff->new_gfx = diff->gfx;
+	if (!diff->gfx)
+		return 0;
 
-	sch_free(&new_sch);
-	lib_free(&new_lib);
-
-	diff->gfx = gfx_init(&cro_img_ops);
-	if (!gfx_args(diff->gfx, argc, argv, opts))
-		goto fail_open;
-
-	return 1;
-
-fail_parse:
-	file_close(&sch_file);
-fail_open:
-	sch_free(&new_sch);
-	lib_free(&new_lib);
-	return 0;
+	return gfx_args(diff->gfx, argc, argv, opts);
 }
 
 
