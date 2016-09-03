@@ -57,7 +57,7 @@ while [ "$2" ]; do
 done
 
 ./eeplot $libs "$1" \
-    -- fig $template "TITLE=`basename \"$1\" .sch`" NUMBER=$num |
+    -- fig -o fig:- $template "TITLE=`basename \"$1\" .sch`" NUMBER=$num |
     fig2dev -L pdf >"$out"
 
 sheet=false
@@ -84,7 +84,7 @@ while read line; do
 
 	$quiet || echo "$file" 1>&2
 	./eeplot $libs `dirname "$1"`/$file \
-	    -- fig $template "TITLE=$name" NUMBER=$num |
+	    -- fig -o fig:- $template "TITLE=$name" NUMBER=$num |
 	    fig2dev -L pdf >_tmp.pdf
 	pdfunite "$out" _tmp.pdf _tmp2.pdf
 	mv _tmp2.pdf "$out"

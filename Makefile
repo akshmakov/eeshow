@@ -136,14 +136,14 @@ sch:
 		eeschema test.sch
 
 test:		eeplot
-		./eeplot test.lib test.sch -- fig >out.fig
+		./eeplot test.lib test.sch -- fig -o out.fig
 		fig2dev -L png -m 2 out.fig _out.png
 		[ ! -r ref.png ] || \
 		    compare -metric AE ref.png _out.png _diff.png || \
 		    qiv -t -R -D _diff.png ref.png _out.png
 
 testref:	eeplot
-		./eeplot test.lib test.sch -- fig | \
+		./eeplot test.lib test.sch -- fig -o fig:- | \
 		    fig2dev -L png -m 2 >ref.png
 
 png:		eeplot
@@ -168,8 +168,7 @@ SHEET ?= 12
 neo900:		eeplot
 		./eeplot $(NEO900_HW)/neo900.lib \
 		    $(KICAD_LIBS)/powered.lib \
-		    $(NEO900_HW)/neo900_SS_$(SHEET).sch \
-		    >out.fig
+		    $(NEO900_HW)/neo900_SS_$(SHEET).sch -- fig -o out.fig
 
 neo900.pdf:	eeplot sch2pdf neo900-template.fig
 		./sch2pdf -o $@ -t neo900-template.fig \
@@ -202,8 +201,10 @@ leak:		eediff
 		    $(SUPP:%=--suppressions=%.supp) \
 		    ./eediff $(NEO900_HW)/neo900.pro -- \
 		      diff $(NEO900_HW)/neo900.pro >/dev/null
-#		    ./eeplot -N 1 $(NEO900_HW)/neo900.pro -- pdf >/dev/null
-#		    ./eeplot -N 1 $(NEO900_HW)/neo900.pro -- png >/dev/null
+#		    ./eeplot -N 1 $(NEO900_HW)/neo900.pro \
+#		      -- pdf -o pdf:- >/dev/null
+#		    ./eeplot -N 1 $(NEO900_HW)/neo900.pro \
+#		      -- png -o png:- >/dev/null
 
 #----- Install / uninstall ---------------------------------------------------
 
