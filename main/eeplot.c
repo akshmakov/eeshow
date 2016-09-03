@@ -54,7 +54,7 @@ static const struct gfx_ops *find_by_output(int argc, char **argv)
 		if (!strncmp(argv[i], "-o", 2))
 			break;
 	if (i == argc)
-		fatal("required option \"-o output\" is missing");
+		return NULL;
 	arg = argv[i] + 2;
 	if (!*arg) {
 		arg = argv[i + 1];
@@ -152,7 +152,7 @@ int main(int argc, char **argv)
 
 	ops = find_by_output(argc, argv);
 
-	alloc_printf(&opts, "%s%s", OPTIONS, ops->opts);
+	alloc_printf(&opts, "%s%s", OPTIONS, ops ? ops->opts : "");
 	while ((c = getopt(argc, argv, opts)) != EOF)
 		switch (c) {
 		case '1':
@@ -182,6 +182,9 @@ int main(int argc, char **argv)
 			break;
 		}
 	free(opts);
+
+	if (!ops)
+		fatal("required option \"-o output\" is missing");
 
 	if (argc - optind < 1)
 		usage(*argv);
