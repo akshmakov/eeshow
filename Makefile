@@ -52,6 +52,9 @@ EETEST_OBJS = main/eetest.o main/common.o \
 	$(OBJS_FILE) \
 	$(OBJS_MISC)
 
+# we need this for "clean" and dependencies
+OBJS = $(EESHOW_OBJS) $(EEPLOT_OBJS $(EEDIFF_OBJS) $(EETEST_OBJS)
+
 ICONS = delta diff
 
 CFLAGS = -g  -Wall -Wextra -Wno-unused-parameter -Wshadow \
