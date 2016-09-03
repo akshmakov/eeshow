@@ -64,28 +64,30 @@ Invocation
 
 The general form of invocation for rendering is as follows:
 
-eeplotfile.pro [file.sch] -- format [options]
+eeplot -o output [options] file.pro [file.sch]
 
 or
 
-eeplot [-1] [-e] file.lib ... file.sch -- format [options]
+eeplot -o output [options] [-1] [-e] file.lib ... file.sch
 
-Common if using PDF, the option -1 can be used (after "eeshow") to
-process only one sheet, not recursing into sub-sheets. -e enables
-the rendering of additional information, e.g., pin types.
+The option -o is always required. The filename extension selects the
+output driver, and can be overridden with the type: prefix. If selecting
+standard output the type prefix is always required, e.g., png:-
 
-For PDF and PNG, the options -s scale and -o output-file can be used to
-control the size of the output and the output file. By default, eeshow
-writes to standard output.
+If using PDF, the option -1 can be used (after "eeshow") to process only
+one sheet, not recursing into sub-sheets. -e enables the rendering of
+additional information, e.g., pin types.
+
+For PDF and PNG, the option -s scale can be used to control the size of
+the output.
 
 Examples:
 
-eeplot test.lib test.sch -- png -s 2 -o test.png
+eeplot -s 2 -o test.png test.lib test.sch
 
-eeplot neo900.lib kicad-libs/components/powered.lib neo900.sch \
-  -- pdf -o neo900.pdf
+eeplot -o neo900.pdf  neo900.lib kicad-libs/components/powered.lib neo900.sch
 
-eeplot neo900.pro neo900_SS_4.sch -- pdf -o neo900-sheet04.pdf
+eeplot -o neo900-sheet04.pdf neo900.pro neo900_SS_4.sch
 
 More details on the above example can be found in the file DEMO.
 
@@ -96,8 +98,8 @@ Revision access
 If the files are stored in a git repository, a revisions can be selected
 by prefixing file names with the commit ID, e.g.,
 
-eeplot neo900.lib kicad-libs/components/powered.lib 6a9f71:neo900_SS_5.sch \
-  -- png -s 2 -o old.png
+eeplot -o old.png -s neo900.lib kicad-libs/components/powered.lib \
+  6a9f71:neo900_SS_5.sch \
 
 Revision selection propagates to dependent files, unless explicitly
 overridden. E.g., the above example selects also revision 6a9f71 of

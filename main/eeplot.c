@@ -79,7 +79,7 @@ static const struct gfx_ops *find_by_output(int argc, char **argv)
 
 	for (ops = ops_list; ops != ARRAY_END(ops_list); ops++)
 		for (i = 0; i != (*ops)->n_ext; i++)
-			if (!strncasecmp((*ops)->ext[i], ext, n) ||
+			if (!strncasecmp((*ops)->ext[i], ext, n) &&
 			    strlen((*ops)->ext[i]) == n)
 				return *ops;
 	fatal("graphics backend for \"%s\" not found\n", ext);
@@ -89,8 +89,8 @@ static const struct gfx_ops *find_by_output(int argc, char **argv)
 void usage(const char *name)
 {
 	fprintf(stderr,
-"usage: %s [-1] [-e] [-v ...] kicad_file ...\n"
-"       %*s-- driver_spec\n"
+"usage: %s -o [type:]output_file [-1] [-e] [-v ...] [driver_opts]\n"
+"       %*skicad_file ...\n"
 "       %s -V\n"
 "       %s gdb ...\n"
 "\n"
@@ -100,30 +100,28 @@ void usage(const char *name)
 "\n"
 "  -1    show only one sheet - do not recurse into sub-sheets\n"
 "  -e    show extra information (e.g., pin types)\n"
+"  -o [type:]output_file\n"
+"        output file. - for standard output. File type is derived from\n"
+"        extension and can be overridden with type: prefix (fig, png, pdf).\n"
 "  -v    increase verbosity of diagnostic output\n"
-"  -E shell_command ...\n"
-"        execute the specified shell command when the GUI is ready.\n"
-"        Sets EESHOW_WINDOW_ID to the X11 window ID.\n"
 "  -V    print revision (version) number and exit\n"
 "  gdb   run eeshow under gdb\n"
 "\n"
-"FIG driver spec:\n"
-"  fig [-o output.fig] [-t template.fig] [-D var=value ...]\n"
+"FIG files:\n"
+"  [-t template.fig] [-D var=value ...]\n"
 "\n"
-"  -o output.fig    write FIG to specified file (default; standard output)\n"
 "  -t template.fig  merge this file with generated output\n"
 "  -D var=value     substitute \"<var>\" with \"value\" in template\n"
 "\n"
-"Cairo PNG driver spec:\n"
-"  png [-o output.png] [-s scale]\n"
+"PNG files:\n"
+"  [-s scale]\n"
 "\n"
-"  -o output.png  write PNG to specified file (default; standard output)\n"
 "  -s scale       scale by indicated factor (default: 1.0)\n"
 "\n"
-"Cairo PDF driver spec:\n"
-"  pdf [-o output.pdf] [-s scale] [-T]\n"
+"PDF files:\n"
+"  [-s scale] [-T]\n"
 "\n"
-"  see PNG for -o and -s\n"
+"  see PNG for -s\n"
 "  -T  do not add table of contents\n"
     , name, (int) strlen(name) + 1, "", name, name);
 	exit(1);
@@ -142,25 +140,20 @@ int main(int argc, char **argv)
 	bool one_sheet = 0;
 	struct pl_ctx *pl = NULL;
 	char c;
-	int  dashdash;
 	unsigned i;
 	struct file_names file_names;
 	struct file_names *fn = &file_names;
-	int gfx_argc;
-	char **gfx_argv;
+	char *opts;
 	const struct gfx_ops *ops;
 	struct gfx *gfx;
 	int retval;
 
 	run_under_gdb(argc, argv);
 
-	for (dashdash = 1; dashdash != argc; dashdash++)
-		if (!strcmp(argv[dashdash], "--"))
-			break;
-	if (dashdash == argc)
-		usage(*argv);
+	ops = find_by_output(argc, argv);
 
-	while ((c = getopt(dashdash, argv, OPTIONS)) != EOF)
+	alloc_printf(&opts, "%s%s", OPTIONS, ops->opts);
+	while ((c = getopt(argc, argv, opts)) != EOF)
 		switch (c) {
 		case '1':
 			one_sheet = 1;
@@ -183,32 +176,19 @@ int main(int argc, char **argv)
 		case 'V':
 			fprintf(stderr, "%s %sZ\n", version, build_date);
 			return 1;
-		default:
+		case '?':
 			usage(*argv);
+		default:
+			break;
 		}
+	free(opts);
 
-	if (dashdash - optind < 1)
+	if (argc - optind < 1)
 		usage(*argv);
 
-	classify_files(&file_names, argv + optind, dashdash - optind);
+	classify_files(&file_names, argv + optind, argc - optind);
 	if (!file_names.pro && !file_names.sch)
 		fatal("project or top sheet name required");
-
-	ops = find_by_output(argc, argv);
-
-	if (dashdash == argc) {
-		gfx_argc = 1;
-		gfx_argv = alloc_type_n(char *, 2);
-		gfx_argv[0] = (char *) ops->ext[0];
-		gfx_argv[1] = NULL;
-	} else {
-		gfx_argc = argc - dashdash - 1;
-		if (!gfx_argc)
-			usage(*argv);
-		gfx_argv = alloc_type_n(char *, gfx_argc + 1);
-		memcpy(gfx_argv, argv + dashdash + 1,
-		    sizeof(const char *) * (gfx_argc + 1));
-	}
 
 	if (file_names.pro) {
 		if (!file_open(&pro_file, file_names.pro, NULL))
@@ -217,12 +197,10 @@ int main(int argc, char **argv)
 	}
 
 	gfx = gfx_init(ops);
-	if (!gfx_args(gfx, gfx_argc, gfx_argv, OPTIONS))
+	if (!gfx_args(gfx, argc, argv, OPTIONS))
 		return 1;
 	if (!gfx_multi_sheet(gfx))
 		one_sheet = 1;
-
-	free(gfx_argv);
 
 	sch_init(&sch_ctx, !one_sheet);
 	if (!file_open(&sch_file, fn->sch, file_names.pro ? &pro_file : NULL))

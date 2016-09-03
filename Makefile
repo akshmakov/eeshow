@@ -136,24 +136,24 @@ sch:
 		eeschema test.sch
 
 test:		eeplot
-		./eeplot test.lib test.sch -- fig -o out.fig
+		./eeplot -o out.fig test.lib test.sch
 		fig2dev -L png -m 2 out.fig _out.png
 		[ ! -r ref.png ] || \
 		    compare -metric AE ref.png _out.png _diff.png || \
 		    qiv -t -R -D _diff.png ref.png _out.png
 
 testref:	eeplot
-		./eeplot test.lib test.sch -- fig -o fig:- | \
+		./eeplot -o fig:- test.lib test.sch | \
 		    fig2dev -L png -m 2 >ref.png
 
 png:		eeplot
-		./eeplot test.lib test.sch -- png -o _out.png -s 2
+		./eeplot -o _out.png -s 2 test.lib test.sch
 		[ ! -r pngref.png ] || \
 		    compare -metric AE pngref.png _out.png _diff.png || \
 		    qiv -t -R -D _diff.png pngref.png _out.png
 
 pngref:		eeplot
-		./eeplot test.lib test.sch -- png -o pngref.png -s 2
+		./eeplot -o pngref.png -s 2 test.lib test.sch
 
 clean::
 		rm -f out.fig _out.png _diff.png
@@ -166,9 +166,9 @@ KICAD_LIBS = ../../qi/kicad-libs/components
 SHEET ?= 12
 
 neo900:		eeplot
-		./eeplot $(NEO900_HW)/neo900.lib \
+		./eeplot -o out.fig $(NEO900_HW)/neo900.lib \
 		    $(KICAD_LIBS)/powered.lib \
-		    $(NEO900_HW)/neo900_SS_$(SHEET).sch -- fig -o out.fig
+		    $(NEO900_HW)/neo900_SS_$(SHEET).sch
 
 neo900.pdf:	eeplot sch2pdf neo900-template.fig
 		./sch2pdf -o $@ -t neo900-template.fig \
@@ -176,7 +176,7 @@ neo900.pdf:	eeplot sch2pdf neo900-template.fig
 		    $(NEO900_HW)/neo900.sch
 
 pdf:		eeplot
-		./eeplot $(NEO900_HW)/neo900.pro -- pdf -o neo900.pdf
+		./eeplot -o neo900.pdf $(NEO900_HW)/neo900.pro
 
 #----- Regression test based on Neo900 schematics -----------------------------
 
@@ -201,10 +201,8 @@ leak:		eediff
 		    $(SUPP:%=--suppressions=%.supp) \
 		    ./eediff $(NEO900_HW)/neo900.pro -- \
 		      diff $(NEO900_HW)/neo900.pro >/dev/null
-#		    ./eeplot -N 1 $(NEO900_HW)/neo900.pro \
-#		      -- pdf -o pdf:- >/dev/null
-#		    ./eeplot -N 1 $(NEO900_HW)/neo900.pro \
-#		      -- png -o png:- >/dev/null
+#		    ./eeplot -o pdf:- -N 1 $(NEO900_HW)/neo900.pro >/dev/null
+#		    ./eeplot -o png:- -N 1 $(NEO900_HW)/neo900.pro >/dev/null
 
 #----- Install / uninstall ---------------------------------------------------
 
