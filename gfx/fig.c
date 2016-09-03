@@ -271,26 +271,27 @@ static bool fig_args(void *ctx, int argc, char *const *argv)
 	const char **vars = NULL;
 	int n_vars = 0;
 	char c;
-	int arg;
 	FILE *file;
 	int lines_to_colors = 8;
 
-	while ((c = getopt(argc, argv, "t:")) != EOF)
+	while ((c = getopt(argc, argv, "t:D:")) != EOF)
 		switch (c) {
 		case 't':
 			template = optarg;
+			break;
+		case 'D':
+			if (!strchr(optarg, '='))
+			    usage(*argv);
+			n_vars++;
+			vars = realloc_type_n(vars, const char *, n_vars);
+			vars[n_vars - 1] = optarg;
 			break;
 		default:
 			usage(*argv);
 		}
 
-	for (arg = optind; arg != argc; arg++) {
-		if (!strchr(argv[arg], '='))
-		    usage(*argv);
-		n_vars++;
-		vars = realloc_type_n(vars, const char *, n_vars);
-		vars[n_vars - 1] = argv[arg];
-	}
+	if (argc != optind)
+		usage(*argv);
 
 	if (!template) {
 		fig_header();
