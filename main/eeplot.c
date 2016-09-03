@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <strings.h>	// for strncasecmp
 
 #include <cairo/cairo.h>
 
@@ -40,6 +41,49 @@ static struct gfx_ops const *ops_list[] = {
 	&cro_png_ops,
 	&cro_pdf_ops,
 };
+
+
+static const struct gfx_ops *find_by_output(int argc, char **argv)
+{
+	const char *arg, *dot, *colon, *ext;
+	const struct gfx_ops *const *ops;
+	int i;
+	unsigned  n;
+
+	for (i = 1; i != argc; i++)
+		if (!strncmp(argv[i], "-o", 2))
+			break;
+	if (i == argc)
+		fatal("required option \"-o output\" is missing");
+	arg = argv[i] + 2;
+	if (!*arg) {
+		arg = argv[i + 1];
+		if (!arg)
+			fatal("-o requires an argument");
+	}
+
+	dot = strrchr(arg, '.');
+	colon = strchr(arg, ':');
+	if (colon && dot && dot < colon)
+		usage(*argv);
+	if (colon) {
+		ext = arg;
+		n = colon - arg;
+	} else if (dot) {
+		ext = dot + 1;
+		n = strlen(ext);
+	} else {
+		fatal("either extension or \"type:\" prefix required for "
+		    "output file");
+	}
+
+	for (ops = ops_list; ops != ARRAY_END(ops_list); ops++)
+		for (i = 0; i != (*ops)->n_ext; i++)
+			if (!strncasecmp((*ops)->ext[i], ext, n) ||
+			    strlen((*ops)->ext[i]) == n)
+				return *ops;
+	fatal("graphics backend for \"%s\" not found\n", ext);
+}
 
 
 void usage(const char *name)
@@ -101,7 +145,7 @@ int main(int argc, char **argv)
 	struct file_names *fn = &file_names;
 	int gfx_argc;
 	char **gfx_argv;
-	const struct gfx_ops **ops = ops_list;
+	const struct gfx_ops *ops;
 	struct gfx *gfx;
 	int retval;
 
@@ -147,10 +191,12 @@ int main(int argc, char **argv)
 	if (!file_names.pro && !file_names.sch)
 		fatal("project or top sheet name required");
 
+	ops = find_by_output(argc, argv);
+
 	if (dashdash == argc) {
 		gfx_argc = 1;
 		gfx_argv = alloc_type_n(char *, 2);
-		gfx_argv[0] = (char *) (*ops)->name;
+		gfx_argv[0] = (char *) ops->ext[0];
 		gfx_argv[1] = NULL;
 	} else {
 		gfx_argc = argc - dashdash - 1;
@@ -159,13 +205,6 @@ int main(int argc, char **argv)
 		gfx_argv = alloc_type_n(char *, gfx_argc + 1);
 		memcpy(gfx_argv, argv + dashdash + 1,
 		    sizeof(const char *) * (gfx_argc + 1));
-
-		for (ops = ops_list; ops != ARRAY_END(ops_list); ops++)
-			if (!strcmp((*ops)->name, *gfx_argv))
-				goto found;
-		fatal("graphics backend \"%s\" not found\n", *gfx_argv);
-found:
-		;
 	}
 
 	if (file_names.pro) {
@@ -174,7 +213,7 @@ found:
 		fn = pro_parse_file(&pro_file, &file_names);
 	}
 
-	gfx = gfx_init(*ops);
+	gfx = gfx_init(ops);
 	if (!gfx_args(gfx, gfx_argc, gfx_argv))
 		return 1;
 	if (!gfx_multi_sheet(gfx))

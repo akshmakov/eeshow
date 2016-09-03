@@ -450,7 +450,6 @@ void cro_color_override(struct cro_ctx *cc, int color)
 
 
 static const struct gfx_ops real_cro_ops = {
-	.name		= "cairo",
 	.line		= cr_line,
 	.poly		= cr_poly,
 	.circ		= cr_circ,
@@ -921,8 +920,11 @@ cairo_surface_t *cro_img_surface(struct cro_ctx *cc)
 /* ----- Operations -------------------------------------------------------- */
 
 
+static const char *const cro_png_ext[] = { "png" };
+
 const struct gfx_ops cro_png_ops = {
-	.name		= "png",
+	.ext		= cro_png_ext,
+	.n_ext		= ARRAY_ELEMENTS(cro_png_ext),
 	.line		= record_line,
 	.poly		= record_poly,
 	.circ		= record_circ,
@@ -934,8 +936,11 @@ const struct gfx_ops cro_png_ops = {
 	.end		= cr_png_end,
 };
 
+static const char *const cro_pdf_ext[] = { "pdf" };
+
 const struct gfx_ops cro_pdf_ops = {
-	.name		= "pdf",
+	.ext		= cro_pdf_ext,
+	.n_ext		= ARRAY_ELEMENTS(cro_pdf_ext),
 	.line		= record_line,
 	.poly		= record_poly,
 	.circ		= record_circ,

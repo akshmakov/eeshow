@@ -372,8 +372,11 @@ static int fig_end(void *ctx)
 /* ----- Operations -------------------------------------------------------- */
 
 
+static const char *const fig_ext[] = { "fig" };
+
 const struct gfx_ops fig_ops = {
-	.name		= "fig",
+	.ext		= fig_ext,
+	.n_ext		= ARRAY_ELEMENTS(fig_ext),
 	.line		= fig_line,
 	.rect		= fig_rect,
 	.poly		= fig_poly,

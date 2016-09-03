@@ -508,7 +508,6 @@ void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
 
 
 const struct gfx_ops diff_ops = {
-	.name		= "diff",
 	.line		= diff_line,
 	.poly		= diff_poly,
 	.circ		= diff_circ,

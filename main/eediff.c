@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 	if (dashdash == argc) {
 		gfx_argc = 1;
 		gfx_argv = alloc_type_n(char *, 2);
-		gfx_argv[0] = (char *) diff_ops.name;
+		gfx_argv[0] = "diff";
 		gfx_argv[1] = NULL;
 	} else {
 		gfx_argc = argc - dashdash - 1;

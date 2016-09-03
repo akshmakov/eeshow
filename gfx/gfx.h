@@ -22,7 +22,8 @@
 struct gfx;
 
 struct gfx_ops {
-	const char *name;
+	const char *const *ext;
+	int n_ext;
 	void (*line)(void *ctx, int sx, int sy, int ex, int ey,
 	    int color, unsigned layer);
 	void (*rect)(void *ctx, int sx, int sy, int ex, int ey,
