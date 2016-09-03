@@ -524,6 +524,12 @@ static bool cr_args(void *ctx, int argc, char *const *argv)
 		default:
 			usage(*argv);
 		}
+
+#if 0
+	if (argc != optind)
+		usage(*argv);
+#endif
+
 	return 1;
 }
 
