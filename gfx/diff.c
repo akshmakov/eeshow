@@ -153,6 +153,7 @@ static void *diff_init(void)
 static bool diff_args(void *ctx, int argc, char *const *argv)
 {
 	struct diff *diff = ctx;
+	const char *colon;
 	char c;
 	unsigned i;
 	struct file_names file_names;
@@ -168,7 +169,8 @@ static bool diff_args(void *ctx, int argc, char *const *argv)
 	while ((c = getopt(argc, argv, "o:s:")) != EOF)
 		switch (c) {
 		case 'o':
-			diff->output_name = optarg;
+			colon = strchr(optarg, ':');
+			diff->output_name = colon ? colon + 1 : optarg;
 			break;
 		case 's':
 			diff->scale = atof(optarg) * DEFAULT_SCALE;

@@ -297,6 +297,7 @@ static bool fig_args(void *ctx, int argc, char *const *argv)
 	const char *template = NULL;
 	const char **vars = NULL;
 	int n_vars = 0;
+	const char *colon;
 	char c;
 	FILE *file;
 	int lines_to_colors = 8;
@@ -304,7 +305,8 @@ static bool fig_args(void *ctx, int argc, char *const *argv)
 	while ((c = getopt(argc, argv, "o:t:D:")) != EOF)
 		switch (c) {
 		case 'o':
-			output = optarg;
+			colon = strchr(optarg, ':');
+			output = colon ? colon + 1 : optarg;
 			break;
 		case 't':
 			template = optarg;

@@ -508,12 +508,14 @@ static void setup_font(struct cro_ctx *cc)
 static bool cr_args(void *ctx, int argc, char *const *argv)
 {
 	struct cro_ctx *cc = ctx;
+	const char *colon;
 	char c;
 
 	while ((c = getopt(argc, argv, "o:s:T")) != EOF)
 		switch (c) {
 		case 'o':
-			cc->output_name = optarg;
+			colon = strchr(optarg, ':');
+			cc->output_name = colon ? colon + 1 : optarg;
 			break;
 		case 's':
 			cc->scale = atof(optarg) * cc->default_scale;
