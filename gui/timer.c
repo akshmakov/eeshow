@@ -16,6 +16,7 @@
 
 #include <cairo/cairo.h>
 
+#include "misc/util.h"
 #include "gui/timer.h"
 
 
