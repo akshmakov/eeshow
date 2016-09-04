@@ -8,6 +8,9 @@ Parsing and input processing:
 - test immunity to deletions more thoroughly (top sheet, sub-sheet, library,
   component, project, page layout)
 - implement related_other_repo
+- when in related_same_repo, still handle symlinks in repo leading out to
+  non-repo file
+- likewise, symlinks leading to other repo
 
 Data model:
 - implement destructors

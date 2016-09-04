@@ -222,6 +222,20 @@ static char *canonical_path_into_repo(const char *repo_dir, const char *path)
 
 	progress(2, "full object path \"%s\"", tmp);
 
+	/*
+	 * Re-validate path. If this fails, just give up and leave it to
+	 * caller to implement fallbacks to save the day.
+	 *
+	 * @@@ we should also check if we've ended up in a different repo
+	 * @@@ we could try to search again, with the new path. Crossing
+	 *     from repo back to file could get "interesting".
+	 */
+
+	if (!select_repo(tmp)) {
+		error("%s: outside repository", tmp);
+		return NULL;
+	}
+
 	/* find which part of our path is inside the repo */
 
 	end = tail = strchr(tmp, 0);
@@ -237,7 +251,7 @@ static char *canonical_path_into_repo(const char *repo_dir, const char *path)
 
 		/* "this cannot happen" */
 		if (tail == tmp || !slash)
-			fatal("divergent paths:\nrepo \"%s\"\nobject \"%s\"\n",
+			fatal("divergent paths:\nrepo \"%s\"\nobject \"%s\"",
 			    repo_dir, tail);
 
 		if (tail != end)
@@ -276,6 +290,8 @@ static git_tree_entry *find_file(git_repository *repo, git_tree *tree,
 
 	canon_path = canonical_path_into_repo(repo_path, path);
 	free(repo_path);
+	if (!canon_path)
+		return NULL;
 
 	if (git_tree_entry_bypath(&entry, tree, canon_path)) {
 		perror_git(path);
