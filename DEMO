@@ -36,8 +36,10 @@ qiv -t diff.png old.png new.png
 
 # Interactively view the schematics
 
-# limit this to the last 30 revisions for now (there's a problem later)
+eeshow neo900.pro
+# or, limiting the history to the last 30 revisions,
 eeshow -N 30 neo900.pro
+
 cd ../..
 
 
@@ -52,6 +54,7 @@ git submodule update
 eeshow schlib/library/*.lib *.lib motherboard.sch 
 eeshow motherboard.pro
 cd ../..
+
 
 # Other projects: Olimex A64-OLinuXino
 
