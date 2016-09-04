@@ -416,14 +416,14 @@ static void count_history(void *user, struct vcs_hist *h,
 }
 
 
-static void get_history(struct gui *gui, const char *sch_name, int limit)
+static void get_history(struct gui *gui, const char *name, int limit)
 {
-	if (!vcs_git_try(sch_name)) {
+	if (!vcs_git_try(name)) {
 		gui->vcs_history = NULL;
 		return;
 	} 
 	
-	gui->vcs_history = vcs_git_history(sch_name);
+	gui->vcs_history = vcs_git_history(name);
 	if (limit)
 		gui->hist_size = limit > 0 ? limit : -limit;
 	else
