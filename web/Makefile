@@ -1,4 +1,4 @@
-UPLOAD = wpwrak@neo900.org:pub/werner/tmp/eeshow/
+UPLOAD = wpwrak@neo900.org:pub/eeshow/
 SCP = rsync -e "neo900 --ssh" -v
 
 FIGS = wt-start wt-plain wt-pin-type wt-glabel wt-index wt-history wt-diff \
