@@ -199,8 +199,8 @@ leak:		eediff
 		valgrind --leak-check=full --show-leak-kinds=all \
 		    --num-callers=50 \
 		    $(SUPP:%=--suppressions=%.supp) \
-		    ./eediff $(NEO900_HW)/neo900.pro -- \
-		      diff $(NEO900_HW)/neo900.pro >/dev/null
+		    ./eediff $(NEO900_HW)/neo900.pro \
+		      $(NEO900_HW)/neo900.pro >/dev/null
 #		    ./eeplot -o pdf:- -N 1 $(NEO900_HW)/neo900.pro >/dev/null
 #		    ./eeplot -o png:- -N 1 $(NEO900_HW)/neo900.pro >/dev/null
 
