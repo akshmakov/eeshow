@@ -64,13 +64,11 @@ void usage(const char *name)
 }
 
 
-#define	OPTIONS	"1evL:OPV"
+#define	OPTIONS	"vL:OPV"
 
 
 int main(int argc, char **argv)
 {
-	bool extra = 0;
-	bool one_sheet = 0;
 	char c;
 	int  dashdash;
 	struct file_names file_names;
@@ -89,12 +87,6 @@ int main(int argc, char **argv)
 
 	while ((c = getopt(dashdash, argv, OPTIONS)) != EOF)
 		switch (c) {
-		case '1':
-			one_sheet = 1;
-			break;
-		case 'e':
-			extra = 1;
-			break;
 		case 'v':
 			verbose++;
 			break;
@@ -138,8 +130,6 @@ int main(int argc, char **argv)
 	gfx = gfx_init(&diff_ops);
 	if (!gfx_args(gfx, gfx_argc, gfx_argv, OPTIONS))
 		return 1;
-	if (!gfx_multi_sheet(gfx))
-		one_sheet = 1;
 
 	free(gfx_argv);
 

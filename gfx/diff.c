@@ -67,6 +67,7 @@ struct diff {
 	int w, h, stride;
 	struct gfx *new_gfx;
 	const char *output_name;
+	bool extra;
 	int frame_radius;
 	struct area *areas;
 };
@@ -143,6 +144,7 @@ static void *diff_init(void)
 	diff->areas = NULL;
 
 	diff->output_name = NULL;
+	diff->extra = 0;
 	diff->frame_radius = DEFAULT_FRAME_RADIUS;
 	diff->gfx = NULL;
 
@@ -193,6 +195,8 @@ void *diff_process_file(struct diff *diff, struct file_names *file_names,
 	if (!gfx_args(diff->gfx, argc, argv, opts))
 		goto fail_open;
 	sch_render(new_sch.sheets, diff->gfx);
+	if (diff->extra)
+		sch_render_extra(new_sch.sheets, diff->gfx);
 
 	sch_free(&new_sch);
 	lib_free(&new_lib);
@@ -217,6 +221,12 @@ static bool diff_args(void *ctx, int argc, char *const *argv, const char *opts)
 
 	while ((c = getopt(argc, argv, opts)) != EOF)
 		switch (c) {
+		case '1':
+			// one sheet
+			break;
+		case 'e':
+			diff->extra = 1;
+			break;
 		case 'o':
 			colon = strchr(optarg, ':');
 			diff->output_name = colon ? colon + 1 : optarg;
@@ -516,7 +526,7 @@ void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
 
 
 const struct gfx_ops diff_ops = {
-	.opts		= "o:s:",
+	.opts		= "1eo:s:",
 
 	.line		= diff_line,
 	.poly		= diff_poly,
