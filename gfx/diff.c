@@ -251,6 +251,8 @@ static bool diff_args(void *ctx, int argc, char *const *argv, const char *opts)
 
 	diff->new_gfx = diff_process_file(diff, &file_names, argc, argv, opts);
 	free_file_names(&file_names);
+	if (!diff->new_gfx)
+		return 0;
 
 	return gfx_args(diff->gfx, argc, argv, opts);
 }
