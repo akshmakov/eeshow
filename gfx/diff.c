@@ -147,6 +147,7 @@ static void *diff_init(void)
 	diff->extra = 0;
 	diff->frame_radius = DEFAULT_FRAME_RADIUS;
 	diff->gfx = NULL;
+	diff->new_gfx = NULL;
 
 	return diff;
 }
@@ -201,6 +202,9 @@ void *diff_process_file(struct diff *diff, struct file_names *file_names,
 	sch_free(&sch);
 	lib_free(&lib);
 
+	if (!diff->new_gfx)
+		diff->new_gfx = diff->gfx;
+
 	return diff->gfx;
 
 fail_parse:
@@ -217,7 +221,6 @@ static bool diff_args(void *ctx, int argc, char *const *argv, const char *opts)
 	struct diff *diff = ctx;
 	const char *colon;
 	char c;
-	struct file_names file_names;
 
 	while ((c = getopt(argc, argv, opts)) != EOF)
 		switch (c) {
@@ -240,21 +243,9 @@ static bool diff_args(void *ctx, int argc, char *const *argv, const char *opts)
 			break;
 		}
 
-	if (argc - optind < 1)
-		usage(*argv);
-
 	suppress_page_layout = 1;
 
-	classify_files(&file_names, argv + optind, argc - optind);
-	if (!file_names.pro && !file_names.sch)
-		fatal("project or top sheet name required");
-
-	diff->new_gfx = diff_process_file(diff, &file_names, argc, argv, opts);
-	free_file_names(&file_names);
-	if (!diff->new_gfx)
-		return 0;
-
-	return gfx_args(diff->gfx, argc, argv, opts);
+	return 1;
 }
 
 

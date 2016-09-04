@@ -37,28 +37,26 @@
 void usage(const char *name)
 {
 	fprintf(stderr,
-"usage: %s [-1] [-e] [-v ...] kicad_file ...\n"
-"       %*s-- driver_spec\n"
+"usage: %s [-o output.png] [-s scale] [-1] [-e] [-v ...]\n"
+"       %*skicad_files kicad_files\n"
 "       %s -V\n"
 "       %s gdb ...\n"
 "\n"
-"  kicad_file  [rev:]file.ext\n"
-"    ext       .pro, .lib, .sch, or .kicad_wks\n"
-"    rev       git revision\n"
+"  kicad_files  [rev:]file.ext\n"
+"    ext        .pro, .lib, .sch, or .kicad_wks\n"
+"    rev        git revision\n"
+"  Libraries and page layout precede project and sheet. Sheet (if present)\n"
+"  follows project. At least one of sheet or project must be present.\n"
 "\n"
 "  -1    show only one sheet - do not recurse into sub-sheets\n"
 "  -e    show extra information (e.g., pin types)\n"
+"  -o output_file\n"
+"        output file. Default is standard output.\n"
+"  -s scale\n"
+"        scale by indicated factor (default: 1.0)\n"
 "  -v    increase verbosity of diagnostic output\n"
-"  -E shell_command ...\n"
-"        execute the specified shell command when the GUI is ready.\n"
-"        Sets EESHOW_WINDOW_ID to the X11 window ID.\n"
 "  -V    print revision (version) number and exit\n"
 "  gdb   run eeshow under gdb\n"
-"\n"
-"Diff driver spec:\n"
-"  diff [-o output.png] [-s scale] [file.lib ...] file.sch\n"
-"\n"
-"  see PNG\n"
     , name, (int) strlen(name) + 1, "", name, name);
 	exit(1);
 }
@@ -70,22 +68,16 @@ void usage(const char *name)
 int main(int argc, char **argv)
 {
 	char c;
-	int  dashdash;
-	struct file_names file_names;
-	int gfx_argc;
-	char **gfx_argv;
+	struct file_names file_names_a;
+	struct file_names file_names_b;
+	char *opts;
 	struct gfx *gfx;
 	int retval;
 
 	run_under_gdb(argc, argv);
 
-	for (dashdash = 1; dashdash != argc; dashdash++)
-		if (!strcmp(argv[dashdash], "--"))
-			break;
-	if (dashdash == argc)
-		usage(*argv);
-
-	while ((c = getopt(dashdash, argv, OPTIONS)) != EOF)
+	alloc_printf(&opts, "%s%s", OPTIONS, diff_ops.opts);
+	while ((c = getopt(argc, argv, opts)) != EOF)
 		switch (c) {
 		case 'v':
 			verbose++;
@@ -102,41 +94,38 @@ int main(int argc, char **argv)
 		case 'V':
 			fprintf(stderr, "%s %sZ\n", version, build_date);
 			return 1;
-		default:
+		case '?':
 			usage(*argv);
+		default:
+			break;
 		}
 
-	if (dashdash - optind < 1)
+	if (argc - optind < 2)
 		usage(*argv);
 
-	classify_files(&file_names, argv + optind, dashdash - optind);
-	if (!file_names.pro && !file_names.sch)
+	classify_files_ab(&file_names_a, &file_names_b,
+	    argv + optind, argc - optind);
+	if (!file_names_a.pro && !file_names_a.sch)
+		fatal("project or top sheet name required");
+	if (!file_names_b.pro && !file_names_b.sch)
 		fatal("project or top sheet name required");
 
-	if (dashdash == argc) {
-		gfx_argc = 1;
-		gfx_argv = alloc_type_n(char *, 2);
-		gfx_argv[0] = "diff";
-		gfx_argv[1] = NULL;
-	} else {
-		gfx_argc = argc - dashdash - 1;
-		if (!gfx_argc)
-			usage(*argv);
-		gfx_argv = alloc_type_n(char *, gfx_argc + 1);
-		memcpy(gfx_argv, argv + dashdash + 1,
-		    sizeof(const char *) * (gfx_argc + 1));
-	}
-
 	gfx = gfx_init(&diff_ops);
-	if (!gfx_args(gfx, gfx_argc, gfx_argv, OPTIONS))
+	if (!gfx_args(gfx, argc, argv, OPTIONS))
 		return 1;
 
-	free(gfx_argv);
+	/*
+	 * @@@ new before old, to help diff_process_file keep track of things
+	 */
 
-	if (!diff_process_file(gfx_user(gfx), &file_names,
-	    dashdash - optind - 1, argv + optind + 1, OPTIONS))
+	if (!diff_process_file(gfx_user(gfx), &file_names_b, argc, argv, opts))
 		return 1;
-	free_file_names(&file_names);
+	if (!diff_process_file(gfx_user(gfx), &file_names_a, argc, argv, opts))
+		return 1;
+
+	free_file_names(&file_names_a);
+	free_file_names(&file_names_b);
+	free(opts);
 
 	retval = gfx_end(gfx);
 
