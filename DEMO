@@ -5,21 +5,29 @@ apt-get install libgit2-dev
 apt-get install libgtk-3-dev
 apt-get install qiv
 
+# Start with a fresh directory
+
+mkdir newdir
+cd newdir
+
 # Get all the things we need
 
-git clone git://neo900.org/ee newdir
-cd newdir/hw
+git clone http://neo900.org/git/ee
+cd ee/hw
 git clone git://projects.qi-hardware.com/kicad-libs.git
-git clone git://projects.qi-hardware.com/eda-tools.git
-make -C eda-tools/eeshow
+cd ../..
+git clone http://neo900.org/git/eeshow
+make -C eeshow
+make -C eeshow install
 
 # Generate PNG for old, new, and difference
 
-LIBS="neo900.lib kicad-libs/components/powered.lib"
-eda-tools/eeshow/eeshow $LIBS 6a9f71:neo900_SS_5.sch -- png -s 2 -o old.png
-eda-tools/eeshow/eeshow $LIBS neo900_SS_5.sch -- png -s 2 -o new.png
-eda-tools/eeshow/eeshow $LIBS 6a9f71:neo900_SS_5.sch -- \
-  diff -s 2 -o diff.png $LIBS neo900_SS_5.sch
+cd ee/hw
+eeplot -o old.png -s 2 neo900.pro 6a9f71:neo900_SS_5.sch
+eeplot -o new.png -s 2 neo900.pro neo900_SS_5.sch
+eediff -o diff.png -s 2 neo900.pro 6a9f71:neo900_SS_5.sch \
+  neo900.pro neo900_SS_5.sch
+
 
 # View the result
 
@@ -28,7 +36,9 @@ qiv -t diff.png old.png new.png
 
 # Interactively view the schematics
 
-eda-tools/eeshow/eeshow $LIBS neo900.sch
+# limit this to the last 30 revisions for now (there's a problem later)
+eeshow -N 30 neo900.pro
+cd ../..
 
 
 # Other projects: c4puter
@@ -40,6 +50,8 @@ cd motherboard
 git submodule init
 git submodule update
 eeshow schlib/library/*.lib *.lib motherboard.sch 
+eeshow motherboard.pro
+cd ../..
 
 # Other projects: Olimex A64-OLinuXino
 
