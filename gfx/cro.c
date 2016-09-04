@@ -543,9 +543,9 @@ void cro_get_size(const struct cro_ctx *cc, int *w, int *h, int *x, int *y)
 	*x = xmin;
 	*y = ymin;
 	if (w)
-		*w = cd(cc, bw);
+		*w = ceil(cd(cc, bw));
 	if (h)
-		*h = cd(cc, bh);
+		*h = ceil(cd(cc, bh));
 //	fprintf(stderr, "%dx%d%+d%+d\n", *w, *h, xmin, ymin);
 }
 
@@ -655,8 +655,8 @@ static int cr_pdf_end(void *ctx)
 
 	end_common(cc, &w, &h, NULL, NULL);
 
-	w = (w + 15) >> 4;
-	h = (h + 15) >> 4;
+	w = ((w + 15) >> 4) + ceil(0.5 * cc->scale);
+	h = ((h + 15) >> 4) + ceil(0.5 * cc->scale);
 
 	if (cc->toc)
 		cc->s = cairo_pdf_surface_create_for_stream(stream_to_pdftoc,
@@ -748,6 +748,9 @@ uint32_t *cro_img_end(struct cro_ctx *cc, int *w, int *h, int *stride)
 
 	*stride = cairo_format_stride_for_width(CAIRO_FORMAT_RGB24, *w);
 	data = alloc_size(*stride * *h);
+
+	w += 2;	/* line width */
+	h += 2;
 
 	cc->s = cairo_image_surface_create_for_data((unsigned char  *) data,
 	    CAIRO_FORMAT_RGB24, *w, *h, *stride);
