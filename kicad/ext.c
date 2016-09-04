@@ -111,7 +111,7 @@ static void do_classify_files_ab(struct file_names *a, struct file_names *b,
 void classify_files(struct file_names *fn, char *const *args,
     unsigned n_args)
 {
-	classify_files_ab(fn, NULL, args, n_args);
+	do_classify_files_ab(fn, NULL, args, n_args);
 }
 
 
