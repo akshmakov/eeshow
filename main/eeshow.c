@@ -109,6 +109,5 @@ int main(int argc, char **argv)
 	if (!file_names.pro && !file_names.sch)
 		fatal("project or top sheet name required");
 
-	optind = 0; /* reset getopt */
 	return run_gui(&file_names, !one_sheet, limit, commands, n_commands);
 }
