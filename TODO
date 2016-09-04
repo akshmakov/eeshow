@@ -8,8 +8,6 @@ Parsing and input processing:
 - test immunity to deletions more thoroughly (top sheet, sub-sheet, library,
   component, project, page layout)
 - implement related_other_repo
-- eeshow'ing an untracked file when in a git repo directory fails because it
-  can't find the file in the repo
 
 Data model:
 - implement destructors
@@ -34,7 +32,6 @@ Rendering:
 - support line thickness ?
 - ~ as overline (grep for ~ in out.fig) [ done for Cairo, FIG still missing ]
 - maybe let user set PNG size [we have zoom level]
-- in diff, pass only options understood by cairo_png
 - find out why in Cairo PDF non-dashed lines disappear if CAIRO_LINE_CAP_ROUND
 - diff area algorithm will fill anything resembling a closed path, no matter
   how little is inside (e.g., a changed large but empty rectangle will be
@@ -69,8 +66,6 @@ GUI/history
 - add manual selection with Up/Down/Enter
 - "what I am selecting" indication (color of frames of sheets in history)
   is not very clear.
-- list expansion: at top and bottom, heuristics should reverse, and assume
-  U-turn
 - list expansion: Joerg suggested to add pop-up, offset to the right, and
   keep list items fixed
 
