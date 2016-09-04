@@ -37,7 +37,7 @@
 void usage(const char *name)
 {
 	fprintf(stderr,
-"usage: %s [-o output.png] [-s scale] [-1] [-e] [-v ...]\n"
+"usage: %s [-o output.png] [-s scale] [-e] [-v ...]\n"
 "       %*skicad_files kicad_files\n"
 "       %s -V\n"
 "       %s gdb ...\n"
@@ -48,7 +48,9 @@ void usage(const char *name)
 "  Libraries and page layout precede project and sheet. Sheet (if present)\n"
 "  follows project. At least one of sheet or project must be present.\n"
 "\n"
+#if 0
 "  -1    show only one sheet - do not recurse into sub-sheets\n"
+#endif
 "  -e    show extra information (e.g., pin types)\n"
 "  -o output_file\n"
 "        output file. Default is standard output.\n"
