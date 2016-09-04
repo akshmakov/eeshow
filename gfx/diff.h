@@ -20,6 +20,7 @@
 
 #include "gfx/gfx.h"
 #include "gfx/cro.h"
+#include "kicad/ext.h"
 
 
 extern const struct gfx_ops diff_ops;
@@ -31,6 +32,8 @@ struct area {
 	struct area *next;
 };
 
+struct diff;
+
 
 void add_area(struct area **areas, int xa, int ya, int xb, int yb,
     uint32_t color);
@@ -40,5 +43,8 @@ void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
     struct cro_ctx *old, struct cro_ctx *old_extra,
     struct cro_ctx *new, struct cro_ctx *new_extra,
     const struct area *areas);
+
+void *diff_process_file(struct diff *diff, struct file_names *file_names,
+    int argc, char *const *argv, const char *opts);
 
 #endif /* !GFX_DIFF_H */

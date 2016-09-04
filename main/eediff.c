@@ -69,17 +69,11 @@ void usage(const char *name)
 
 int main(int argc, char **argv)
 {
-	struct lib lib;
-	struct sch_ctx sch_ctx;
-	struct file pro_file, sch_file;
 	bool extra = 0;
 	bool one_sheet = 0;
-	struct pl_ctx *pl = NULL;
 	char c;
 	int  dashdash;
-	unsigned i;
 	struct file_names file_names;
-	struct file_names *fn = &file_names;
 	int gfx_argc;
 	char **gfx_argv;
 	struct gfx *gfx;
@@ -141,12 +135,6 @@ int main(int argc, char **argv)
 		    sizeof(const char *) * (gfx_argc + 1));
 	}
 
-	if (file_names.pro) {
-		if (!file_open(&pro_file, file_names.pro, NULL))
-			return 1;
-		fn = pro_parse_file(&pro_file, &file_names);
-	}
-
 	gfx = gfx_init(&diff_ops);
 	if (!gfx_args(gfx, gfx_argc, gfx_argv, OPTIONS))
 		return 1;
@@ -155,66 +143,12 @@ int main(int argc, char **argv)
 
 	free(gfx_argv);
 
-	sch_init(&sch_ctx, !one_sheet);
-	if (!file_open(&sch_file, fn->sch, file_names.pro ? &pro_file : NULL))
+	if (!diff_process_file(gfx_user(gfx), &file_names,
+	    dashdash - optind - 1, argv + optind + 1, OPTIONS))
 		return 1;
-
-	lib_init(&lib);
-	for (i = 0; i != fn->n_libs; i++)
-		if (!lib_parse(&lib, fn->libs[i],
-		    file_names.pro ? &pro_file : &sch_file))
-			return 1;
-
-	if (file_names.pro)
-		file_close(&pro_file);
-
-	if (fn->pl) {
-		struct file file;
-
-		if (!file_open(&file, fn->pl, &sch_file))
-			return 1;
-		pl = pl_parse(&file);
-		file_close(&file);
-		if (!pl)
-			return 1;
-	}
-
-	if (fn != &file_names) {
-		free_file_names(fn);
-		free(fn);
-	}
 	free_file_names(&file_names);
 
-	if (!sch_parse(&sch_ctx, &sch_file, &lib, NULL))
-		return 1;
-	file_close(&sch_file);
-
-	if (one_sheet) {
-		sch_render(sch_ctx.sheets, gfx);
-		if (extra)
-			sch_render_extra(sch_ctx.sheets, gfx);
-		if (pl)
-			pl_render(pl, gfx, sch_ctx.sheets, sch_ctx.sheets);
-	} else {
-		const struct sheet *sheet;
-
-		for (sheet = sch_ctx.sheets; sheet; sheet = sheet->next) {
-			gfx_sheet_name(gfx, sheet->title);
-			sch_render(sheet, gfx);
-			if (extra)
-				sch_render_extra(sheet, gfx);
-			if (pl)
-				pl_render(pl, gfx, sch_ctx.sheets, sheet);
-			if (sheet->next)
-				gfx_new_sheet(gfx);
-		}
-	}
 	retval = gfx_end(gfx);
-
-	sch_free(&sch_ctx);
-	lib_free(&lib);
-	if (pl)
-		pl_free(pl);
 
 	file_cleanup();
 	cairo_debug_reset_static_data();

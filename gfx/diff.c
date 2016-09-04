@@ -150,7 +150,7 @@ static void *diff_init(void)
 }
 
 
-static void *diff_process_file(struct diff *diff, struct file_names *file_names,
+void *diff_process_file(struct diff *diff, struct file_names *file_names,
     int argc, char *const *argv, const char *opts)
 {
 	struct file_names *fn = file_names;
@@ -241,10 +241,6 @@ static bool diff_args(void *ctx, int argc, char *const *argv, const char *opts)
 
 	diff->new_gfx = diff_process_file(diff, &file_names, argc, argv, opts);
 	free_file_names(&file_names);
-
-	diff->gfx = gfx_init(&cro_img_ops);
-	if (!diff->gfx)
-		return 0;
 
 	return gfx_args(diff->gfx, argc, argv, opts);
 }
