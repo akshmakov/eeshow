@@ -166,6 +166,14 @@ static void file_init(struct file *file, const char *name,
 }
 
 
+bool file_open_vcs(struct file *file, const char *name)
+{
+	file_init(file, name, NULL);
+	file->vcs = open_vcs(file);
+	return file->vcs;
+}
+
+
 bool file_open(struct file *file, const char *name, const struct file *related)
 {
 	file_init(file, name, related);

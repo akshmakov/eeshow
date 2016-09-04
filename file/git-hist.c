@@ -22,6 +22,7 @@
 
 #include "misc/util.h"
 #include "misc/diag.h"
+#include "file/file.h"
 #include "file/git-util.h"
 #include "file/git-file.h"
 #include "file/git-hist.h"
@@ -199,13 +200,26 @@ static void recurse(struct vcs_history *history, struct vcs_hist *h,
 bool vcs_git_try(const char *path)
 {
 	git_repository *repo;
+	struct file file;
 
 	git_init_once();
 
+	/*
+	 * We could just call file_open_vcs and let it check if the repo even
+	 * exists, but then it would complain about the file not existing,
+	 * which would be at best confusing.
+	 */
 	if (git_repository_open_ext(&repo, path,
 	    GIT_REPOSITORY_OPEN_CROSS_FS, NULL))
 		return 0;
-	return !git_repository_is_empty(repo);
+	if (git_repository_is_empty(repo))
+		return 0;
+
+	/* check that the file is really in the repo */
+	if (!file_open_vcs(&file, path))
+		return 0;
+	file_close(&file);
+	return 1;
 }
 
 

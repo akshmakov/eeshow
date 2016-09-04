@@ -33,6 +33,7 @@ bool file_cat(const struct file *file, void *user, const char *line);
 
 char *file_graft_relative(const char *base, const char *name);
 
+bool file_open_vcs(struct file *file, const char *name);
 bool file_open(struct file *file, const char *name,
     const struct file *related);
 bool file_open_revision(struct file *file, const char *rev, const char *name,
