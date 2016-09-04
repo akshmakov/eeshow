@@ -156,14 +156,14 @@ void *diff_process_file(struct diff *diff, struct file_names *file_names,
     int argc, char *const *argv, const char *opts)
 {
 	struct file_names *fn = file_names;
-	struct sch_ctx new_sch;
 	struct file pro_file;
 	struct file sch_file;
-	struct lib new_lib;
+	struct sch_ctx sch;
+	struct lib lib;
 	unsigned i;
 
-	sch_init(&new_sch, 0);
-	lib_init(&new_lib);
+	sch_init(&sch, 0);
+	lib_init(&lib);
 
 	if (file_names->pro) {
 		if (!file_open(&pro_file, file_names->pro, NULL))
@@ -179,9 +179,9 @@ void *diff_process_file(struct diff *diff, struct file_names *file_names,
 	if (!file_open(&sch_file, fn->sch, file_names->pro ? &pro_file : NULL)) 
 		goto fail_open;
 	for (i = 0 ; i != fn->n_libs; i++)
-		if (!lib_parse(&new_lib, fn->libs[i], &sch_file))
+		if (!lib_parse(&lib, fn->libs[i], &sch_file))
 			goto fail_parse;
-	if (!sch_parse(&new_sch, &sch_file, &new_lib, NULL))
+	if (!sch_parse(&sch, &sch_file, &lib, NULL))
 		goto fail_parse;
 	file_close(&sch_file);
 	if (file_names->pro)
@@ -194,20 +194,20 @@ void *diff_process_file(struct diff *diff, struct file_names *file_names,
 	diff->gfx = gfx_init(&cro_img_ops);
 	if (!gfx_args(diff->gfx, argc, argv, opts))
 		goto fail_open;
-	sch_render(new_sch.sheets, diff->gfx);
+	sch_render(sch.sheets, diff->gfx);
 	if (diff->extra)
-		sch_render_extra(new_sch.sheets, diff->gfx);
+		sch_render_extra(sch.sheets, diff->gfx);
 
-	sch_free(&new_sch);
-	lib_free(&new_lib);
+	sch_free(&sch);
+	lib_free(&lib);
 
 	return diff->gfx;
 
 fail_parse:
 	file_close(&sch_file);
 fail_open:
-	sch_free(&new_sch);
-	lib_free(&new_lib);
+	sch_free(&sch);
+	lib_free(&lib);
 	return NULL;
 }
 
