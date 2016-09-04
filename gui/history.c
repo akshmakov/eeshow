@@ -264,7 +264,9 @@ static bool hover_history(void *user, bool on, int dx, int dy)
 
 	if (dy < 0 && on)
 		gui->hist_y_offset -= after - before;
-	if (dy > 0 && !on)
+	if (dy < 0 && !on && !h->age)
+		gui->hist_y_offset -= after - before;
+	if (dy > 0 && !on && h->next)
 		gui->hist_y_offset -= after - before;
 
 	redraw(gui);
