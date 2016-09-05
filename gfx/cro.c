@@ -22,6 +22,7 @@
 
 #include <cairo/cairo.h>
 #include <cairo/cairo-pdf.h>
+#include <cairo/cairo-ps.h>
 #include <pango/pangocairo.h>
 
 #include "misc/util.h"
@@ -702,6 +703,97 @@ static int cr_pdf_end(void *ctx)
 }
 
 
+/* ----- Postscript (auto-sizing, using redraw) ---------------------------- */
+
+
+static void *cr_ps_init(void)
+{
+	struct cro_ctx *cc = new_cc();
+
+	cc->scale *= 16;
+	cc->default_scale *= 16;
+
+	/* cr_text_width needs *something* to work with */
+
+	cc->s = cairo_ps_surface_create(NULL, 16, 16);
+	cc->cr = cairo_create(cc->s);
+	setup_font(cc);
+
+	return cc;
+}
+
+
+static bool cr_ps_args(void *ctx, int argc, char *const *argv,
+    const char *opts)
+{
+	struct cro_ctx *cc = ctx;
+
+	if (!cr_args(cc, argc, argv, opts))
+		return 0;
+	return 1;
+}
+
+
+static void cr_ps_new_sheet(void *ctx)
+{
+	struct cro_ctx *cc = ctx;
+
+	cc->n_sheets++;
+	cc->sheets = realloc_type_n(cc->sheets, struct record, cc->n_sheets);
+	cc->sheets[cc->n_sheets - 1] = cc->record;
+	record_wipe(&cc->record);
+}
+
+
+static int cr_ps_end(void *ctx)
+{
+	struct cro_ctx *cc = ctx;
+	int w, h;
+	unsigned i;
+
+	end_common(cc, &w, &h, NULL, NULL);
+
+	w = ((w + 15) >> 4) + ceil(0.5 * cc->scale);
+	h = ((h + 15) >> 4) + ceil(0.5 * cc->scale);
+
+	if (cc->output_name && strcmp(cc->output_name, "-"))
+		cc->s = cairo_ps_surface_create(cc->output_name, w, h);
+	else
+		cc->s = cairo_ps_surface_create_for_stream(stream_to_stdout,
+		    NULL, w, h);
+	cc->cr = cairo_create(cc->s);
+
+	cairo_scale(cc->cr, 1.0 / 16.0, 1.0 / 16);
+	setup_font(cc);
+	cairo_set_line_width(cc->cr, 0.5 * cc->scale);
+	/* @@@ CAIRO_LINE_CAP_ROUND makes all non-dashed lines disappear */
+	cairo_set_line_cap(cc->cr, CAIRO_LINE_CAP_SQUARE);
+
+	for (i = 0; i != cc->n_sheets; i++) {
+		set_color(cc, COLOR_WHITE);
+		cairo_paint(cc->cr);
+
+		record_replay(cc->sheets + i);
+		record_destroy(cc->sheets + i);
+
+		cairo_show_page(cc->cr);
+	}
+
+	record_replay(&cc->record);
+	record_destroy(&cc->record);
+
+	cairo_show_page(cc->cr);
+
+	cairo_surface_destroy(cc->s);
+	cairo_destroy(cc->cr);
+
+	free(cc->sheets);
+	free(cc);
+
+	return 0;
+}
+
+
 /* ----- PNG (auto-sizing, using redraw) ----------------------------------- */
 
 
@@ -957,4 +1049,23 @@ const struct gfx_ops cro_pdf_ops = {
 	.sheet_name	= cr_pdf_sheet_name,
 	.new_sheet	= cr_pdf_new_sheet,
 	.end		= cr_pdf_end,
+};
+
+static const char *const cro_ps_ext[] = { "ps" };
+
+const struct gfx_ops cro_ps_ops = {
+	.ext		= cro_ps_ext,
+	.n_ext		= ARRAY_ELEMENTS(cro_ps_ext),
+	.opts		= "o:s:T",
+
+	.line		= record_line,
+	.poly		= record_poly,
+	.circ		= record_circ,
+	.arc		= record_arc,
+	.text		= record_text,
+	.text_width	= cr_text_width,
+	.init		= cr_ps_init,
+	.args		= cr_ps_args,
+	.new_sheet	= cr_ps_new_sheet,
+	.end		= cr_ps_end,
 };

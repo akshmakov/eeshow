@@ -30,6 +30,7 @@ extern bool disable_overline;
 
 extern const struct gfx_ops cro_png_ops;
 extern const struct gfx_ops cro_pdf_ops;
+extern const struct gfx_ops cro_ps_ops;
 
 #define	cro_img_ops	cro_png_ops	/* just don't call cro_img_ops.end */
 #define	cro_canvas_ops	cro_png_ops	/* just don't call cro_canvas_ops.end */

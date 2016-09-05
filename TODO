@@ -41,7 +41,6 @@ Rendering:
 - interaction with eda-tools/genkicat fails: catalog text is lost
 - eeplot to PDF sometimes chops off one line of pixels, ignores text size
   (test with kicad-libs/components catalog)
-- should support PS output, too
 
 GUI:
 - dragging can be slow. maybe reusing old content and only redrawing new

@@ -40,6 +40,7 @@ static struct gfx_ops const *ops_list[] = {
 	&fig_ops,
 	&cro_png_ops,
 	&cro_pdf_ops,
+	&cro_ps_ops,
 };
 
 
@@ -113,7 +114,7 @@ void usage(const char *name)
 "  -t template.fig  merge this file with generated output\n"
 "  -D var=value     substitute \"<var>\" with \"value\" in template\n"
 "\n"
-"PNG files:\n"
+"PNG and Postscript files:\n"
 "  [-s scale]\n"
 "\n"
 "  -s scale       scale by indicated factor (default: 1.0)\n"
