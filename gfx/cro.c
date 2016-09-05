@@ -746,11 +746,11 @@ uint32_t *cro_img_end(struct cro_ctx *cc, int *w, int *h, int *stride)
 
 	end_common(cc, w, h, NULL, NULL);
 
+	*w += 2;	/* line width */
+	*h += 2;
+
 	*stride = cairo_format_stride_for_width(CAIRO_FORMAT_RGB24, *w);
 	data = alloc_size(*stride * *h);
-
-	w += 2;	/* line width */
-	h += 2;
 
 	cc->s = cairo_image_surface_create_for_data((unsigned char  *) data,
 	    CAIRO_FORMAT_RGB24, *w, *h, *stride);
