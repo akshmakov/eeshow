@@ -78,13 +78,11 @@ static void bb(struct record *rec, int x, int y)
 }
 
 
-static void bb_rot(struct record *rec, int x, int y, int rot)
+static void bb_rot(struct record *rec, int x, int y, int dx, int dy, int rot)
 {
-	double a = -rot / 180.0 * M_PI;
+	double a = rot / 180.0 * M_PI;
 
-	// @@@ figure this out later
-return;
-	bb(rec, cos(a) * x + sin(a) * y, cos(a) * y - sin(a) * x);
+	bb(rec, x + cos(a) * dx + sin(a) * dy, y + cos(a) * dy - sin(a) * dx);
 }
 
 
@@ -220,10 +218,24 @@ void record_text(void *ctx, int x, int y, const char *s, unsigned size,
 	struct record *rec = ctx;
 	struct record_obj *obj =
 	    new_obj(ctx, ro_text, color, COLOR_NONE, layer);
-	unsigned width = rec->ops->text_width(rec->user, s, size, style);
+	int width = rec->ops->text_width(rec->user, s, size, style);
 
-	bb_rot(rec, x, y - size, rot);
-	bb_rot(rec, x + width, y, rot);
+	switch (align) {
+	case text_min:
+		bb_rot(rec, x, y, 0, -size, rot);
+		bb_rot(rec, x, y, width, 0, rot);
+		break;
+	case text_mid:
+		bb_rot(rec, x, y, -(width + 1) / 2, -size, rot);
+		bb_rot(rec, x, y, (width + 1) / 2, 0, rot);
+		break;
+	case text_max:
+		bb_rot(rec, x, y, -width, -size, rot);
+		bb_rot(rec, x, y, 0, 0, rot);
+		break;
+	default:
+		BUG("invalid alignment %d", align);
+	}
 
 	obj->x = x;
 	obj->y = y;

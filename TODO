@@ -25,7 +25,6 @@ Visualization (dwg.c and such):
 - show open pins / wires
 - check remaining alignment / direction / rotation cases in switch statements
 - support mirroring (and detect-complain if unexpected) [should be done now]
-- record.c (bb_rot): implement bounding boxes for text
 - should get rid of gfx_user()
 
 Rendering:
