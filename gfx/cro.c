@@ -746,9 +746,8 @@ static void cr_ps_new_sheet(void *ctx)
 }
 
 
-static int cr_ps_end(void *ctx)
+static int ps_end(struct cro_ctx *cc, int eps)
 {
-	struct cro_ctx *cc = ctx;
 	int w, h;
 	unsigned i;
 
@@ -763,6 +762,8 @@ static int cr_ps_end(void *ctx)
 		cc->s = cairo_ps_surface_create_for_stream(stream_to_stdout,
 		    NULL, w, h);
 	cc->cr = cairo_create(cc->s);
+
+	cairo_ps_surface_set_eps(cc->s, eps);
 
 	cairo_set_tolerance(cc->cr, 72 / 10000.0);	// 0.1 mil
 	cairo_scale(cc->cr, 1.0 / 16.0, 1.0 / 16);
@@ -793,6 +794,18 @@ static int cr_ps_end(void *ctx)
 	free(cc);
 
 	return 0;
+}
+
+
+static int cr_ps_end(void *ctx)
+{
+	return ps_end(ctx, 0);
+}
+
+
+static int cr_eps_end(void *ctx)
+{
+	return ps_end(ctx, 1);
 }
 
 
@@ -1070,4 +1083,22 @@ const struct gfx_ops cro_ps_ops = {
 	.args		= cr_ps_args,
 	.new_sheet	= cr_ps_new_sheet,
 	.end		= cr_ps_end,
+};
+
+static const char *const cro_eps_ext[] = { "eps" };
+
+const struct gfx_ops cro_eps_ops = {
+	.ext		= cro_eps_ext,
+	.n_ext		= ARRAY_ELEMENTS(cro_eps_ext),
+	.opts		= "o:s:T",
+
+	.line		= record_line,
+	.poly		= record_poly,
+	.circ		= record_circ,
+	.arc		= record_arc,
+	.text		= record_text,
+	.text_width	= cr_text_width,
+	.init		= cr_ps_init,
+	.args		= cr_ps_args,
+	.end		= cr_eps_end,
 };

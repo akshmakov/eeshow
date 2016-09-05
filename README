@@ -2,7 +2,7 @@ eeshow - Eeschema schematics renderer and viewer
 ================================================
 
 Eeshow is a collection of programs to render schematics made by KiCad
-Eeschema to FIG, PDF, Postscript, or PNG, and to generate graphical
+Eeschema to FIG, PDF, Postscript, EPS, or PNG, and to generate graphical
 differences between different versions of schematics sheets. It can
 work in plain files but it can also retrieve design files directly
 from a git repository. Furthermore, eeshow has an interactive mode for

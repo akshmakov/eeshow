@@ -41,6 +41,7 @@ static struct gfx_ops const *ops_list[] = {
 	&cro_png_ops,
 	&cro_pdf_ops,
 	&cro_ps_ops,
+	&cro_eps_ops,
 };
 
 
@@ -103,7 +104,8 @@ void usage(const char *name)
 "  -e    show extra information (e.g., pin types)\n"
 "  -o [type:]output_file\n"
 "        output file. - for standard output. File type is derived from\n"
-"        extension and can be overridden with type: prefix (fig, png, pdf).\n"
+"        extension and can be overridden with type: prefix (fig, png, pdf,\n"
+"        ps, eps).\n"
 "  -v    increase verbosity of diagnostic output\n"
 "  -V    print revision (version) number and exit\n"
 "  gdb   run eeshow under gdb\n"
@@ -114,7 +116,7 @@ void usage(const char *name)
 "  -t template.fig  merge this file with generated output\n"
 "  -D var=value     substitute \"<var>\" with \"value\" in template\n"
 "\n"
-"PNG and Postscript files:\n"
+"PNG, Postscript, and EPS files:\n"
 "  [-s scale]\n"
 "\n"
 "  -s scale       scale by indicated factor (default: 1.0)\n"
