@@ -607,9 +607,6 @@ static void *cr_pdf_init(void)
 	cc->cr = cairo_create(cc->s);
 	setup_font(cc);
 
-	if (cc->add_toc)
-		cc->toc = pdftoc_begin();
-
 	return cc;
 }
 
@@ -621,8 +618,11 @@ static bool cr_pdf_args(void *ctx, int argc, char *const *argv,
 
 	if (!cr_args(cc, argc, argv, opts))
 		return 0;
-	if (cc->add_toc && cc->output_name && strcmp(cc->output_name, "-"))
-		return pdftoc_set_file(cc->toc, cc->output_name);
+	if (cc->add_toc) {
+		cc->toc = pdftoc_begin();
+		if (cc->output_name && strcmp(cc->output_name, "-"))
+			return pdftoc_set_file(cc->toc, cc->output_name);
+	}
 	return 1;
 }
 
