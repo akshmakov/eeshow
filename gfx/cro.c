@@ -669,6 +669,7 @@ static int cr_pdf_end(void *ctx)
 		    NULL, w, h);
 	cc->cr = cairo_create(cc->s);
 
+	cairo_set_tolerance(cc->cr, 72 / 10000.0);	// 0.1 mil
 	cairo_scale(cc->cr, 1.0 / 16.0, 1.0 / 16);
 	setup_font(cc);
 	cairo_set_line_width(cc->cr, 0.5 * cc->scale);
@@ -763,6 +764,7 @@ static int cr_ps_end(void *ctx)
 		    NULL, w, h);
 	cc->cr = cairo_create(cc->s);
 
+	cairo_set_tolerance(cc->cr, 72 / 10000.0);	// 0.1 mil
 	cairo_scale(cc->cr, 1.0 / 16.0, 1.0 / 16);
 	setup_font(cc);
 	cairo_set_line_width(cc->cr, 0.5 * cc->scale);
