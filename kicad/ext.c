@@ -51,13 +51,13 @@ static void do_classify_files_ab(struct file_names *a, struct file_names *b,
 	enum ext ext;
 
 	a->pro = a->sch = a->pl = NULL;
-	a->libs = NULL;
-	a->n_libs = 0;
+	a->libs = a->search = NULL;
+	a->n_libs = a->n_search = 0;
 
 	if (b) {
 		b->pro = b->sch = b->pl = NULL;
-		b->libs = NULL;
-		b->n_libs = 0;
+		b->libs = b->search = NULL;
+		b->n_libs = b->n_search = 0;
 	}
 
 	fn = a;
@@ -138,13 +138,18 @@ struct file_names *clone_file_names(const struct file_names *fn)
 	new->sch = fn && fn->sch ? stralloc(fn->sch) : NULL;
 	new->pl = fn && fn->pl ? stralloc(fn->pl) : NULL;
 	new->n_libs = fn ? fn->n_libs : 0;
+	new->n_search = fn ? fn->n_search : 0;
 	if (!fn) {
 		new->libs = NULL;
+		new->search = NULL;
 		return new;
 	}
 	new->libs = alloc_type_n(const char *, fn->n_libs);
 	for (i = 0; i != fn->n_libs; i++)
 		new->libs[i] = stralloc(fn->libs[i]);
+	new->search = alloc_type_n(const char *, fn->n_search);
+	for (i = 0; i != fn->n_search; i++)
+		new->search[i] = stralloc(fn->search[i]);
 	return new;
 }
 
@@ -159,4 +164,7 @@ void free_file_names(struct file_names *fn)
 	for (i = 0; i != fn->n_libs; i++)
 		free((void *) fn->libs[i]);
 	free(fn->libs);
+	for (i = 0; i != fn->n_search; i++)
+		free((void *) fn->search[i]);
+	free(fn->search);
 }

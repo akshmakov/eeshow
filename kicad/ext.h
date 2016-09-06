@@ -29,6 +29,8 @@ struct file_names {
 	const char *pl;		/* just one allowed, may be NULL */
 	const char **libs;
 	unsigned n_libs;
+	const char **search;	/* search paths from LibDir */
+	unsigned n_search;
 };
 
 

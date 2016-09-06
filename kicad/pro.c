@@ -27,9 +27,27 @@ struct pro_ctx {
 		pro_idle,
 		pro_libs,	// [eeschema/libraries]
 		pro_editor,	// [schematic_editor]
+		pro_eeschema,	// [eeschema]
 	} state;
 	struct file_names *fn;
 };
+
+
+static void add_libdir(struct file_names *fn, char *s)
+{
+	char *p;
+
+	while (1) {
+		p = strtok(s, ":;");
+		if (!p)
+			break;
+		s = NULL;
+		fn->n_search++;
+		fn->search =
+		    realloc_type_n(fn->search, const char *, fn->n_search);
+		fn->search[fn->n_search - 1] = stralloc(p);
+	}
+}
 
 
 static bool pro_parse_line(const struct file *file,
@@ -44,6 +62,10 @@ static bool pro_parse_line(const struct file *file,
 	}
 	if (strbegins(line, "[schematic_editor]")) {
 		pro->state = pro_editor;
+		return 1;
+	}
+	if (strbegins(line, "[eeschema]")) {
+		pro->state = pro_eeschema;
 		return 1;
 	}
 	if (*line == '[') {
@@ -74,6 +96,13 @@ static bool pro_parse_line(const struct file *file,
 		if (sscanf(line, "PageLayoutDescrFile=%ms", &s) == 1) {
 			free((void *) pro->fn->pl);
 			pro->fn->pl = s;
+			return 1;
+		}
+		break;
+	case pro_eeschema:
+		if (sscanf(line, "LibDir=%ms", &s) == 1) {
+			add_libdir(pro->fn, s);
+			free(s);
 			return 1;
 		}
 		break;
