@@ -213,6 +213,32 @@ fail:
 }
 
 
+bool file_search(struct file *file, const char *name,
+    const char **search, unsigned n_search, const struct file *related)
+{
+	unsigned i;
+	char *s;
+
+	/*
+	 * Caller should try file_open(file, name, ...) first, and only then
+	 * try file_search. Thus, if there's a /, we already know that the file
+	 * can't be found.
+	 */
+	if (*name == '/')
+		return 0;
+
+	for (i = 0; i != n_search; i++) {
+		alloc_printf(&s, "%s/%s", search[i], name);
+		if (file_open(file, s, related)) {
+			free(s);
+			return 1;
+		}
+		free(s);
+	}
+	return 0;
+}
+
+
 bool file_open_revision(struct file *file, const char *rev, const char *name,
     const struct file *related)
 {
