@@ -673,7 +673,7 @@ static int cr_pdf_end(void *ctx)
 	cairo_set_tolerance(cc->cr, 72 / 10000.0);	// 0.1 mil
 	cairo_scale(cc->cr, 1.0 / 16.0, 1.0 / 16);
 	setup_font(cc);
-	cairo_set_line_width(cc->cr, 0.5 * cc->scale);
+	cairo_set_line_width(cc->cr, 0.5 * cc->scale * 16);
 	/* @@@ CAIRO_LINE_CAP_ROUND makes all non-dashed lines disappear */
 	cairo_set_line_cap(cc->cr, CAIRO_LINE_CAP_SQUARE);
 
@@ -769,7 +769,7 @@ static int ps_end(struct cro_ctx *cc, int eps)
 	cairo_set_tolerance(cc->cr, 72 / 10000.0);	// 0.1 mil
 	cairo_scale(cc->cr, 1.0 / 16.0, 1.0 / 16);
 	setup_font(cc);
-	cairo_set_line_width(cc->cr, 0.5 * cc->scale);
+	cairo_set_line_width(cc->cr, 0.5 * cc->scale * 16);
 	/* @@@ CAIRO_LINE_CAP_ROUND makes all non-dashed lines disappear */
 	cairo_set_line_cap(cc->cr, CAIRO_LINE_CAP_SQUARE);
 
@@ -851,7 +851,7 @@ static int cr_svg_end(void *ctx)
 	cairo_set_tolerance(cc->cr, 72 / 10000.0);	// 0.1 mil
 	cairo_scale(cc->cr, 1.0 / 16.0, 1.0 / 16);
 	setup_font(cc);
-	cairo_set_line_width(cc->cr, 0.5 * cc->scale);
+	cairo_set_line_width(cc->cr, 0.5 * cc->scale * 16);
 	/* @@@ CAIRO_LINE_CAP_ROUND makes all non-dashed lines disappear */
 	cairo_set_line_cap(cc->cr, CAIRO_LINE_CAP_SQUARE);
 
