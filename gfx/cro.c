@@ -1071,7 +1071,7 @@ static const char *const cro_ps_ext[] = { "ps" };
 const struct gfx_ops cro_ps_ops = {
 	.ext		= cro_ps_ext,
 	.n_ext		= ARRAY_ELEMENTS(cro_ps_ext),
-	.opts		= "o:s:T",
+	.opts		= "o:s:",
 
 	.line		= record_line,
 	.poly		= record_poly,
@@ -1090,7 +1090,7 @@ static const char *const cro_eps_ext[] = { "eps" };
 const struct gfx_ops cro_eps_ops = {
 	.ext		= cro_eps_ext,
 	.n_ext		= ARRAY_ELEMENTS(cro_eps_ext),
-	.opts		= "o:s:T",
+	.opts		= "o:s:",
 
 	.line		= record_line,
 	.poly		= record_poly,
