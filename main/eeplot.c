@@ -42,6 +42,7 @@ static struct gfx_ops const *ops_list[] = {
 	&cro_pdf_ops,
 	&cro_ps_ops,
 	&cro_eps_ops,
+	&cro_svg_ops,
 };
 
 
