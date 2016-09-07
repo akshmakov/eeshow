@@ -180,7 +180,7 @@ void *diff_process_file(struct diff *diff, struct file_names *file_names,
 	if (!file_open(&sch_file, fn->sch, file_names->pro ? &pro_file : NULL)) 
 		goto fail_open;
 	for (i = 0 ; i != fn->n_libs; i++)
-		if (!lib_parse(&lib, fn->libs[i], &sch_file))
+		if (!lib_parse_search(&lib, fn->libs[i], fn, &sch_file))
 			goto fail_parse;
 	if (!sch_parse(&sch, &sch_file, &lib, NULL))
 		goto fail_parse;

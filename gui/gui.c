@@ -267,8 +267,8 @@ static const struct sheet *parse_files(struct gui_hist *hist,
 
 	lib_init(&hist->lib);
 	for (libs_open = 0; libs_open != fn->n_libs; libs_open++)
-		if (!file_open(lib_files + libs_open, fn->libs[libs_open],
-		    leader))
+		if (!lib_find_file(lib_files + libs_open, fn->libs[libs_open],
+		    fn, leader))
 			goto fail;
 
 	if (fn->pl) {
