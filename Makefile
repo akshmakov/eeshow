@@ -90,19 +90,25 @@ include Makefile.c-common
 
 all::		eeshow eeplot eediff eetest
 
+#
+# We use order-only prerequisites to serialize linking. This is to ensure that
+# a parallel make run won't try to compile version.o more than once at the same
+# time, possibly producing corrupted output.
+#
+
 eeshow:		$(EESHOW_OBJS)
 		$(MAKE) -B version.o
 		$(CC) -o $@ $(EESHOW_OBJS) version.o $(LDLIBS)
 
-eeplot:		$(EEPLOT_OBJS)
+eeplot:		$(EEPLOT_OBJS) | eeshow
 		$(MAKE) -B version.o
 		$(CC) -o $@ $(EEPLOT_OBJS) version.o $(LDLIBS)
 
-eediff:		$(EEDIFF_OBJS)
+eediff:		$(EEDIFF_OBJS) | eeplot
 		$(MAKE) -B version.o
 		$(CC) -o $@ $(EEDIFF_OBJS) version.o $(LDLIBS)
 
-eetest:		$(EETEST_OBJS)
+eetest:		$(EETEST_OBJS) | eediff
 		$(MAKE) -B version.o
 		$(CC) -o $@ $(EETEST_OBJS) version.o $(LDLIBS)
 
