@@ -19,17 +19,13 @@
 #include "misc/diag.h"
 #include "gfx/text.h"
 #include "file/file.h"
+#include "kicad/kicad.h"
 #include "kicad/ext.h"
 #include "kicad/lib.h"
 
 
-/* according to common/gestfich.cpp:KicadDatasPath */
-
 static const char *builtin_paths[] = {
-	"/usr/share/kicad/library",
-	"/usr/local/share/kicad/library",
-	"/usr/local/kicad/share/library",
-	"/usr/local/kicad/library"
+	DEFAULT_LIBRARY_PATHS
 };
 
 
