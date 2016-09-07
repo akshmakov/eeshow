@@ -19,7 +19,18 @@
 #include "misc/diag.h"
 #include "gfx/text.h"
 #include "file/file.h"
+#include "kicad/ext.h"
 #include "kicad/lib.h"
+
+
+/* according to common/gestfich.cpp:KicadDatasPath */
+
+static const char *builtin_paths[] = {
+	"/usr/share/kicad/library",
+	"/usr/local/share/kicad/library",
+	"/usr/local/kicad/share/library",
+	"/usr/local/kicad/library"
+};
 
 
 /* ----- Text -------------------------------------------------------------- */
@@ -362,6 +373,32 @@ bool lib_parse(struct lib *lib, const char *name, const struct file *related)
 	bool res;
 
 	if (!file_open(&file, name, related))
+		return 0;
+	res = lib_parse_file(lib, &file);
+	file_close(&file);
+	return res;
+}
+
+
+bool lib_find_file(struct file *file, const char *name,
+    const struct file_names *fn, const struct file *related)
+{
+	if (file_open(file, name, related))
+		return 1;
+	if (file_search(file, name, fn->search, fn->n_search, related))
+		return 1;
+	return file_search(file, name,
+	    builtin_paths, ARRAY_ELEMENTS(builtin_paths), related);
+}
+
+
+bool lib_parse_search(struct lib *lib, const char *name,
+    const struct file_names *fn, const struct file *related)
+{
+	struct file file;
+	bool res;
+
+	if (!lib_find_file(&file, name, fn, related))
 		return 0;
 	res = lib_parse_file(lib, &file);
 	file_close(&file);

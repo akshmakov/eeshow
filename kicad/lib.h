@@ -19,6 +19,7 @@
 #include "file/file.h"
 #include "gfx/text.h"
 #include "gfx/gfx.h"
+#include "kicad/ext.h"
 
 
 enum pin_shape {
@@ -142,6 +143,10 @@ void lib_render_extra(const struct comp *comp, struct gfx *gfx,
 
 bool lib_parse_file(struct lib *lib, struct file *file);
 bool lib_parse(struct lib *lib, const char *name, const struct file *related);
+bool lib_find_file(struct file *file, const char *name,
+    const struct file_names *fn, const struct file *related);
+bool lib_parse_search(struct lib *lib, const char *name,
+    const struct file_names *fn, const struct file *related);
 void lib_init(struct lib *lib);
 void lib_free(struct lib *lib);
 
