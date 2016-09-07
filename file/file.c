@@ -178,6 +178,8 @@ bool file_open(struct file *file, const char *name, const struct file *related)
 {
 	file_init(file, name, related);
 
+	progress(2, "file_open: trying %s", name);
+
 	if (related && related->vcs) {
 		file->vcs = open_vcs(file);
 		if (file->vcs)
