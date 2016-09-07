@@ -11,6 +11,10 @@ Parsing and input processing:
 - when in related_same_repo, still handle symlinks in repo leading out to
   non-repo file
 - likewise, symlinks leading to other repo
+- check if dir/subsheet-1 includes further subsheets from ./ or from dir/
+- likewise, does it affect component library search path ?
+- when looking for a file, consider that it may have been deleted/moved, and
+  then don't magically resurrect it from the repo
 
 Data model:
 - implement destructors
