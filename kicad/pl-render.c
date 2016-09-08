@@ -163,7 +163,7 @@ static void render_text(const struct pl_ctx *pl, const struct pl_obj *obj,
 		.size	= mil(obj->ey ? obj->ey : pl->ty),
 		.x	= x,
 		.y	= y,
-		.rot	= 0,
+		.rot	= obj->rotate,
 		.hor	= obj->hor,
 		.vert	= obj->vert,
 		.style	= text_normal,	// @@@

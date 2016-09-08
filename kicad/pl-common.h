@@ -42,6 +42,7 @@ struct pl_obj {
 	int font;		/* tbtext (flags) */
 	enum text_align hor;	/* tbtext */
 	enum text_align vert;	/* tbtext */
+	float rotate;		/* tbtext */
 
 	struct pl_obj *next;
 };

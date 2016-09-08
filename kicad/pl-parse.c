@@ -283,6 +283,7 @@ static bool process_obj(struct pl_ctx *pl, const struct expr *e,
 	obj->font = 0;
 	obj->hor = text_min;
 	obj->vert = text_mid;
+	obj->rotate = 0;
 
 	for (; e; e = e->next) {
 		if (e->s) {
@@ -333,6 +334,9 @@ static bool process_obj(struct pl_ctx *pl, const struct expr *e,
 				return 0;
 		} else if (!strcmp(s, "justify")) {
 			if (!process_justify(obj, next))
+				return 0;
+		} else if (!strcmp(s, "rotate")) {
+			if (!get_float(next, &obj->rotate))
 				return 0;
 		} else
 			warning("pl_obj: ignoring \"%s\"", s);
