@@ -23,5 +23,6 @@
     "/usr/local/kicad"		append
 
 #define	DEFAULT_LIBRARY_PATHS	KICAD_DATAS_PATH("/library")
+#define DEFAULT_TEMPLATE_PATHS	KICAD_DATAS_PATH("/template")
 
 #endif /* !KICAD_KICAD_H */

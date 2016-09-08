@@ -31,6 +31,7 @@ void pl_render(struct pl_ctx *pl, struct gfx *gfx,
     const struct sheet *sheets, const struct sheet *sheet);
 
 struct pl_ctx *pl_parse(struct file *file);
+struct pl_ctx *pl_parse_search(const char *name, const struct file *related);
 void pl_free(struct pl_ctx *pl);
 
 #endif /* !KICAD_PL_H */

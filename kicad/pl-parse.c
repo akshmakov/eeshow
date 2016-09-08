@@ -19,9 +19,15 @@
 #include "misc/diag.h"
 #include "gfx/text.h"
 #include "file/file.h"
+#include "kicad/kicad.h"
 #include "kicad/sexpr.h"
 #include "kicad/pl-common.h"
 #include "kicad/pl.h"
+
+
+static const char *builtin_template_paths[] = {
+	DEFAULT_TEMPLATE_PATHS
+};
 
 
 static bool get_coord(const struct expr *e,
@@ -423,6 +429,38 @@ fail:
 	free_expr(e);
 	free(pl);
 	return 0;
+}
+
+
+static bool pl_find_file(struct file *file, const char *name,
+    const struct file *related)
+{
+	if (file_open(file, name, related))
+		return 1;
+	return file_search(file, name,
+	    builtin_template_paths, ARRAY_ELEMENTS(builtin_template_paths),
+	    related);
+
+}
+
+
+struct pl_ctx *pl_parse_search(const char *name, const struct file *related)
+{
+	struct file file;
+	struct pl_ctx *pl;
+
+	if (name) {
+		if (!pl_find_file(&file, name, related))
+			return NULL;
+		pl = pl_parse(&file);
+		file_close(&file);
+		return pl;
+	}
+
+	/* @@@ provide proper default */
+	pl = alloc_type(struct pl_ctx);
+	pl->objs = NULL;
+	return pl;
 }
 
 
