@@ -476,16 +476,23 @@ static bool pl_parse_line(const struct file *file,
 }
 
 
-struct pl_ctx *pl_parse(struct file *file)
+static struct pl_ctx *new_pl_ctx(void)
 {
 	struct pl_ctx *pl;
-	struct expr *e = NULL;
 
 	pl = alloc_type(struct pl_ctx);
 	pl->sexpr_ctx = sexpr_new();
 	pl->l = pl->r = pl->t = pl->b = 0;
 	pl->tx = pl->ty = 0;
 	pl->objs = NULL;
+	return pl;
+}
+
+
+struct pl_ctx *pl_parse(struct file *file)
+{
+	struct pl_ctx *pl = new_pl_ctx();
+	struct expr *e = NULL;
 
 	if (!file_read(file, pl_parse_line, pl)) {
 		sexpr_abort(pl->sexpr_ctx);
@@ -517,6 +524,21 @@ static bool pl_find_file(struct file *file, const char *name,
 }
 
 
+static struct pl_ctx *default_pl(void)
+{
+#include "../pl-default.inc"
+	struct pl_ctx *pl = new_pl_ctx();
+	struct expr *e = NULL;
+
+	if (!sexpr_parse(pl->sexpr_ctx, defaultPageLayout) ||
+	    !sexpr_finish(pl->sexpr_ctx, &e) ||
+	    !process(pl, e))
+		BUG("cannot parse default layout");
+	free_expr(e);
+	return pl;
+}
+
+
 struct pl_ctx *pl_parse_search(const char *name, const struct file *related)
 {
 	struct file file;
@@ -530,10 +552,7 @@ struct pl_ctx *pl_parse_search(const char *name, const struct file *related)
 		return pl;
 	}
 
-	/* @@@ provide proper default */
-	pl = alloc_type(struct pl_ctx);
-	pl->objs = NULL;
-	return pl;
+	return default_pl();
 }
 
 

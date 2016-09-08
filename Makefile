@@ -136,6 +136,16 @@ gui/icons.c:	$(ICONS:%=icons/%.hex)
 clean::
 		rm -f $(ICONS:%=icons/%.hex)
 
+#----- Default page layout ----------------------------------------------------
+
+pl-default.inc:	page_layout_default_description.cpp
+		sed '1,/^extern/d;s/\\\\n/ /' $< >$@ || { rm -f $@; exit 1; }
+
+kicad/pl-parse.c: pl-default.inc
+
+clean::
+		rm -f pl-default.inc
+
 #----- Test sheet -------------------------------------------------------------
 
 sch:
