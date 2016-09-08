@@ -82,7 +82,7 @@ static bool get_coord(const struct expr *e,
 }
 
 
-static bool get_size(const struct expr *e, float *x, float *y)
+static bool get_xy(const struct expr *e, float *x, float *y)
 {
 	unsigned n = 0;
 
@@ -176,7 +176,7 @@ static bool process_setup(struct pl_ctx *pl, const struct expr *e)
 			continue;
 
 		if (!strcmp(s, "textsize")) {
-			if (!get_size(next, &pl->tx, &pl->ty))
+			if (!get_xy(next, &pl->tx, &pl->ty))
 				return 0;
 		} else if (!strcmp(s, "linewidth")) {
 			// meh
@@ -229,7 +229,7 @@ static bool process_font(struct pl_obj *obj, const struct expr *e)
 			continue;
 
 		if (!strcmp(s, "size")) {
-			if (!get_size(next, &obj->ex, &obj->ey))
+			if (!get_xy(next, &obj->ex, &obj->ey))
 				return 0;
 		} else {
 			warning("font: ignoring \"%s\"", s);
