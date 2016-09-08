@@ -49,6 +49,7 @@ void usage(const char *name)
 "        execute the specified shell command when the GUI is ready.\n"
 "        Sets EESHOW_WINDOW_ID to the X11 window ID.\n"
 "  -N n  limit history to n revisions (unlimited if omitted or 0)\n"
+"  -P    use Pango to render text (experimental, slow)\n"
 "  -V    print revision (version) number and exit\n"
 "  gdb   run eeshow under gdb\n"
     , name, name, name);
