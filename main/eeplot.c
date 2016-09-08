@@ -222,16 +222,9 @@ int main(int argc, char **argv)
 	if (file_names.pro)
 		file_close(&pro_file);
 
-	if (fn->pl) {
-		struct file file;
-
-		if (!file_open(&file, fn->pl, &sch_file))
-			return 1;
-		pl = pl_parse(&file);
-		file_close(&file);
-		if (!pl)
-			return 1;
-	}
+	pl = pl_parse_search(fn->pl, &sch_file);
+	if (!pl)
+		return 1;
 
 	if (fn != &file_names) {
 		free_file_names(fn);

@@ -223,7 +223,6 @@ static const struct sheet *parse_files(struct gui_hist *hist,
 {
 	char *rev = NULL;
 	struct file pro_file, sch_file;
-	struct file pl_file;
 	const struct file *leader = NULL;
 	unsigned libs_open, i;
 	bool libs_cached = 0;
@@ -271,16 +270,11 @@ static const struct sheet *parse_files(struct gui_hist *hist,
 		    fn, leader))
 			goto fail;
 
-	if (fn->pl) {
-		if (!file_open(&pl_file, fn->pl, leader))
-			goto fail;
-		hist->pl = pl_parse(&pl_file);
-		file_close(&pl_file);
-		/*
-		 * We treat failing to parse the page layout as a "minor"
-		 * failure and don't reject the revision just because of it.
-		 */
-	}
+	hist->pl = pl_parse_search(fn->pl, leader);
+	/*
+	 * We treat failing to load or parse the page layout as a "minor"
+	 * failure and don't reject the revision just because of it.
+	 */
 
 	if (hist->vcs_hist) {
 		hist->oids = alloc_type_n(void *, libs_open);
