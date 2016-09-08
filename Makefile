@@ -139,7 +139,8 @@ clean::
 #----- Default page layout ----------------------------------------------------
 
 pl-default.inc:	page_layout_default_description.cpp
-		sed '1,/^extern/d;s/\\\\n/ /' $< >$@ || { rm -f $@; exit 1; }
+		$(BUILD) sed '1,/^extern/d;s/\\\\n/ /' $< >$@ || \
+		    { rm -f $@; exit 1; }
 
 kicad/pl-parse.c: pl-default.inc
 
