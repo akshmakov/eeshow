@@ -283,6 +283,45 @@ static bool process_option(struct pl_obj *obj, const struct expr *e)
 }
 
 
+static bool process_poly(struct pl_obj *obj, const struct expr *e)
+{
+	struct pl_poly *poly;
+	struct pl_point *p, **anchor;
+	const char *s;
+	const struct expr *next;
+
+	poly = alloc_type(struct pl_poly);
+	poly->points = NULL;
+	poly->next = obj->poly;
+	obj->poly = poly;
+	anchor = &poly->points;
+
+	for (; e; e = e->next) {
+		if (!e->e) {
+			warning("pts: ignoring non-list");
+			continue;
+		}
+
+		s = e->e->s;
+		next = e->e->next;
+
+		if (!strcmp(s, "xy")) {
+			p = alloc_type(struct pl_point);
+			*anchor = p;
+			anchor = &p->next;
+			if (!get_xy(next, &p->x, &p->y))
+				return 0;
+		} else {
+			warning("pts: ignoring \"%s\"", s);
+		}
+	}
+
+	*anchor = NULL;
+
+	return 1;
+}
+
+
 static bool process_obj(struct pl_ctx *pl, const struct expr *e,
     enum pl_obj_type type)
 {
@@ -304,6 +343,7 @@ static bool process_obj(struct pl_ctx *pl, const struct expr *e,
 	obj->hor = text_min;
 	obj->vert = text_mid;
 	obj->rotate = 0;
+	obj->poly = 0;
 
 	for (; e; e = e->next) {
 		if (e->s) {
@@ -361,6 +401,9 @@ static bool process_obj(struct pl_ctx *pl, const struct expr *e,
 		} else if (!strcmp(s, "option")) {
 			if (!process_option(obj, next))
 				return 0;
+		} else if (!strcmp(s, "pts")) {
+			if (!process_poly(obj, next))
+				return 0;
 		} else
 			warning("pl_obj: ignoring \"%s\"", s);
 	}
@@ -399,6 +442,9 @@ static bool process_layout(struct pl_ctx *pl, const struct expr *e)
 				return 0;
 		} else if (!strcmp(s, "tbtext")) {
 			if (!process_obj(pl, next, pl_obj_text))
+				return 0;
+		} else if (!strcmp(s, "polygon")) {
+			if (!process_obj(pl, next, pl_obj_poly))
 				return 0;
 		} else {
 			warning("layout: ignoring \"%s\"", s);
@@ -491,6 +537,23 @@ struct pl_ctx *pl_parse_search(const char *name, const struct file *related)
 }
 
 
+static void free_polys(struct pl_poly *poly)
+{
+	struct pl_poly *next_poly;
+	struct pl_point *p, *next_point;
+
+	while (poly) {
+		next_poly = poly->next;
+		for (p = poly->points; p; p = next_point) {
+			next_point = p->next;
+			free(p);
+		}
+		free(poly);
+		poly = next_poly;
+	}
+}
+
+
 void pl_free(struct pl_ctx *pl)
 {
 	struct pl_obj *next;
@@ -498,6 +561,7 @@ void pl_free(struct pl_ctx *pl)
 	while (pl->objs) {
 		next = pl->objs->next;
 		free((void *) pl->objs->s);
+		free_polys(pl->objs->poly);
 		free(pl->objs);
 		pl->objs = next;
 	}

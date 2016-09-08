@@ -30,17 +30,28 @@ enum page_constraint {
 };
 
 
+struct pl_point {
+	float x, y;
+	struct pl_point *next;
+};
+
+struct pl_poly {
+	struct pl_point *points;
+	struct pl_poly *next;
+};
+
 struct pl_obj {
 	enum pl_obj_type {
 		pl_obj_rect,
 		pl_obj_line,
 		pl_obj_text,
+		pl_obj_poly,
 	} type;
 
 	enum page_constraint pc;
 	const char *s;		/* tbtext */
 	int repeat;		/* line, rect, tbtext */
-	float x, y;		/* line, rect, tbtext */
+	float x, y;		/* line, rect, tbtext, poly */
 	int dx, dy;
 	float ex, ey;		/* line, rect; font size for tbtext */
 	int edx, edy;
@@ -49,7 +60,8 @@ struct pl_obj {
 	int font;		/* tbtext (flags) */
 	enum text_align hor;	/* tbtext */
 	enum text_align vert;	/* tbtext */
-	float rotate;		/* tbtext */
+	float rotate;		/* tbtext, poly */
+	struct pl_poly *poly;	/* poly */
 
 	struct pl_obj *next;
 };
