@@ -31,20 +31,22 @@ Visualization (dwg.c and such):
 - support mirroring (and detect-complain if unexpected) [should be done now]
 - should get rid of gfx_user()
 
-Rendering:
+Rendering/Text:
 - better text size guessing also for FIG
 - consider switching to Hershey fonts (that's what eeschema uses, right ?)
   (goal: prevent font geometry from changing when scaling)
-- support line thickness ?
 - ~ as overline (grep for ~ in out.fig) [ done for Cairo, FIG still missing ]
 - maybe let user set PNG size [we have zoom level]
+
+Rendering/Lines:
+- support line thickness ?
 - find out why in Cairo PDF non-dashed lines disappear if CAIRO_LINE_CAP_ROUND
+
+Rendering/Other:
 - diff area algorithm will fill anything resembling a closed path, no matter
   how little is inside (e.g., a changed large but empty rectangle will be
   filled)
 - interaction with eda-tools/genkicat fails: catalog text is lost
-- eeplot to PDF sometimes chops off one line of pixels, ignores text size
-  (test with kicad-libs/components catalog)
 
 GUI:
 - dragging can be slow. maybe reusing old content and only redrawing new
