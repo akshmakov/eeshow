@@ -19,6 +19,9 @@ LICENSE, Version 2:
 For your convenience, a copy of the complete license has been included
 in the file COPYING.GPLv2.
 
+The file page_layout_default_description.cpp is from KiCad and is covered
+by the same license.
+
 
 Prerequisites
 -------------
