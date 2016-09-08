@@ -127,9 +127,10 @@ static bool parse_arc(struct lib_obj *obj, const char *line)
 	struct lib_arc *arc = &obj->u.arc;
 	int a1, a2;
 
+	arc->fill = 'N';
 	if (sscanf(line, "A %d %d %d %d %d %u %u %u %c",
 	    &arc->x, &arc->y, &arc->r, &a1, &a2, &obj->unit, &obj->convert,
-	    &arc->thick, &arc->fill) != 9)
+	    &arc->thick, &arc->fill) < 8)
 		return 0;
 
 	/*
