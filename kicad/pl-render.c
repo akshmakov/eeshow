@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 
 #include "misc/util.h"
 #include "misc/diag.h"
@@ -192,6 +193,43 @@ static void render_text(const struct pl_ctx *pl, const struct pl_obj *obj,
 }
 
 
+static void render_poly(const struct pl_obj *obj, const struct pl_poly *poly,
+    struct gfx *gfx, int x, int y)
+{
+	double a = obj->rotate / 180.0 * M_PI;
+	const struct pl_point *p;
+	unsigned n = 0;
+	int px, py;
+
+	for (p = poly->points; p; p = p->next)
+		n++;
+
+	int vx[n];
+	int vy[n];
+
+	n = 0;
+	for (p = poly->points; p; p = p->next) {
+		px = mil(p->x);
+		py = mil(p->y);
+		vx[n] = x + cos(a) * px + sin(a) * py;
+		vy[n] = y + cos(a) * py - sin(a) * px;
+		n++;
+	}
+	gfx_poly(gfx, n, vx, vy,
+	    COLOR_COMP_DWG, COLOR_COMP_DWG, LAYER_COMP_DWG);
+}
+
+
+static void render_polys(const struct pl_obj *obj, struct gfx *gfx,
+    int x, int y)
+{
+	const struct pl_poly *poly;
+
+	for (poly = obj->poly; poly; poly = poly->next)
+		render_poly(obj, poly, gfx, x, y);
+}
+
+
 static void render_obj(const struct pl_ctx *pl, const struct pl_obj *obj,
     struct gfx *gfx, unsigned inc,
     const struct sheet *sheets, const struct sheet *sheet)
@@ -234,6 +272,9 @@ static void render_obj(const struct pl_ctx *pl, const struct pl_obj *obj,
 		break;
 	case pl_obj_text:
 		render_text(pl, obj, gfx, x, y, inc, sheets, sheet);
+		break;
+	case pl_obj_poly:
+		render_polys(obj, gfx, x, y);
 		break;
 	default:
 		break;
