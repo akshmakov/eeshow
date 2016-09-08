@@ -67,7 +67,7 @@ static bool parse_poly(struct lib_poly *poly, const char *line, int points)
 		line += n;
 	}
 	if (sscanf(line, "%c", &poly->fill) != 1)
-		return 0;
+		poly->fill = 'N';
 	return 1;
 }
 
