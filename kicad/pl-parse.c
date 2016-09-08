@@ -264,6 +264,25 @@ static bool process_justify(struct pl_obj *obj, const struct expr *e)
 }
 
 
+static bool process_option(struct pl_obj *obj, const struct expr *e)
+{
+	for (; e; e = e->next) {
+		if (e->e) {
+			warning("option: ignoring list");
+			continue;
+		}
+
+		if (!strcmp(e->s, "page1only"))
+			obj->pc = pc_only_one;
+		else if (!strcmp(e->s, "notonpage1"))
+			obj->pc = pc_except_one;
+		else
+			warning("option: ignoring \"%s\"", e->s);
+	}
+	return 1;
+}
+
+
 static bool process_obj(struct pl_ctx *pl, const struct expr *e,
     enum pl_obj_type type)
 {
@@ -273,6 +292,7 @@ static bool process_obj(struct pl_ctx *pl, const struct expr *e,
 
 	obj = alloc_type(struct pl_obj);
 	obj->type = type;
+	obj->pc = pc_none;
 	obj->s = NULL;
 	obj->repeat = 1;
 	obj->x = obj->y = obj->ex = obj->ey = 0;
@@ -337,6 +357,9 @@ static bool process_obj(struct pl_ctx *pl, const struct expr *e,
 				return 0;
 		} else if (!strcmp(s, "rotate")) {
 			if (!get_float(next, &obj->rotate))
+				return 0;
+		} else if (!strcmp(s, "option")) {
+			if (!process_option(obj, next))
 				return 0;
 		} else
 			warning("pl_obj: ignoring \"%s\"", s);

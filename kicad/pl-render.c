@@ -251,5 +251,7 @@ void pl_render(struct pl_ctx *pl, struct gfx *gfx, const struct sheet *sheets,
 		return;
 	for (obj = pl->objs; obj; obj = obj->next)
 		for (i = 0; i != obj->repeat; i++)
-			render_obj(pl, obj, gfx, i, sheets, sheet);
+			if (obj->pc == pc_none ||
+			    (obj->pc == pc_only_one) == (sheets == sheet))
+				render_obj(pl, obj, gfx, i, sheets, sheet);
 }

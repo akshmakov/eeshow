@@ -23,6 +23,12 @@ enum font_flag {
 	font_italic	= 1 << 1,
 };
 
+enum page_constraint {
+	pc_none,
+	pc_only_one,
+	pc_except_one,
+};
+
 
 struct pl_obj {
 	enum pl_obj_type {
@@ -31,6 +37,7 @@ struct pl_obj {
 		pl_obj_text,
 	} type;
 
+	enum page_constraint pc;
 	const char *s;		/* tbtext */
 	int repeat;		/* line, rect, tbtext */
 	float x, y;		/* line, rect, tbtext */
