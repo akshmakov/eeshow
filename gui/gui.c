@@ -265,10 +265,11 @@ static const struct sheet *parse_files(struct gui_hist *hist,
 	struct file lib_files[fn->n_libs];
 
 	lib_init(&hist->lib);
-	for (libs_open = 0; libs_open != fn->n_libs; libs_open++)
-		if (!lib_find_file(lib_files + libs_open, fn->libs[libs_open],
+	libs_open = 0;
+	for (i = 0; i != fn->n_libs; i++)
+		if (lib_find_file(lib_files + libs_open, fn->libs[libs_open],
 		    fn, leader))
-			goto fail;
+			libs_open++;
 
 	hist->pl = pl_parse_search(fn->pl, leader);
 	/*
