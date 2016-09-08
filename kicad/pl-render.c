@@ -107,7 +107,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			do_free = 1;
 			break;
 		case 'T':		// title
-			x = (char *) sheet->title;
+			x = sheet->title ? (char *) sheet->title : "";
 			break;
 		case 'Y':		// company name
 			x = "%Y";
