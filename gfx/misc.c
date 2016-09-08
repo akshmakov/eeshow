@@ -14,7 +14,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
 
 #include "misc/diag.h"
 #include "gfx/misc.h"
@@ -70,7 +69,7 @@ bool matrix_is_mirrored(const int m[6])
 	if (eq(m, 0, -1, 1, 0))
 		return 1;
 
-	assert(0);
+	fatal("unrecognized matrix %d %d %d %d\n", m[1], m[2], m[4], m[5]);
 }
 
 
@@ -96,8 +95,7 @@ int rx(int x, int y, int rot)
 	case 270:
 		return -y;
 	default:
-		assert(0);
-
+		fatal("rotation %d is not implemented", rot);
 	}
 }
 
@@ -114,7 +112,6 @@ int ry(int x, int y, int rot)
 	case 270:
 		return x;
 	default:
-		assert(0);
-
+		fatal("rotation %d is not implemented", rot);
 	}
 }
