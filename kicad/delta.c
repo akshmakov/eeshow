@@ -272,9 +272,9 @@ static bool obj_eq(const struct sch_obj *a, const struct sch_obj *b,
 
 	switch (a->type) {
 	case sch_obj_junction:
-		return 1;	
+		return 1;
 	case sch_obj_noconn:
-		return 1;	
+		return 1;
 	case sch_obj_glabel:
 	case sch_obj_text:
 		if (a->u.text.fn != b->u.text.fn)
@@ -440,9 +440,9 @@ static void init_res(struct sheet *res)
 	res->title = NULL;
 	res->file = NULL;
 	res->path = NULL;
-        res->objs = NULL;
-        res->next_obj = &res->objs;
-        res->next = NULL;
+	res->objs = NULL;
+	res->next_obj = &res->objs;
+	res->next = NULL;
 }
 
 

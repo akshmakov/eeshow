@@ -32,7 +32,7 @@ extern unsigned verbose;
 #define	BUG(...) \
 	fatal("BUG " __FILE__ ":" STRINGIFY_EXPAND(__LINE__) ": " __VA_ARGS__)
 
-	
+
 /* ----- Specialized diagnostic functions ---------------------------------- */
 
 

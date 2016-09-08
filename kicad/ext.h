@@ -35,7 +35,7 @@ struct file_names {
 
 
 enum ext identify(const char *path);
-void classify_files(struct file_names *fn, char *const *args, 
+void classify_files(struct file_names *fn, char *const *args,
     unsigned n_args);
 void classify_files_ab(struct file_names *a, struct file_names *b,
     char *const *args, unsigned n_args);

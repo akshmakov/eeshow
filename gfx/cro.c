@@ -286,7 +286,7 @@ static void overlined(cairo_t *cr, const char *s, double h)
 		overline(cr, ox, oy, g[-1].x + ext.x_advance,
 		    g[-1].y + ext.y_advance, h);
 	}
-	
+
 	cairo_glyph_free(glyphs);
 }
 

@@ -31,11 +31,11 @@ struct pl_obj {
 		pl_obj_text,
 	} type;
 
-	const char *s;          /* tbtext */
+	const char *s;		/* tbtext */
 	int repeat;		/* line, rect, tbtext */
-	float x, y;             /* line, rect, tbtext */
+	float x, y;		/* line, rect, tbtext */
 	int dx, dy;
-	float ex, ey;           /* line, rect; font size for tbtext */
+	float ex, ey;		/* line, rect; font size for tbtext */
 	int edx, edy;
 	float incrx, incry;
 	int incrlabel;		/* tbtext */

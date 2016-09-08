@@ -130,7 +130,7 @@ void zoom_to_extents(struct gui *gui)
 	gui->y = h / 2;
 
 	gtk_widget_get_allocation(gui->da, &alloc);
-	
+
 	sw = w ? (float) ZOOM_MARGIN * alloc.width / w : 1;
 	sh = h ? (float) ZOOM_MARGIN * alloc.height / h : 1;
 	gui->scale = sw < sh ? sw : sh;

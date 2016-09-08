@@ -47,7 +47,7 @@
 
 
 struct gui_sheet *find_corresponding_sheet(struct gui_sheet *pick_from,
-     struct gui_sheet *ref_in, const struct gui_sheet *ref)
+    struct gui_sheet *ref_in, const struct gui_sheet *ref)
 {
 	struct gui_sheet *sheet, *plan_b;
 	const char *title = ref->sch->title;
@@ -109,7 +109,7 @@ static void select_subsheet(void *user)
 
 found:
 	sheet = find_corresponding_sheet(gui->new_hist->sheets,
-                    gui->old_hist->sheets, sheet);
+	    gui->old_hist->sheets, sheet);
 	go_to_sheet(gui, sheet);
 }
 
@@ -274,7 +274,7 @@ static const struct sheet *parse_files(struct gui_hist *hist,
 	if (fn->pl) {
 		if (!file_open(&pl_file, fn->pl, leader))
 			goto fail;
- 		hist->pl = pl_parse(&pl_file);
+		hist->pl = pl_parse(&pl_file);
 		file_close(&pl_file);
 		/*
 		 * We treat failing to parse the page layout as a "minor"
@@ -421,8 +421,8 @@ static void get_history(struct gui *gui, const char *name, int limit)
 	if (!vcs_git_try(name)) {
 		gui->vcs_history = NULL;
 		return;
-	} 
-	
+	}
+
 	gui->vcs_history = vcs_git_history(name);
 	if (limit)
 		gui->hist_size = limit > 0 ? limit : -limit;
@@ -468,7 +468,7 @@ int run_gui(const struct file_names *fn, bool recurse, int limit,
 		.aois		= NULL,
 		.diff_mode	= diff_delta,
 		.old_hist	= NULL,
-		.hist_y_offset 	= 0,
+		.hist_y_offset	= 0,
 		.hist_size	= 0,
 	};
 

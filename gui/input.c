@@ -207,8 +207,8 @@ static gboolean motion_notify_event(GtkWidget *widget, GdkEventMotion *event,
 		break;
 	case input_dragging:
 		if (sp->ops->drag_move)
-		    sp->ops->drag_move(sp->user,
-		        event->x - clicked_x, event->y - clicked_y);
+			sp->ops->drag_move(sp->user,
+			    event->x - clicked_x, event->y - clicked_y);
 		clicked_x = event->x;
 		clicked_y = event->y;
 		break;

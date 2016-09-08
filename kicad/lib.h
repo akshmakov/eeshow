@@ -127,7 +127,6 @@ struct lib {
 	struct comp *curr_comp; /* current component */
 	struct comp **next_comp;
 	struct lib_obj **next_obj;
-
 };
 
 

@@ -36,8 +36,8 @@ DEPEND_normal	= $(CPP_normal) $(CFLAGS) -MM -MG
 ifeq ($(V),1)
     CC		= $(CC_normal)
     AS		= $(AS_normal)
-    LEX		= $(LEX_normal)   
-    YACC	= $(YACC_normal)   
+    LEX		= $(LEX_normal)
+    YACC	= $(YACC_normal)
     BUILD	=
     DEPEND	= $(DEPEND_normal)
 else
@@ -55,7 +55,7 @@ endif
 
 MKDEP =									\
 	$(DEPEND) $< |							\
-	  sed 								\
+	  sed								\
 	    -e 's|^$(basename $(notdir $<))\$(OBJ_SUFFIX):|$@:|'	\
 	    -e '/^\(.*:\)\? */{p;s///;s/ *\\\?$$/ /;s/  */:\n/g;H;}'	\
 	    -e '$${g;p;}'						\

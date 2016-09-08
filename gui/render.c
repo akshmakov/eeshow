@@ -142,7 +142,7 @@ static struct area *changed_sheets(const struct gui *gui,
 
 		if (!sheet_eq(new_sub->sch, old_sub->sch, 1))
 			add_area(&areas, cx(obj->x, xo, f), cy(obj->y, yo, f),
-		    	    cx(obj->x + obj->u.sheet.w, xo, f),
+			    cx(obj->x + obj->u.sheet.w, xo, f),
 			    cy(obj->y + obj->u.sheet.h, yo, f), 0xffff00);
 	}
 	return areas;

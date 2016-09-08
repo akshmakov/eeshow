@@ -281,7 +281,6 @@ void overlay_draw_all_d(struct overlay *overlays, cairo_t *cr,
 			over = over->next;
 		else
 			over = over->prev;
-		
 	}
 }
 

@@ -175,9 +175,9 @@ void *diff_process_file(struct diff *diff, struct file_names *file_names,
 			free_file_names(file_names);
 			return NULL;
 		}
-        }
+	}
 
-	if (!file_open(&sch_file, fn->sch, file_names->pro ? &pro_file : NULL)) 
+	if (!file_open(&sch_file, fn->sch, file_names->pro ? &pro_file : NULL))
 		goto fail_open;
 	for (i = 0 ; i != fn->n_libs; i++)
 		if (!lib_parse_search(&lib, fn->libs[i], fn, &sch_file))
@@ -467,7 +467,7 @@ static int diff_end(void *ctx)
 
 	cro_img_reset(gfx_user(diff->new_gfx));
 	cro_img_reset(gfx_user(diff->gfx));
-	
+
 	old_cr = make_diff(NULL, 0, 0, diff->scale,
 	    gfx_user(diff->gfx), NULL, gfx_user(diff->new_gfx), NULL, NULL,
 	    &changed);

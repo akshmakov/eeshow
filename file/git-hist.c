@@ -37,7 +37,6 @@
 struct branch {
 	const char *name;
 	git_commit *commit;
-	
 };
 
 struct vcs_history {
@@ -373,7 +372,7 @@ static char *append(char *s, char *add)
 /*
  * @@@ This one is a bit inconvenient. It depends both on the information the
  * VCS provides, some of which is fairly generic, but some may not be, and
- * the very specific constraints imposed by the markup format of Pango. 
+ * the very specific constraints imposed by the markup format of Pango.
  */
 
 char *vcs_git_long_for_pango(struct vcs_hist *h,
@@ -676,7 +675,7 @@ void hist_iterate(struct vcs_history *history,
 
 
 /* @@@ still haven't tested -+- */
- 
+
 //#define DEBUG
 
 // http://stackoverflow.com/questions/12132862/how-do-i-get-the-name-of-the-current-branch-in-libgit2

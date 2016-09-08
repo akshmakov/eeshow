@@ -51,7 +51,7 @@ git clone https://github.com/c4puter/motherboard.git
 cd motherboard
 git submodule init
 git submodule update
-eeshow schlib/library/*.lib *.lib motherboard.sch 
+eeshow schlib/library/*.lib *.lib motherboard.sch
 eeshow motherboard.pro
 cd ../..
 

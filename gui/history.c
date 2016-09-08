@@ -129,7 +129,7 @@ static void render_commit(void *user, void *user_over, int x, int y,
 		for (walk = hist; walk && walk->skipped; walk = walk->next)
 			do_render_commit(walk->gui, walk, cr,
 			    VCS_OVERLAYS_X + COMMIT_R,
-		            y + h / 2, THREAD_DX, h / 2, dy - h  / 2,
+			    y + h / 2, THREAD_DX, h / 2, dy - h  / 2,
 			    &skipped_rgb, &skipped_rgb,
 			    walk == hist, walk->next && !walk->next->skipped);
 		return;

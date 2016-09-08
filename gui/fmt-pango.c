@@ -62,7 +62,7 @@ unsigned vsfmt_pango(char *buf, const char *fmt, va_list ap)
 				default:
 					break;
 				}
-			
+
 			if (extra) {
 				tmp2 = u = alloca(len + extra + 1);
 				for (t = tmp; *t; t++) {

@@ -21,7 +21,7 @@
 enum thread {
 	thread_none	=	0,
 	thread_self	=	1 << 0,		/* -o- */
-	thread_newer	= 	1 << 1,		/* -'- or -+- */
+	thread_newer	=	1 << 1,		/* -'- or -+- */
 	thread_older	=	1 << 2,		/* -.- or -+- */
 	thread_other	=	1 << 3,		/* -|- or -+- */
 };

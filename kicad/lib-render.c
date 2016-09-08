@@ -324,10 +324,10 @@ static void draw_pin_line(const struct lib_pin *pin, struct gfx *gfx,
 	int len = pin->length;
 	int x[4], y[4];
 	int ex, ey;
+
 	if ((shape & pin_inverted) || (shape & pin_falling_edge))
 		len = pin->length - 2 * PIN_R;
 
-	
 	x[0] = pin->x;
 	y[0] = pin->y;
 	x[1] = pin->x + dx * len;
