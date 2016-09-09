@@ -341,6 +341,16 @@ static void cr_text_cairo(void *ctx, int x, int y, const char *s, unsigned size,
 	cairo_get_matrix(cc->cr, &m);
 	cairo_rotate(cc->cr, -rot / 180.0 * M_PI);
 
+	/*
+	 * Correct for text that descends below the baseline. We should also
+	 * take into account the vertical alignment, but this information isn't
+	 * available here (at least at the moment.)
+	 *
+	 * If we use the full difference the correction seems to large, so we
+	 * only use half the difference.
+	 */
+	cairo_rel_move_to(cc->cr, 0, -(ext.height + ext.y_bearing) / 2);
+
 	switch (align) {
 	case text_min:
 		break;
