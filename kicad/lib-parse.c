@@ -1,5 +1,5 @@
 /*
- * kicad/lib.c - Parse Eeschema .lib file
+ * kicad/lib-parse.c - Parse Eeschema .lib file
  *
  * Written 2016 by Werner Almesberger
  * Copyright 2016 by Werner Almesberger
@@ -13,6 +13,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <assert.h>
 
 #include "misc/util.h"
@@ -171,6 +172,22 @@ static void add_alias(struct comp *comp, const char *alias)
 }
 
 
+static bool add_aliases(struct comp *comp, const char *line)
+{
+	const char *p;
+	int n;
+	char *s;
+
+	if (strncmp(line, "ALIAS", 5))
+		return 0;
+	if (!isspace(line[5]))
+		return 0;
+	for (p = line + 5; sscanf(p, " %ms%n", &s, &n) == 1; p += n)
+		add_alias(comp, s);
+	return 1;
+}
+
+
 /* ----- Library parser ---------------------------------------------------- */
 
 
@@ -235,10 +252,8 @@ static bool lib_parse_line(const struct file *file,
 				lib->curr_comp->visible |= 1 << n;
 			return 1;
 		}
-		if (sscanf(line, "ALIAS %ms", &s) == 1) {
-			add_alias(lib->curr_comp, s);
+		if (add_aliases(lib->curr_comp, line))
 			return 1;
-		}
 		/* @@@ explicitly ignore FPLIST */
 		return 1;
 	case lib_draw:
