@@ -41,18 +41,21 @@ have to be installed. It also uses the command-line tools from
 transfig and
 <A href="http://www.imagemagick.org/">ImageMagick</A>.
 <BR>
-On Ubuntu 16.04, the names of the corresponding package would be
+On Ubuntu 16.04 and Debian 8.5, the names of the corresponding package would be
 <code>libgtk-3-dev</code>,
 <code>libcairo2-dev</code>,
 <code>libgit2-dev</code>,
 <code>transfig</code>, and
-<code>imagemagick</code>.
+<code>imagemagick</code>, e.g.,<BR>
+<pre>
+sudo apt-get install libgtk-3-dev libcairo2-dev libgit2-dev transfig imagemagick
+</pre>
 <P>
 <PRE>
 git clone http://neo900.org/git/eeshow
 cd eeshow
 make
-make install
+sudo make install
 </PRE>
 
 
