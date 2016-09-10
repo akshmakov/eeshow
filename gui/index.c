@@ -25,7 +25,7 @@
 #include "gui/common.h"
 
 
-#define	SHEET_MAX_W	200
+#define	SHEET_MAX_W	240
 #define	SHEET_MAX_NAME	300
 #define	SHEET_ASPECT	1.4146	/* width / height */
 #define	SHEET_PAD	3
