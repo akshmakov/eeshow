@@ -419,10 +419,11 @@ static void get_history(struct gui *gui, const char *name, int limit)
 	}
 
 	gui->vcs_history = vcs_git_history(name);
-	if (limit)
-		gui->hist_size = limit > 0 ? limit : -limit;
-	else
-		hist_iterate(gui->vcs_history, count_history, gui);
+	hist_iterate(gui->vcs_history, count_history, gui);
+	if (limit < 0)
+		limit = -limit;
+	if (limit && gui->hist_size > limit)
+		gui->hist_size = limit;
 }
 
 
