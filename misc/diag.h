@@ -13,6 +13,9 @@
 #ifndef MISC_DIAG_H
 #define	MISC_DIAG_H
 
+#include <stdbool.h>
+
+
 /*
  * 0: no progress indications
  * 1: reasonable progress indications
@@ -33,6 +36,13 @@ extern unsigned verbose;
 	fatal("BUG " __FILE__ ":" STRINGIFY_EXPAND(__LINE__) ": " __VA_ARGS__)
 
 
+/* ----- Deferred errors --------------------------------------------------- */
+
+
+void diag_defer_begin(void);
+void diag_defer_end(bool report);
+
+
 /* ----- Specialized diagnostic functions ---------------------------------- */
 
 
@@ -43,6 +53,7 @@ void diag_perror(const char *s);
 
 void __attribute__((noreturn)) pfatal_git(const char *s);
 void perror_git(const char *s);
+
 
 /* ----- General diagnostic functions -------------------------------------- */
 

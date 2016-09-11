@@ -19,10 +19,14 @@
 
 #include <git2.h>
 
+#include "misc/util.h"
 #include "misc/diag.h"
 
 
 unsigned verbose = 0;
+
+static int deferring = 0;
+static char *deferred = NULL;
 
 
 /* ----- Specialized diagnostic functions ---------------------------------- */
@@ -56,6 +60,33 @@ void perror_git(const char *s)
 }
 
 
+/* ----- Deferred errors --------------------------------------------------- */
+
+
+void diag_defer_begin(void)
+{
+	deferring++;
+}
+
+
+static void diag_defer_finish(bool report)
+{
+	if (deferred && report)
+		fprintf(stderr, "%s\n", deferred);
+	free(deferred);
+	deferred = NULL;
+}
+
+
+void diag_defer_end(bool report)
+{
+	if (!deferring--)
+		BUG("deferring == 0");
+	if (!deferring)
+		diag_defer_finish(report);
+}
+
+
 /* ----- General diagnostic functions -------------------------------------- */
 
 
@@ -63,6 +94,7 @@ void fatal(const char *fmt, ...)
 {
 	va_list ap;
 
+	diag_defer_finish(1);
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
@@ -75,10 +107,13 @@ void error(const char *fmt, ...)
 {
 	va_list ap;
 
+	if (deferred)
+		free(deferred);
 	va_start(ap, fmt);
-	vfprintf(stderr, fmt, ap);
+	alloc_vprintf(&deferred, fmt, ap);
 	va_end(ap);
-	fprintf(stderr, "\n");
+	if (!deferring)
+		diag_defer_finish(1);
 }
 
 
