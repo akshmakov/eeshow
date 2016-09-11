@@ -392,7 +392,7 @@ bool lib_parse(struct lib *lib, const char *name, const struct file *related)
 }
 
 
-bool lib_find_file(struct file *file, const char *name,
+static bool do_find_file(struct file *file, const char *name,
     const struct file_names *fn, const struct file *related)
 {
 	if (file_open(file, name, related))
@@ -401,6 +401,18 @@ bool lib_find_file(struct file *file, const char *name,
 		return 1;
 	return file_search(file, name,
 	    builtin_paths, ARRAY_ELEMENTS(builtin_paths), related);
+}
+
+
+bool lib_find_file(struct file *file, const char *name,
+    const struct file_names *fn, const struct file *related)
+{
+	bool res;
+
+	diag_defer_begin();
+	res = do_find_file(file, name, fn, related);
+	diag_defer_end(!res);
+	return res;
 }
 
 

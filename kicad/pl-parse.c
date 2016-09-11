@@ -543,9 +543,13 @@ struct pl_ctx *pl_parse_search(const char *name, const struct file *related)
 {
 	struct file file;
 	struct pl_ctx *pl;
+	bool res;
 
 	if (name) {
-		if (!pl_find_file(&file, name, related))
+		diag_defer_begin();
+		res = pl_find_file(&file, name, related);
+		diag_defer_end(!res);
+		if (!res)
 			return NULL;
 		pl = pl_parse(&file);
 		file_close(&file);
