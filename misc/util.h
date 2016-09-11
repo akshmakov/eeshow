@@ -14,6 +14,7 @@
 #ifndef MISC_UTIL_H
 #define MISC_UTIL_H
 
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -71,6 +72,8 @@ static inline bool strbegins(const char *s, const char *prefix)
 }
 
 
+int alloc_vprintf(char **s, const char *fmt, va_list ap)
+    __attribute__((format(printf, 2, 0)));
 int alloc_printf(char **s, const char *fmt, ...)
     __attribute__((format(printf, 2, 3)));
 

@@ -18,17 +18,27 @@
 #include "misc/util.h"
 
 
+int alloc_vprintf(char **s, const char *fmt, va_list ap)
+{
+	int res;
+
+	res = vasprintf(s, fmt, ap);
+	if (res == -1) {
+		perror("vasprintf");
+		exit(1);
+	}
+	return res;
+}
+
+
+
 int alloc_printf(char **s, const char *fmt, ...)
 {
 	va_list ap;
 	int res;
 
 	va_start(ap, fmt);
-	res = vasprintf(s, fmt, ap);
+	res = alloc_vprintf(s, fmt, ap);
 	va_end(ap);
-	if (res == -1) {
-		perror("vasprintf");
-		exit(1);
-	}
 	return res;
 }
