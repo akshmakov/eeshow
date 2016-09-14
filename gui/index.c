@@ -165,7 +165,7 @@ static bool thumb_hover(void *user, bool on, int dx, int dy)
 		else
 			overlay_text(name_over, "???");
 		style.font = BOLD_FONT_LARGE;
-		style.width = 0;
+		style.width = 1;
 		style.wmax = SHEET_MAX_NAME;
 		overlay_style(name_over, &style);
 		curr_sheet = sheet;
