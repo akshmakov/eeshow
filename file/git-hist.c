@@ -408,47 +408,6 @@ fail:
 }
 
 
-/* ----- Iteration (obsolete) ---------------------------------------------- */
-
-
-#if 0
-
-/*
- * We use the "seen" counter to make sure we only show a commit after all newer
- * commits have been shown. We could accomplish the same by reordering the
- * h->older array of all ancestors each time we find a branch, but this works
- * just as well, has only the small disadvantage that we're modifying the
- * history entries during traversal,  and is simpler.
- */
-
-static void hist_iterate_recurse(struct vcs_hist *h,
-    void (*fn)(void *user, struct vcs_hist *h), void *user)
-{
-	unsigned i;
-
-	fn(user, h);
-	for (i = 0; i != h->n_older; i++)
-		if (++h->older[i]->seen == h->older[i]->n_newer)
-			hist_iterate_recurse(h->older[i], fn, user);
-}
-
-
-static void hist_iterate(struct vcs_history *history,
-    void (*fn)(void *user, struct vcs_hist *h), void *user)
-{
-	struct vcs_hist *h, **head;
-
-	for (h = history->history; h; h = h->next)
-		h->seen = 0;
-	for (head = history->heads; head != history->heads + history->n_heads;
-	    head++)
-		if (!(*head)->n_newer)
-			hist_iterate_recurse(*head, fn, user);
-}
-
-#endif
-
-
 /* ----- Sorted commit history --------------------------------------------- */
 
 
