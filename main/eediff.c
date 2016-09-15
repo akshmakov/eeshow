@@ -64,7 +64,7 @@ void usage(const char *name)
 }
 
 
-#define	OPTIONS	"vL:OPV"
+#define	OPTIONS	"hvL:OPV"
 
 
 int main(int argc, char **argv)
@@ -96,6 +96,7 @@ int main(int argc, char **argv)
 		case 'V':
 			fprintf(stderr, "%s %sZ\n", version, build_date);
 			return 1;
+		case 'h':
 		case '?':
 			usage(*argv);
 		default:

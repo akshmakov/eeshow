@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 	gtk_init(&argc, &argv);
 	setlocale(LC_ALL, "C");	/* restore sanity */
 
-	while ((c = getopt(argc, argv, "1vE:LN:OPV")) != EOF)
+	while ((c = getopt(argc, argv, "1hvE:LN:OPV")) != EOF)
 		switch (c) {
 		case '1':
 			one_sheet = 1;
@@ -99,6 +99,7 @@ int main(int argc, char **argv)
 		case 'V':
 			fprintf(stderr, "%s %sZ\n", version, build_date);
 			return 1;
+		case 'h':
 		default:
 			usage(*argv);
 		}

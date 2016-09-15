@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 
 	run_under_gdb(argc, argv);
 
-	while ((c = getopt(argc, argv, "vC:F:H:SV")) != EOF)
+	while ((c = getopt(argc, argv, "hvC:F:H:SV")) != EOF)
 		switch (c) {
 		case 'v':
 			verbose++;
@@ -90,6 +90,7 @@ int main(int argc, char **argv)
 		case 'V':
 			fprintf(stderr, "%s %sZ\n", version, build_date);
 			return 1;
+		case 'h':
 		default:
 			usage(*argv);
 		}
