@@ -37,6 +37,11 @@ E.g., on Ubuntu and Debian:
 sudo apt-get install libgtk-3-dev libcairo2-dev libgit2-dev transfig \
   imagemagick
 
+On Fedora:
+
+sudo dnf install gtk3-devel cairo-devel libgit2-devel transfig ImageMagick
+
+
 If building with USE_WEBKIT=y:
 
 libwebkit2gtk-4.0-dev
