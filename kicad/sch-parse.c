@@ -334,6 +334,29 @@ static bool parse_hsheet_field(struct sch_ctx *ctx, const char *line)
 }
 
 
+/* ----- Comments ---------------------------------------------------------- */
+
+
+static void add_comment(struct sheet *sheet, unsigned n, char *s)
+{
+	unsigned i;
+
+	if (n >= sheet->n_comments) {
+		sheet->comments =
+		    realloc_type_n(sheet->comments, const char *, n + 1);
+		for (i = sheet->n_comments; i <= n; i++)
+			sheet->comments[i] = NULL;
+		sheet->n_comments = n + 1;
+	}
+	if (sheet->comments[n]) {
+		warning("duplicate comment %d", n);
+		free(s);
+		return;
+	}
+	sheet->comments[n] = s;
+}
+
+
 /* ----- Schematics parser ------------------------------------------------- */
 
 
@@ -367,6 +390,8 @@ static struct sheet *new_sheet(struct sch_ctx *ctx)
 
 	sheet->size = NULL;
 	sheet->w = sheet->h = 0;
+	sheet->comments = NULL;
+	sheet->n_comments = 0;
 
 	sheet->has_children = 0;
 
@@ -580,6 +605,15 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 			return 1;
 		if (sscanf(line, "Title \"%m[^\"]\"", &s) == 1) {
 			ctx->curr_sheet->title = s;
+			return 1;
+		}
+		if (sscanf(line, "Comment%*d \"\"%n", &n) == 0 && n)
+			return 1;
+		if (sscanf(line, "Comment%d \"%m[^\"]\"", &n, &s) == 2) {
+			if (n < 0)
+				fatal("%s:%u: invalid comment index %d",
+				    file->name, file->lineno, n);
+			add_comment(ctx->curr_sheet, n, s);
 			return 1;
 		}
 		if (sscanf(line, "$EndDescr%n", &n) || !n)

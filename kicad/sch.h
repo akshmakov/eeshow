@@ -111,6 +111,8 @@ struct sheet {
 
 	const char *size;		/* paper size, from $Descr */
 	int w, h;
+	const char **comments;
+	unsigned n_comments;
 
 	bool has_children;		/* aka sub-sheets */
 
