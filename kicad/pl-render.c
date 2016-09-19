@@ -75,7 +75,19 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			x = "%";
 			break;
 		case 'C':		// comment #n
-			x = "%C";
+			if (isdigit(p[2])) {
+				n = p[2] - '0';
+				if (n >= sheet->n_comments) {
+					x = "";
+				} else {
+					x = (char *) sheet->comments[n];
+					if (!x)
+						x = "";
+				}
+			} else {
+				warning("%%C without number");
+				x = "???";
+			}
 			break;
 		case 'D':		// date
 			x = "%D";
@@ -124,7 +136,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 		res = realloc_size(res, size + p - s + len);
 		memcpy(res + size, s, p - s);
 		size += p - s;
-		s = p + 2;
+		s = p[1] == 'C' && p[2] ? p + 3 : p + 2;
 		memcpy(res + size, x, len);
 		size += len;
 		if (do_free)
