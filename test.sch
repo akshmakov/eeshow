@@ -5,11 +5,11 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 3
-Title ""
-Date ""
-Rev ""
-Comp ""
-Comment1 ""
+Title "title"
+Date "date"
+Rev "revision"
+Comp "company"
+Comment1 "hello"
 Comment2 ""
 Comment3 ""
 Comment4 ""
