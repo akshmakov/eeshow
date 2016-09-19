@@ -114,7 +114,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			x = "%Y";
 			break;
 		case 'Z':		// paper format
-			x = "%Z";
+			x = (char *) sheet->size;
 			break;
 		default:
 			x = "???";
