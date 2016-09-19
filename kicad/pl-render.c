@@ -77,13 +77,10 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 		case 'C':		// comment #n
 			if (isdigit(p[2])) {
 				n = p[2] - '0';
-				if (n >= sheet->n_comments) {
+				if (n >= sheet->n_comments)
 					cx = "";
-				} else {
+				else
 					cx = sheet->comments[n];
-					if (!cx)
-						cx = "";
-				}
 			} else {
 				warning("%%C without number");
 				cx = "???";
@@ -93,7 +90,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			cx = "%D";
 			break;
 		case 'F':		// file name
-			cx = sheet->file ? sheet->file : "";
+			cx = sheet->file;
 			break;
 		case 'K':		// KiCad version
 			cx = "%K";
@@ -105,7 +102,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			alloc_printf(&x, "%u", n);
 			break;
 		case 'P':		// sheet path
-			cx = sheet->path ? sheet->path : "";
+			cx = sheet->path;
 			break;
 		case 'R':		// revision
 			cx = "%R";
@@ -118,7 +115,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			alloc_printf(&x, "%u", n);
 			break;
 		case 'T':		// title
-			cx = sheet->title ? sheet->title : "";
+			cx = sheet->title;
 			break;
 		case 'Y':		// company name
 			cx = "%Y";
@@ -131,7 +128,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			break;
 		}
 		if (!cx)
-			cx = x;
+			cx = x ? x : "";
 		len = strlen(cx);
 		res = realloc_size(res, size + p - s + len);
 		memcpy(res + size, s, p - s);
