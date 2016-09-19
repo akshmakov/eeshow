@@ -87,7 +87,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			}
 			break;
 		case 'D':		// date
-			cx = "%D";
+			cx = sheet->date;
 			break;
 		case 'F':		// file name
 			cx = sheet->file;
@@ -105,7 +105,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			cx = sheet->path;
 			break;
 		case 'R':		// revision
-			cx = "%R";
+			cx = sheet->rev;
 			break;
 		case 'S':		// sheet number
 			n = 1;
@@ -118,7 +118,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			cx = sheet->title;
 			break;
 		case 'Y':		// company name
-			cx = "%Y";
+			cx = sheet->comp;
 			break;
 		case 'Z':		// paper format
 			cx = sheet->size;

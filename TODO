@@ -30,7 +30,7 @@ Visualization (dwg.c and such):
 - check remaining alignment / direction / rotation cases in switch statements
 - support mirroring (and detect-complain if unexpected) [should be done now]
 - should get rid of gfx_user()
-- page layout: still doesn't expand all the %X formats
+- page layout: still doesn't expand all the %X formats (only %K missing now)
 - page layout: text may contain newlines
 - page layout: support maxheight and maxwidth
 

@@ -604,10 +604,25 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 		    &ctx->curr_sheet->size,
 		    &ctx->curr_sheet->w, &ctx->curr_sheet->h) == 2)
 			return 1;
-		if (sscanf(line, "Title \"%m[^\"]\"", &s) == 1) {
-			ctx->curr_sheet->title = s;
+
+		/*
+		 * %[ only accepts non-empty strings, so we fail to parse any
+		 * of the following items if the string is empty. However,
+		 * since we silently ignore all unrecognized lines, this does
+		 * not cause a parse error or warning.
+		 */
+		if (sscanf(line, "Title \"%m[^\"]\"",
+		    &ctx->curr_sheet->title) == 1)
 			return 1;
-		}
+		if (sscanf(line, "Date \"%m[^\"]\"",
+		    &ctx->curr_sheet->date) == 1)
+			return 1;
+		if (sscanf(line, "Rev \"%m[^\"]\"",
+		    &ctx->curr_sheet->rev) == 1)
+			return 1;
+		if (sscanf(line, "Comp \"%m[^\"]\"",
+		    &ctx->curr_sheet->comp) == 1)
+			return 1;
 		if (sscanf(line, "Comment%d \"%m[^\"]\"", &i, &s) == 2) {
 			if (i < 0)
 				fatal("%s:%u: invalid comment index %d",
@@ -615,6 +630,7 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 			add_comment(ctx->curr_sheet, i, s);
 			return 1;
 		}
+
 		if (sscanf(line, "$EndDescr%n", &n) || !n)
 			return 1;
 		ctx->state = sch_basic;

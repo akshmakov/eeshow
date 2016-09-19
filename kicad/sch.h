@@ -109,8 +109,12 @@ struct sheet {
 	struct sch_obj **next_obj;
 	struct sheet *next;
 
+	/* header items */
 	const char *size;		/* paper size, from $Descr */
 	int w, h;
+	const char *date;
+	const char *rev;
+	const char *comp;
 	const char **comments;
 	unsigned n_comments;
 
