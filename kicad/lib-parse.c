@@ -226,7 +226,8 @@ static bool lib_parse_line(const struct file *file,
     void *user, const char *line)
 {
 	struct lib *lib = user;
-	int n = 0;
+	int n = 0;	/* use ONLY for %n */
+	int i;
 	unsigned points;
 	struct lib_obj *obj;
 	char *s, *style;
@@ -245,11 +246,11 @@ static bool lib_parse_line(const struct file *file,
 			lib->state = lib_draw;
 			return 1;
 		}
-		if (sscanf(line, "F%d \"\" %*d %*d %*d %*c %c", &n, &vis) == 2
+		if (sscanf(line, "F%d \"\" %*d %*d %*d %*c %c", &i, &vis) == 2
 		    || sscanf(line, "F%d \"%*[^\"]\" %*d %*d %*d %*c %c",
-		    &n, &vis) == 2) {
+		    &i, &vis) == 2) {
 			if (vis == 'V')
-				lib->curr_comp->visible |= 1 << n;
+				lib->curr_comp->visible |= 1 << i;
 			return 1;
 		}
 		if (add_aliases(lib->curr_comp, line))
