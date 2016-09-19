@@ -62,54 +62,53 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 	unsigned size = 0;
 	unsigned len;
 	char *x;
-	bool do_free;
+	const char *cx;
 	unsigned n;
 
 	while (1) {
-		do_free = 0;
+		cx = x = NULL;
 		p = strchr(s, '%');
 		if (!p)
 			break;
 		switch (p[1]) {
 		case '%':
-			x = "%";
+			cx = "%";
 			break;
 		case 'C':		// comment #n
 			if (isdigit(p[2])) {
 				n = p[2] - '0';
 				if (n >= sheet->n_comments) {
-					x = "";
+					cx = "";
 				} else {
-					x = (char *) sheet->comments[n];
-					if (!x)
-						x = "";
+					cx = sheet->comments[n];
+					if (!cx)
+						cx = "";
 				}
 			} else {
 				warning("%%C without number");
-				x = "???";
+				cx = "???";
 			}
 			break;
 		case 'D':		// date
-			x = "%D";
+			cx = "%D";
 			break;
 		case 'F':		// file name
-			x = sheet->file ? (char *) sheet->file : "";
+			cx = sheet->file ? sheet->file : "";
 			break;
 		case 'K':		// KiCad version
-			x = "%K";
+			cx = "%K";
 			break;
 		case 'N':		// number of sheets
 			n = 0;
 			for (sch = sheets; sch; sch = sch->next)
 				n++;
 			alloc_printf(&x, "%u", n);
-			do_free = 1;
 			break;
 		case 'P':		// sheet path
-			x = sheet->path ? (char *) sheet->path : "";
+			cx = sheet->path ? sheet->path : "";
 			break;
 		case 'R':		// revision
-			x = "%R";
+			cx = "%R";
 			break;
 		case 'S':		// sheet number
 			n = 1;
@@ -117,30 +116,30 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			    sch = sch->next)
 				n++;
 			alloc_printf(&x, "%u", n);
-			do_free = 1;
 			break;
 		case 'T':		// title
-			x = sheet->title ? (char *) sheet->title : "";
+			cx = sheet->title ? sheet->title : "";
 			break;
 		case 'Y':		// company name
-			x = "%Y";
+			cx = "%Y";
 			break;
 		case 'Z':		// paper format
-			x = (char *) sheet->size;
+			cx = sheet->size;
 			break;
 		default:
 			x = "???";
 			break;
 		}
-		len = strlen(x);
+		if (!cx)
+			cx = x;
+		len = strlen(cx);
 		res = realloc_size(res, size + p - s + len);
 		memcpy(res + size, s, p - s);
 		size += p - s;
 		s = p[1] == 'C' && p[2] ? p + 3 : p + 2;
-		memcpy(res + size, x, len);
+		memcpy(res + size, cx, len);
 		size += len;
-		if (do_free)
-			free(x);
+		free(x);
 	}
 
 	len = strlen(s);
