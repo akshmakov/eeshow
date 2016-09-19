@@ -109,6 +109,7 @@ struct sheet {
 	struct sch_obj **next_obj;
 	struct sheet *next;
 
+	const char *size;		/* paper size, from $Descr */
 	int w, h;
 
 	bool has_children;		/* aka sub-sheets */

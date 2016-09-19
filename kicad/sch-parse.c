@@ -365,6 +365,7 @@ static struct sheet *new_sheet(struct sch_ctx *ctx)
 	sheet->next_obj = &sheet->objs;
 	sheet->next = NULL;
 
+	sheet->size = NULL;
 	sheet->w = sheet->h = 0;
 
 	sheet->has_children = 0;
@@ -573,7 +574,8 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 		}
 		break;
 	case sch_descr:
-		if (sscanf(line, "$Descr %*s %d %d",
+		if (sscanf(line, "$Descr %ms %d %d",
+		    &ctx->curr_sheet->size,
 		    &ctx->curr_sheet->w, &ctx->curr_sheet->h) == 2)
 			return 1;
 		if (sscanf(line, "Title \"%m[^\"]\"", &s) == 1) {
@@ -743,6 +745,7 @@ static void free_sheet(struct sheet *sch)
 	free((char *) sch->title);
 	free((char *) sch->file);
 	free((char *) sch->path);
+	free((char *) sch->size);
 	free(sch->oid);
 	for (obj = sch->objs; obj; obj = next) {
 		next = obj->next;
