@@ -464,7 +464,8 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 {
 	struct sch_ctx *ctx = user;
 	struct sch_obj *obj = &ctx->obj;
-	int n = 0;
+	int n = 0;	/* use ONLY for %n */
+	int i;
 	char *s, *italic;
 	int bold;
 
@@ -607,13 +608,11 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 			ctx->curr_sheet->title = s;
 			return 1;
 		}
-		if (sscanf(line, "Comment%*d \"\"%n", &n) == 0 && n)
-			return 1;
-		if (sscanf(line, "Comment%d \"%m[^\"]\"", &n, &s) == 2) {
-			if (n < 0)
+		if (sscanf(line, "Comment%d \"%m[^\"]\"", &i, &s) == 2) {
+			if (i < 0)
 				fatal("%s:%u: invalid comment index %d",
-				    file->name, file->lineno, n);
-			add_comment(ctx->curr_sheet, n, s);
+				    file->name, file->lineno, i);
+			add_comment(ctx->curr_sheet, i, s);
 			return 1;
 		}
 		if (sscanf(line, "$EndDescr%n", &n) || !n)
