@@ -275,16 +275,25 @@ static void overlined(cairo_t *cr, const char *s, double h)
 		if (*s == '~') {
 			cairo_show_glyphs(cr, last, g - last);
 			last = g + 1;
-			if (overlining) {
-				overline(cr, ox, oy, g->x, g->y, h);
-			} else {
-				ox = g->x;
-				oy = g->y;
-			}
-			overlining = !overlining;
-			if (s[1]) {
+			if (s[1] == '~') {	/* ~~ -> render ~ */
 				off_x = g[0].x - g[1].x;
 				off_y = g[0].y - g[1].y;
+				g++;
+				s++;
+				g->x += off_x;
+				g->y += off_y;
+			} else {
+				if (overlining) {
+					overline(cr, ox, oy, g->x, g->y, h);
+				} else {
+					ox = g->x;
+					oy = g->y;
+				}
+				overlining = !overlining;
+				if (s[1]) {
+					off_x = g[0].x - g[1].x;
+					off_y = g[0].y - g[1].y;
+				}
 			}
 		}
 		g++;
