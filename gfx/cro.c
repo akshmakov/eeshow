@@ -302,12 +302,13 @@ static void overlined(cairo_t *cr, const char *s, double h)
 	assert(g == glyphs + num_glyphs);
 	assert(g > glyphs);
 
-	if (last != g)
+	if (last != g) {
 		cairo_show_glyphs(cr, last, g - last);
-	if (overlining) {
-		cairo_glyph_extents(cr, g - 1, 1, &ext);
-		overline(cr, ox, oy, g[-1].x + ext.x_advance,
-		    g[-1].y + ext.y_advance, h);
+		if (overlining) {
+			cairo_glyph_extents(cr, g - 1, 1, &ext);
+			overline(cr, ox, oy, g[-1].x + ext.x_advance,
+			    g[-1].y + ext.y_advance, h);
+		}
 	}
 
 	cairo_glyph_free(glyphs);
