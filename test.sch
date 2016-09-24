@@ -390,4 +390,12 @@ Wire Wire Line
 	7300 3400 7600 3400
 Wire Wire Line
 	7300 3500 7600 3500
+Text Notes 8550 6450 0    60   ~ 0
+trailing tilde~
+Text Notes 8550 6300 0    60   ~ 0
+double~~tilde
+Text Notes 9400 6450 0    60   ~ 0
+ending ~tilde~
+Text Notes 9400 6300 0    60   ~ 0
+overlined ~double~~tilde~
 $EndSCHEMATC
