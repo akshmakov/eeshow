@@ -157,7 +157,7 @@ static struct vcs_hist *find_commit(struct vcs_history *history,
 
 
 static void recurse(struct vcs_history *history, struct vcs_hist *h,
-    unsigned n_branches)
+    unsigned n_branches, unsigned depth)
 {
 	unsigned n, i;
 
@@ -190,7 +190,9 @@ static void recurse(struct vcs_history *history, struct vcs_hist *h,
 			h->older[i] = new;
 			n_branches++;
 			uplink(new, h);
-			recurse(history, new, n_branches);
+			if (depth != 1)
+				recurse(history, new, n_branches,
+				    depth ? depth - 1 : 0);
 		}
 	}
 }
@@ -231,7 +233,8 @@ static void add_head(struct vcs_history *history, struct vcs_hist *head)
 }
 
 
-static void merge_head(struct vcs_history *history, git_commit *commit)
+static void merge_head(struct vcs_history *history, git_commit *commit,
+    unsigned depth)
 {
 	struct vcs_hist *new;
 
@@ -241,12 +244,12 @@ static void merge_head(struct vcs_history *history, git_commit *commit)
 	new->commit = commit;
 	new->branches = matching_branches(history, new->commit,
 	    &new->n_branches);
-	recurse(history, new, 1);
+	recurse(history, new, 1, depth);
 	add_head(history, new);
 }
 
 
-struct vcs_history *vcs_git_history(const char *path)
+struct vcs_history *vcs_git_history(const char *path, unsigned depth)
 {
 	struct vcs_history *history;
 	struct vcs_hist *head, *dirty;
@@ -278,7 +281,7 @@ struct vcs_history *vcs_git_history(const char *path)
 
 	head->branches = matching_branches(history, head->commit,
 	    &head->n_branches);
-	recurse(history, head, 1);
+	recurse(history, head, 1, depth);
 
 	if (git_repo_is_dirty(history->repo)) {
 		dirty = new_commit(history, 0);
@@ -292,7 +295,7 @@ struct vcs_history *vcs_git_history(const char *path)
 	}
 
 	for (i = 0; i != history->n_branches; i++)
-		merge_head(history, history->branches[i].commit);
+		merge_head(history, history->branches[i].commit, depth);
 
 	return history;
 }

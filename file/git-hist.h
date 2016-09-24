@@ -52,7 +52,7 @@ struct vcs_history;
 
 
 bool vcs_git_try(const char *path);
-struct vcs_history *vcs_git_history(const char *path);
+struct vcs_history *vcs_git_history(const char *path, unsigned depth);
 
 char *vcs_git_get_rev(struct vcs_hist *h);
 bool vcs_is_empty(const struct vcs_history *history);
