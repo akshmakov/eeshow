@@ -70,7 +70,7 @@ LDLIBS = -lm \
 
 GIT_VERSION = $(shell git log -1 --format='%h' -s .)
 GIT_STATUS = $(shell [ -z "`git status -s -uno`" ] || echo +)
-BUILD_DATE = $(shell date +'%Y%m%d-%H:%M')
+BUILD_DATE = $(shell date -u +'%Y%m%d-%H:%MZ')
 
 CFLAGS += -DVERSION='"$(GIT_VERSION)$(GIT_STATUS)"' \
 	  -DBUILD_DATE='"$(BUILD_DATE)"'

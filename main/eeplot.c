@@ -178,7 +178,7 @@ int main(int argc, char **argv)
 			use_pango = 1;
 			break;
 		case 'V':
-			fprintf(stderr, "%s %sZ\n", version, build_date);
+			fprintf(stderr, "%s %s\n", version, build_date);
 			return 1;
 		case 'h':
 		case '?':
