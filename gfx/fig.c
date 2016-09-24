@@ -217,11 +217,19 @@ static void fig_text(void *ctx, int x, int y, const char *s, unsigned size,
 static unsigned fig_text_width(void *ctx, const char *s, unsigned size,
     enum text_style style)
 {
+	unsigned n = 0;
+
 	/*
 	 * Note that we stretch the text size, so the ratio is larger than
 	 * expressed here.
 	 */
-	return strlen(s) * size * 1.0;
+
+	while (*s) {
+		n += (*s & 0xc0) != 0xc0 && *s != '~';
+		s++;
+	}
+	return n * size * 1.0;
+
 }
 
 
