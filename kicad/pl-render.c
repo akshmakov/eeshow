@@ -17,6 +17,7 @@
 #include <ctype.h>
 #include <math.h>
 
+#include "version.h"
 #include "misc/util.h"
 #include "misc/diag.h"
 #include "gfx/style.h"
@@ -93,7 +94,8 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			cx = sheet->file;
 			break;
 		case 'K':		// KiCad version
-			cx = "%K";
+			alloc_printf(&x, "Plotted by eeshow %s %s",
+			    version, build_date);
 			break;
 		case 'N':		// number of sheets
 			n = 0;
