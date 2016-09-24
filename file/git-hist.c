@@ -633,11 +633,10 @@ void hist_iterate(struct vcs_history *history,
 /* ----- Textual dump (mainly for debugging) ------------------------------- */
 
 
-/* @@@ still haven't tested -+- */
-
-//#define DEBUG
-
-// http://stackoverflow.com/questions/12132862/how-do-i-get-the-name-of-the-current-branch-in-libgit2
+/*
+ * useful:
+ * http://stackoverflow.com/questions/12132862/how-do-i-get-the-name-of-the-current-branch-in-libgit2
+ */
 
 static void dump_one(void *user, struct vcs_hist *h,
     const struct vcs_hist *next)
@@ -649,18 +648,7 @@ static void dump_one(void *user, struct vcs_hist *h,
 	unsigned i, j;
 	bool before, here, after;
 
-#ifdef DEBUG
-fprintf(stderr, "%p (%u/%u):", h, h->n_newer, h->n_older);
-for (i = 0; i != h->n_threads; i++)
-	fprintf(stderr, " %p", h->threads[i]);
-fprintf(stderr, " (%p)\n", next);
-#endif
 	t = threads_classify(history, h, next);
-#ifdef DUMP
-for (i = 0; i != n; i++)
-   fprintf(stderr, "%d ", t[i]);
-fprintf(stderr, "\n");
-#endif
 	for (i = 0; i != n; i++) {
 		before = 0;
 		for (j = 0; j != i; j++)
