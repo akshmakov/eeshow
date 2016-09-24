@@ -137,6 +137,20 @@ static void paint(struct cro_ctx *cc, int color, int fill_color)
 }
 
 
+static char *remove_tildes(const char *s)
+{
+	char *t, *to;
+	const char *from;
+
+	t = stralloc(s);
+	for (from = to = t; *from; from++)
+		if (*from != '~')
+			*to++ = *from;
+	*to = 0;
+	return t;
+}
+
+
 /* ----- General items ----------------------------------------------------- */
 
 
@@ -329,10 +343,17 @@ static void cr_text_cairo(void *ctx, int x, int y, const char *s, unsigned size,
 	struct cro_ctx *cc = ctx;
 	cairo_text_extents_t ext;
 	cairo_matrix_t m;
+	char *t;
 
 	select_font(cc, style);
 	cairo_set_font_size(cc->cr, cd(cc, size) * TEXT_STRETCH);
-	cairo_text_extents(cc->cr, s, &ext);
+	if (disable_overline) {
+		cairo_text_extents(cc->cr, s, &ext);
+	} else {
+		t = remove_tildes(s);
+		cairo_text_extents(cc->cr, t, &ext);
+		free(t);
+	}
 
 	set_color(cc, color);
 
@@ -441,19 +462,18 @@ static unsigned cr_text_width(void *ctx, const char *s, unsigned size,
 {
 	struct cro_ctx *cc = ctx;
 	cairo_text_extents_t ext;
-	char *t, *to;
-	const char *from;
+	char *t;
 
-	t = stralloc(s);
-	for (from = to = t; *from; from++)
-		if (*from != '~')
-			*to++ = *from;
-	*to = 0;
 
 	select_font(cc, style);
 	cairo_set_font_size(cc->cr, cd(cc, size) * TEXT_STRETCH);
-	cairo_text_extents(cc->cr, t, &ext);
-	free(t);
+	if (disable_overline) {
+		cairo_text_extents(cc->cr, s, &ext);
+	} else {
+		t = remove_tildes(s);
+		cairo_text_extents(cc->cr, t, &ext);
+		free(t);
+	}
 	return dc(cc, ext.width);
 }
 
