@@ -441,10 +441,19 @@ static unsigned cr_text_width(void *ctx, const char *s, unsigned size,
 {
 	struct cro_ctx *cc = ctx;
 	cairo_text_extents_t ext;
+	char *t, *to;
+	const char *from;
+
+	t = stralloc(s);
+	for (from = to = t; *from; from++)
+		if (*from != '~')
+			*to++ = *from;
+	*to = 0;
 
 	select_font(cc, style);
 	cairo_set_font_size(cc->cr, cd(cc, size) * TEXT_STRETCH);
-	cairo_text_extents(cc->cr, s, &ext);
+	cairo_text_extents(cc->cr, t, &ext);
+	free(t);
 	return dc(cc, ext.width);
 }
 
