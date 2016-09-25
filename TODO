@@ -1,3 +1,9 @@
+Crashes:
+- selecting history while showing index can cause segfault;
+  index can also be invoked while in history, so far without problems;
+  probably best to just not support this type of interaction, or implement
+  proper mode transitions
+
 Parsing and input processing:
 - unify alignment, direction
 - on parse error, politely complain, don't terminate [almost there]
@@ -15,6 +21,8 @@ Parsing and input processing:
 - likewise, does it affect component library search path ?
 - when looking for a file, consider that it may have been deleted/moved, and
   then don't magically resurrect it from the repo
+- seems that atoms in sexpr can contain \ -  rules not entirely clear
+- text fields in header can contain newlines as \\n
 
 Data model:
 - implement destructors
@@ -50,6 +58,7 @@ Rendering/Other:
   how little is inside (e.g., a changed large but empty rectangle will be
   filled)
 - interaction with eda-tools/genkicat fails: catalog text is lost
+- strings in page layout (included expanded) can contain newlines as \n
 
 GUI:
 - dragging can be slow. maybe reusing old content and only redrawing new
@@ -62,12 +71,16 @@ GUI:
   or maybe (allowing for sheets from completely different sources):
   [revA]:[topA]:[sheetA][,[revB]:[topB]:[sheetB]][@x,y[,zoom]]
   [revA]:[topA]:[sheetA][,[revB]:[topB]:[sheetB]][@x,y[,radius]]
+  shape: circle ? rectangle ?
 - set/use location string via clipboard
 - incremental search with / ? and maybe Ctrl-S and Ctrl-R
   https://www.gnu.org/software/emacs/manual/html_node/emacs/Repeat-Isearch.html#Repeat-Isearch
 - allow changing font size
 - maybe allow changing diff contrast
 - define consistent concept for keybord shortcuts
+- would be nice to be able to reload design without quit, restart
+- would be nice to be able to invoke PDF viewer on data sheets
+- if invoked without file name, eeshow should show file dialog
 
 GUI/history
 - should have quick way to show diff of a single commit
@@ -93,3 +106,4 @@ GUI/index:
 - needs keyboard shortcut to invoke
 - add keyboard shortcuts (cursor, Enter)
 - examine interaction with background, suppress conflicts
+- show sheet numbers [now we have file names; check with paths, etc.]
