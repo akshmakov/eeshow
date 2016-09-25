@@ -1,8 +1,12 @@
-Crashes:
+Bugs:
 - selecting history while showing index can cause segfault;
   index can also be invoked while in history, so far without problems;
   probably best to just not support this type of interaction, or implement
   proper mode transitions
+- after moving around for a while, current sheet seems to get somehow separated
+  from current list. This causes the "go up" box to disappear and the sheet
+  number shown on hover becomes -1. This happens rarely, cause still unknown.
+  No other problems were observed. "Home" usually solves this.
 
 Parsing and input processing:
 - unify alignment, direction
