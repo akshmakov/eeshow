@@ -154,16 +154,19 @@ static bool thumb_hover(void *user, bool on, int dx, int dy)
 	struct gui_sheet *sheet = user;
 	struct gui *gui = sheet->gui;
 	struct overlay_style style = overlay_style_default;
+	const char *file;
 
 	if (on) {
-
 		thumb_set_style(sheet, 1);
 		name_over = overlay_add(&gui->thumb_overlays, &gui->aois,
 		    NULL, NULL, NULL);
+		file = sheet->sch->file;
 		if (sheet->sch && sheet->sch->title)
-			overlay_text(name_over, "%s", sheet->sch->title);
+			overlay_text(name_over, "%s<small>%s%s</small>",
+			    sheet->sch->title,
+			    file ? "\n" : "", file ? file : "");
 		else
-			overlay_text(name_over, "???");
+			overlay_text(name_over, "%s", file ? file : "");
 		style.font = BOLD_FONT_LARGE;
 		style.width = 1;
 		style.wmax = SHEET_MAX_NAME;
