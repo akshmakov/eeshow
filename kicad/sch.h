@@ -72,6 +72,8 @@ struct sch_obj {
 			unsigned convert;/* "De Morgan"  selection */
 			struct comp_field {
 				struct text txt;
+				unsigned n; /* field number */
+				bool visible;
 				struct comp_field *next;
 			} *fields;
 			int m[6];

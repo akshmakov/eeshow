@@ -11,6 +11,7 @@
  */
 
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <assert.h>
 
@@ -122,7 +123,8 @@ static void render_comp(const struct sch_comp *comp, struct gfx *gfx)
 
 	lib_render(comp->comp, gfx, comp->unit, comp->convert, comp->m);
 	for (field = comp->fields; field; field = field->next)
-		dump_field(field, gfx, comp->m);
+		if (field->visible)
+			dump_field(field, gfx, comp->m);
 }
 
 

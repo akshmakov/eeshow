@@ -135,7 +135,6 @@ void decode_alignment(struct text *txt, char hor, char vert)
 static bool parse_field(struct sch_ctx *ctx, const char *line)
 {
 	struct sch_comp *comp = &ctx->obj.u.comp;
-	int n;
 	unsigned flags;
 	char hv, hor, vert, italic = 'N', bold = 'N';
 	struct comp_field *field;
@@ -149,14 +148,14 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 	txt->s = NULL;
 
 	/* ignore fields with empty string as content */
-	if (sscanf(line, "F %d \"\" %c %d %d %u %u %c %c%c%c",
-	    &n, &hv, &txt->x, &txt->y, &txt->size, &flags, &hor, &vert,
+	if (sscanf(line, "F %u \"\" %c %d %d %u %u %c %c%c%c",
+	    &field->n, &hv, &txt->x, &txt->y, &txt->size, &flags, &hor, &vert,
 	    &italic, &bold) >= 8) {
 		free(field);
 		return 1;
 	}
 
-	if (sscanf(line, "F %d \"%n", &n, &pos) != 1 || !pos) {
+	if (sscanf(line, "F %u \"%n", &field->n, &pos) != 1 || !pos) {
 		free(field);
 		return 0;
 	}
@@ -182,17 +181,9 @@ static bool parse_field(struct sch_ctx *ctx, const char *line)
 	}
 	txt->s = s;
 
-	if (flags) {
-/*
- * @@@ visibility settings in component only seem to be used only as default
- * for sheet and are ignored thereafter.
- */
-		free((char *) txt->s);
-		free(field);
-		return 1;
-	}
+	field->visible = !flags;
 
-	if (n == 0 && comp->comp && comp->comp->units > 1) {
+	if (field->n == 0 && comp->comp && comp->comp->units > 1) {
 		len = strlen(txt->s);
 		s = realloc_size((void *) txt->s, len + 3);
 		if (comp->unit <= 26)
