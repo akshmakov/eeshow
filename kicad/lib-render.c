@@ -728,12 +728,6 @@ const struct comp *lib_find(const struct lib *lib, const char *name)
 }
 
 
-bool lib_field_visible(const struct comp *comp, int n)
-{
-	return (comp->visible >> n) & 1;
-}
-
-
 /* ----- Rendering --------------------------------------------------------- */
 
 

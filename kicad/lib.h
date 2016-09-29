@@ -134,7 +134,6 @@ extern struct comp *comps;
 
 
 const struct comp *lib_find(const struct lib *lib, const char *name);
-bool lib_field_visible(const struct comp *comp, int n);
 void lib_render(const struct comp *comp, struct gfx *gfx,
     unsigned unit, unsigned convert, const int m[6]);
 void lib_render_extra(const struct comp *comp, struct gfx *gfx,
