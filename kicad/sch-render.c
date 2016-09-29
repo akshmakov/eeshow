@@ -116,6 +116,16 @@ static void do_hsheet_text(const struct sch_obj *obj,
 }
 
 
+static void render_comp(const struct sch_comp *comp, struct gfx *gfx)
+{
+	const struct comp_field *field;
+
+	lib_render(comp->comp, gfx, comp->unit, comp->convert, comp->m);
+	for (field = comp->fields; field; field = field->next)
+		dump_field(field, gfx, comp->m);
+}
+
+
 static void render_sheet(const struct sch_obj *obj,
     const struct sch_sheet *sheet, struct gfx *gfx)
 {
@@ -166,16 +176,7 @@ void sch_render(const struct sheet *sheet, struct gfx *gfx)
 			}
 			break;
 		case sch_obj_comp:
-			{
-				const struct sch_comp *comp = &obj->u.comp;
-				const struct comp_field *field;
-
-				lib_render(comp->comp, gfx, comp->unit,
-				    comp->convert, comp->m);
-				for (field = comp->fields; field;
-				    field = field->next)
-					dump_field(field, gfx, comp->m);
-			}
+			render_comp(&obj->u.comp, gfx);
 			break;
 		case sch_obj_sheet:
 			render_sheet(obj, &obj->u.sheet, gfx);
