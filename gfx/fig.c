@@ -29,6 +29,7 @@
 
 struct fig_ctx {
 	FILE *file;
+	bool skip;
 };
 
 
@@ -65,6 +66,9 @@ static void fig_line(void *ctx, int sx, int sy, int ex, int ey,
 {
 	struct fig_ctx *fig = ctx;
 
+	if (fig->skip)
+		return;
+
 	//   TypeStyle   FillCol AreaFil  Cap  FwdAr
 	//     SubTy  Color   Pen   StyleV  Rad  BwdAr
 	//         Thick  Depth        Join       Points
@@ -82,6 +86,9 @@ static void fig_rect(void *ctx, int sx, int sy, int ex, int ey,
     int color, int fill_color, unsigned layer)
 {
 	struct fig_ctx *fig = ctx;
+
+	if (fig->skip)
+		return;
 
 	//   Type  Thick    Depth    StyleV  Rad
 	//     SubTy  Color    Pen       Join   FwdAr
@@ -104,6 +111,9 @@ static void fig_poly(void *ctx,
 	int i;
 	char ch = '\t';
 
+	if (fig->skip)
+		return;
+
 	//   Type  Thick     Depth    StyleV  Rad
 	//     SubTy  Color     Pen       Join   FwdAr
 	//       Style   FillCol   AreaFil  Cap    BwdAr
@@ -123,6 +133,9 @@ static void fig_circ(void *ctx, int x, int y, int r,
     int color, int fill_color, unsigned layer)
 {
 	struct fig_ctx *fig = ctx;
+
+	if (fig->skip)
+		return;
 
 	//   Type  Thick    Depth   StyleV    Cx    Rx    Sx    Ex
 	//     SubTy  Color    Pen       Dir      Cy    Ry    Sy    Ey
@@ -158,6 +171,9 @@ static void fig_arc(void *ctx, int x, int y, int r, int sa, int ea,
 	struct fig_ctx *fig = ctx;
 	int ma = (sa + ea) / 2;
 
+	if (fig->skip)
+		return;
+
 	//   Type  Thick    Depth   StyleV   FwdAr
 	//     SubTy  Color    Pen       Cap   BwdAr
 	//       Style   FillCol  AreaFil  Dir   points
@@ -177,6 +193,9 @@ static void fig_tag(void *ctx, const char *s,
 {
 	struct fig_ctx *fig = ctx;
 
+	if (fig->skip)
+		return;
+
 	fprintf(fig->file, "# href=\"%s\" alt=\"\"\n", s);
 	fig_poly(fig, points, x, y, COLOR_NONE, COLOR_NONE, 999);
 }
@@ -188,6 +207,9 @@ static void fig_text(void *ctx, int x, int y, const char *s, unsigned size,
 {
 	struct fig_ctx *fig = ctx;
 	int font;
+
+	if (fig->skip)
+		return;
 
 	switch (style) {
 	case text_italic:
@@ -292,6 +314,7 @@ static void *fig_init(void)
 
 	fig = alloc_type(struct fig_ctx);
 	fig->file = stdout;
+	fig->skip = 0;
 	return fig;
 }
 
@@ -365,6 +388,14 @@ static bool fig_args(void *ctx, int argc, char *const *argv, const char *opts)
 }
 
 
+static void fig_set_extra(void *ctx, enum gfx_extra extra)
+{
+	struct fig_ctx *fig = ctx;
+
+	fig->skip = extra;
+}
+
+
 static int fig_end(void *ctx, enum gfx_extra extra)
 {
 	struct fig_ctx *fig = ctx;
@@ -395,6 +426,7 @@ const struct gfx_ops fig_ops = {
 	.text		= fig_text,
 	.tag		= fig_tag,
 	.text_width	= fig_text_width,
+	.set_extra	= fig_set_extra,
 	.init		= fig_init,
 	.end		= fig_end,
 	.args		= fig_args,
