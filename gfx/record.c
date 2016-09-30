@@ -65,6 +65,9 @@ struct record_obj {
 };
 
 
+/* ----- Helper functions -------------------------------------------------- */
+
+
 static void bb(struct record *rec, int x, int y)
 {
 	if (rec->xmin > x)
@@ -120,6 +123,9 @@ this_layer:
 
 	return new_obj;
 }
+
+
+/* ----- Graphics operations ----------------------------------------------- */
 
 
 void record_line(void *ctx, int sx, int sy, int ex, int ey,
@@ -247,20 +253,35 @@ void record_text(void *ctx, int x, int y, const char *s, unsigned size,
 }
 
 
+/* ----- Initialization and cleanup ---------------------------------------- */
+
+
 void record_init(struct record *rec, const struct gfx_ops *ops, void *user)
 {
 	rec->ops = ops;
 	rec->user = user;
+	rec->extra = 0;
 	rec->xmin = rec->ymin = INT_MAX;
 	rec->xmax = rec->ymax = INT_MIN;
 	rec->layers = NULL;
 }
 
 
+/* ----- Reset for a new page ---------------------------------------------- */
+
+
+/*
+ * This is used to signal a new page. The caller kepps a copy of the entire
+ * "struct record". The items on rec->layers are therefore not lost.
+ */
+
 void record_wipe(struct record *rec)
 {
 	rec->layers = NULL;
 }
+
+
+/* ----- Replay ------------------------------------------------------------ */
 
 
 void record_replay(const struct record *rec)
@@ -310,6 +331,9 @@ void record_replay(const struct record *rec)
 }
 
 
+/* ----- Bounding box ------------------------------------------------------ */
+
+
 void record_bbox(const struct record *rec, int *x, int *y, int *w, int *h)
 {
 	if (x)
@@ -321,6 +345,9 @@ void record_bbox(const struct record *rec, int *x, int *y, int *w, int *h)
 	if (h)
 		*h = rec->ymax - rec->ymin + 1;
 }
+
+
+/* ----- Cleanup ----------------------------------------------------------- */
 
 
 static void record_obj_destroy(struct record_obj *obj)
