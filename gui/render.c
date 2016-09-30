@@ -40,7 +40,7 @@
 
 
 bool use_delta = 0;
-bool show_extra = 0;
+enum gfx_extra show_extra = 0;
 
 
 /* ----- Helper functions -------------------------------------------------- */
@@ -159,8 +159,7 @@ static void hack(const struct gui *gui, cairo_t *cr,
 
 	areas = changed_sheets(gui, xo, yo, f);
 	diff_to_canvas(cr, gui->x, gui->y, gui->scale,
-	    gfx_user(old->gfx), gfx_user(new->gfx),
-	    show_extra ? gfx_pin_type : 0, areas);
+	    gfx_user(old->gfx), gfx_user(new->gfx), show_extra, areas);
 	free_areas(&areas);
 }
 
@@ -173,7 +172,6 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	GtkAllocation alloc;
 	float f = gui->scale;
 	int x, y;
-	enum gfx_extra extra = show_extra ? gfx_pin_type : 0;
 
 	gtk_widget_get_allocation(gui->da, &alloc);
 	x = -(sheet->xmin + gui->x) * f + alloc.width / 2;
@@ -182,12 +180,12 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	cro_canvas_prepare(cr);
 	if (!gui->old_hist || gui->diff_mode == diff_new) {
 		highlight_glabel(gui, sheet, cr, x, y, f);
-		cro_canvas_draw(gfx_user(sheet->gfx), cr, x, y, f, extra);
+		cro_canvas_draw(gfx_user(sheet->gfx), cr, x, y, f, show_extra);
 	} else if (gui->diff_mode == diff_old) {
 		sheet = find_corresponding_sheet(gui->old_hist->sheets,
 		    gui->new_hist->sheets, gui->curr_sheet);
 		highlight_glabel(gui, sheet, cr, x, y, f);
-		cro_canvas_draw(gfx_user(sheet->gfx), cr, x, y, f, extra);
+		cro_canvas_draw(gfx_user(sheet->gfx), cr, x, y, f, show_extra);
 	} else if (use_delta) {
 		struct area *areas = changed_sheets(gui, x, y, f);
 		const struct area *area;
@@ -202,9 +200,11 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 
 		/* @@@ fix geometry later */
 		cro_canvas_draw(gfx_user(gui->delta_ab.gfx), cr, x, y, f,
-		    extra);
-		cro_canvas_draw(gfx_user(gui->delta_a.gfx), cr, x, y, f, extra);
-		cro_canvas_draw(gfx_user(gui->delta_b.gfx), cr, x, y, f, extra);
+		    show_extra);
+		cro_canvas_draw(gfx_user(gui->delta_a.gfx), cr, x, y, f,
+		    show_extra);
+		cro_canvas_draw(gfx_user(gui->delta_b.gfx), cr, x, y, f,
+		    show_extra);
 	} else {
 		hack(gui, cr, x, y, f);
 	}

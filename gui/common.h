@@ -149,7 +149,7 @@ void progress_update(struct gui *gui);
 /* render.c */
 
 extern bool use_delta;
-extern bool show_extra;
+extern enum gfx_extra show_extra;
 
 
 void redraw(const struct gui *gui);
