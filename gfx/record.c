@@ -295,7 +295,7 @@ void record_wipe(struct record *rec)
 /* ----- Replay ------------------------------------------------------------ */
 
 
-void record_replay(const struct record *rec)
+void record_replay(const struct record *rec, enum gfx_extra extra)
 {
 	const struct gfx_ops *ops = rec->ops;
 	void *ctx = rec->user;
@@ -303,7 +303,9 @@ void record_replay(const struct record *rec)
 	const struct record_obj *obj;
 
 	for (layer = rec->layers; layer; layer = layer->next)
-		for (obj = layer->objs; obj; obj = obj->next)
+		for (obj = layer->objs; obj; obj = obj->next) {
+			if (obj->extra && !(obj->extra & extra))
+				continue;
 			switch (obj->type) {
 			case ro_line:
 				ops->line(ctx, obj->x, obj->y,
@@ -339,6 +341,7 @@ void record_replay(const struct record *rec)
 			default:
 				BUG("invalid object type %d", obj->type);
 			}
+		}
 }
 
 

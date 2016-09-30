@@ -730,13 +730,13 @@ static int cr_pdf_end(void *ctx)
 		set_color(cc, COLOR_WHITE);
 		cairo_paint(cc->cr);
 
-		record_replay(cc->sheets + i);
+		record_replay(cc->sheets + i, 0);
 		record_destroy(cc->sheets + i);
 
 		cairo_show_page(cc->cr);
 	}
 
-	record_replay(&cc->record);
+	record_replay(&cc->record, 0);
 	record_destroy(&cc->record);
 
 	cairo_show_page(cc->cr);
@@ -826,13 +826,13 @@ static int ps_end(struct cro_ctx *cc, int eps)
 		set_color(cc, COLOR_WHITE);
 		cairo_paint(cc->cr);
 
-		record_replay(cc->sheets + i);
+		record_replay(cc->sheets + i, 0);
 		record_destroy(cc->sheets + i);
 
 		cairo_show_page(cc->cr);
 	}
 
-	record_replay(&cc->record);
+	record_replay(&cc->record, 0);
 	record_destroy(&cc->record);
 
 	cairo_show_page(cc->cr);
@@ -908,13 +908,13 @@ static int cr_svg_end(void *ctx)
 		set_color(cc, COLOR_WHITE);
 		cairo_paint(cc->cr);
 
-		record_replay(cc->sheets + i);
+		record_replay(cc->sheets + i, 0);
 		record_destroy(cc->sheets + i);
 
 		cairo_show_page(cc->cr);
 	}
 
-	record_replay(&cc->record);
+	record_replay(&cc->record, 0);
 	record_destroy(&cc->record);
 
 	cairo_show_page(cc->cr);
@@ -990,7 +990,7 @@ uint32_t *cro_img_end(struct cro_ctx *cc, int *w, int *h, int *stride)
 	cairo_set_line_width(cc->cr, 2);
 	cairo_set_line_cap(cc->cr, CAIRO_LINE_CAP_ROUND);
 
-	record_replay(&cc->record);
+	record_replay(&cc->record, 0);
 	record_destroy(&cc->record);
 
 	cairo_surface_flush(cc->s);
@@ -1062,7 +1062,7 @@ void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr, int xo, int yo,
 	cc->scale = scale;
 	cc->xo = xo;
 	cc->yo = yo;
-	record_replay(&cc->record);
+	record_replay(&cc->record, 0);
 }
 
 
@@ -1123,10 +1123,10 @@ uint32_t *cro_img(struct cro_ctx *cc, struct cro_ctx *cc_extra,
 		void *old = cc_extra->record.user;
 
 		cc_extra->record.user = cc->record.user;  /* @@@ eww ! */
-		record_replay(&cc_extra->record);
+		record_replay(&cc_extra->record, 0);
 		cc_extra->record.user = old;
 	}
-	record_replay(&cc->record);
+	record_replay(&cc->record, 0);
 
 	if (res_cr)
 		*res_cr = cr;
