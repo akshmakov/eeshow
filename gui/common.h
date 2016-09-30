@@ -35,7 +35,6 @@ struct gui_sheet {
 	struct gui *gui;	/* back link */
 	struct gui_hist *hist;	/* back link */
 	struct gfx *gfx;
-	struct gfx *gfx_extra;
 
 	int w, h;		/* in eeschema coordinates */
 	int xmin, ymin;

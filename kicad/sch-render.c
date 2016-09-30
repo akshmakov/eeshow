@@ -187,30 +187,3 @@ void sch_render(const struct sheet *sheet, struct gfx *gfx)
 			BUG("invalid object type \"%d\"", obj->type);
 		}
 }
-
-
-void sch_render_extra(const struct sheet *sheet, struct gfx *gfx)
-{
-	struct sch_obj *obj;
-
-	for (obj = sheet->objs; obj; obj = obj->next)
-		switch (obj->type) {
-		case sch_obj_wire:
-		case sch_obj_junction:
-		case sch_obj_noconn:
-		case sch_obj_glabel:
-		case sch_obj_text:
-		case sch_obj_sheet:
-			break;
-		case sch_obj_comp:
-			{
-				const struct sch_comp *comp = &obj->u.comp;
-
-				lib_render_extra(comp->comp, gfx, comp->unit,
-				    comp->convert, comp->m);
-			}
-			break;
-		default:
-			BUG("invalid object type \"%d\"", obj->type);
-		}
-}

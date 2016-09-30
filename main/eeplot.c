@@ -239,8 +239,7 @@ int main(int argc, char **argv)
 
 	if (one_sheet) {
 		sch_render(sch_ctx.sheets, gfx);
-		if (extra)
-			sch_render_extra(sch_ctx.sheets, gfx);
+		/* @@@ filter extra */
 		if (pl)
 			pl_render(pl, gfx, sch_ctx.sheets, sch_ctx.sheets);
 	} else {
@@ -249,8 +248,7 @@ int main(int argc, char **argv)
 		for (sheet = sch_ctx.sheets; sheet; sheet = sheet->next) {
 			gfx_sheet_name(gfx, sheet->title);
 			sch_render(sheet, gfx);
-			if (extra)
-				sch_render_extra(sheet, gfx);
+			/* @@@ filter extra */
 			if (pl)
 				pl_render(pl, gfx, sch_ctx.sheets, sheet);
 			if (sheet->next)

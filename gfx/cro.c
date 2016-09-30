@@ -1053,7 +1053,7 @@ void cro_canvas_prepare(cairo_t *cr)
 
 
 void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr, int xo, int yo,
-    float scale)
+    float scale, enum gfx_extra extra)
 {
 	cc->cr = cr;
 
@@ -1062,14 +1062,14 @@ void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr, int xo, int yo,
 	cc->scale = scale;
 	cc->xo = xo;
 	cc->yo = yo;
-	record_replay(&cc->record, 0);
+	record_replay(&cc->record, extra);
 }
 
 
 /* ----- Image for external use (simplified API) --------------------------- */
 
 
-uint32_t *cro_img(struct cro_ctx *cc, struct cro_ctx *cc_extra,
+uint32_t *cro_img(struct cro_ctx *cc, enum gfx_extra extra,
     int xo, int yo, int w, int h,
     float scale, double alpha, cairo_t **res_cr, int *res_stride)
 {
@@ -1119,14 +1119,7 @@ uint32_t *cro_img(struct cro_ctx *cc, struct cro_ctx *cc_extra,
 
 	setup_font(cc);
 
-	if (cc_extra) {
-		void *old = cc_extra->record.user;
-
-		cc_extra->record.user = cc->record.user;  /* @@@ eww ! */
-		record_replay(&cc_extra->record, 0);
-		cc_extra->record.user = old;
-	}
-	record_replay(&cc->record, 0);
+	record_replay(&cc->record, extra);
 
 	if (res_cr)
 		*res_cr = cr;

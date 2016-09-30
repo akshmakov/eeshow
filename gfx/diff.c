@@ -196,8 +196,7 @@ void *diff_process_file(struct diff *diff, struct file_names *file_names,
 	if (!gfx_args(diff->gfx, argc, argv, opts))
 		goto fail_open;
 	sch_render(sch.sheets, diff->gfx);
-	if (diff->extra)
-		sch_render_extra(sch.sheets, diff->gfx);
+	/* @@@ filter extra */
 
 	sch_free(&sch);
 	lib_free(&lib);
@@ -384,8 +383,7 @@ static void merge_coord(int pos_a, int pos_b, int dim_a, int dim_b,
 
 
 static cairo_t *make_diff(cairo_t *cr, int cx, int cy, float scale,
-    struct cro_ctx *old, struct cro_ctx *old_extra,
-    struct cro_ctx *new, struct cro_ctx *new_extra,
+    struct cro_ctx *old, struct cro_ctx *new, enum gfx_extra extra,
     const struct area *areas, bool *changed)
 {
 	int old_xmin, old_ymin, old_w, old_h;
@@ -419,9 +417,9 @@ static cairo_t *make_diff(cairo_t *cr, int cx, int cy, float scale,
 		yo = -ymin * scale;
 	}
 
-	img_old = cro_img(old, old_extra, xo, yo, sw, sh, scale, 1,
+	img_old = cro_img(old, extra, xo, yo, sw, sh, scale, 1,
 	    &old_cr, &stride);
-	img_new = cro_img(new, new_extra, xo, yo, sw, sh, scale, 1,
+	img_new = cro_img(new, extra, xo, yo, sw, sh, scale, 1,
 	    NULL, NULL);
 
 	struct diff diff = {
@@ -469,7 +467,7 @@ static int diff_end(void *ctx)
 	cro_img_reset(gfx_user(diff->gfx));
 
 	old_cr = make_diff(NULL, 0, 0, diff->scale,
-	    gfx_user(diff->gfx), NULL, gfx_user(diff->new_gfx), NULL, NULL,
+	    gfx_user(diff->gfx), gfx_user(diff->new_gfx), 0, NULL,
 	    &changed);
 	s = cairo_get_target(old_cr);
 
@@ -494,15 +492,13 @@ static int diff_end(void *ctx)
 
 
 void diff_to_canvas(cairo_t *cr, int cx, int cy, float scale,
-    struct cro_ctx *old, struct cro_ctx *old_extra,
-    struct cro_ctx *new, struct cro_ctx *new_extra,
+    struct cro_ctx *old, struct cro_ctx *new, enum gfx_extra extra,
     const struct area *areas)
 {
 	cairo_t *old_cr;
 	cairo_surface_t *s;
 
-	old_cr = make_diff(cr, cx, cy, scale, old, old_extra, new, new_extra,
-	    areas, NULL);
+	old_cr = make_diff(cr, cx, cy, scale, old, new, extra, areas, NULL);
 
 	s = cairo_get_target(old_cr);
 	cairo_set_source_surface(cr, s, 0, 0);

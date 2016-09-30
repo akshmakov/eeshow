@@ -159,9 +159,8 @@ static void hack(const struct gui *gui, cairo_t *cr,
 
 	areas = changed_sheets(gui, xo, yo, f);
 	diff_to_canvas(cr, gui->x, gui->y, gui->scale,
-	    gfx_user(old->gfx), show_extra ? gfx_user(old->gfx_extra) : NULL,
-	    gfx_user(new->gfx), show_extra ? gfx_user(new->gfx_extra) : NULL,
-	    areas);
+	    gfx_user(old->gfx), gfx_user(new->gfx),
+	    show_extra ? gfx_pin_type : 0, areas);
 	free_areas(&areas);
 }
 
@@ -174,6 +173,7 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	GtkAllocation alloc;
 	float f = gui->scale;
 	int x, y;
+	enum gfx_extra extra = show_extra ? gfx_pin_type : 0;
 
 	gtk_widget_get_allocation(gui->da, &alloc);
 	x = -(sheet->xmin + gui->x) * f + alloc.width / 2;
@@ -182,18 +182,12 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	cro_canvas_prepare(cr);
 	if (!gui->old_hist || gui->diff_mode == diff_new) {
 		highlight_glabel(gui, sheet, cr, x, y, f);
-		if (show_extra)
-			cro_canvas_draw(gfx_user(sheet->gfx_extra),
-			    cr, x, y, f);
-		cro_canvas_draw(gfx_user(sheet->gfx), cr, x, y, f);
+		cro_canvas_draw(gfx_user(sheet->gfx), cr, x, y, f, extra);
 	} else if (gui->diff_mode == diff_old) {
 		sheet = find_corresponding_sheet(gui->old_hist->sheets,
 		    gui->new_hist->sheets, gui->curr_sheet);
 		highlight_glabel(gui, sheet, cr, x, y, f);
-		if (show_extra)
-			cro_canvas_draw(gfx_user(sheet->gfx_extra),
-			    cr, x, y, f);
-		cro_canvas_draw(gfx_user(sheet->gfx), cr, x, y, f);
+		cro_canvas_draw(gfx_user(sheet->gfx), cr, x, y, f, extra);
 	} else if (use_delta) {
 		struct area *areas = changed_sheets(gui, x, y, f);
 		const struct area *area;
@@ -207,17 +201,10 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 		free_areas(&areas);
 
 		/* @@@ fix geometry later */
-		if (show_extra) {
-			cro_canvas_draw(gfx_user(gui->delta_ab.gfx_extra),
-			    cr, x, y, f);
-			cro_canvas_draw(gfx_user(gui->delta_a.gfx_extra),
-			    cr, x, y, f);
-			cro_canvas_draw(gfx_user(gui->delta_b.gfx_extra),
-			    cr, x, y, f);
-		}
-		cro_canvas_draw(gfx_user(gui->delta_ab.gfx), cr, x, y, f);
-		cro_canvas_draw(gfx_user(gui->delta_a.gfx), cr, x, y, f);
-		cro_canvas_draw(gfx_user(gui->delta_b.gfx), cr, x, y, f);
+		cro_canvas_draw(gfx_user(gui->delta_ab.gfx), cr, x, y, f,
+		    extra);
+		cro_canvas_draw(gfx_user(gui->delta_a.gfx), cr, x, y, f, extra);
+		cro_canvas_draw(gfx_user(gui->delta_b.gfx), cr, x, y, f, extra);
 	} else {
 		hack(gui, cr, x, y, f);
 	}
@@ -264,10 +251,6 @@ void render_sheet(struct gui_sheet *sheet)
 	cro_canvas_end(gfx_user(sheet->gfx),
 	    &sheet->w, &sheet->h, &sheet->xmin, &sheet->ymin);
 
-	sheet->gfx_extra = gfx_init(&cro_canvas_ops);
-	sch_render_extra(sheet->sch, sheet->gfx_extra);
-	cro_canvas_end(gfx_user(sheet->gfx_extra), NULL, NULL, NULL, NULL);
-
 	sheet->rendered = 1;
 	// gfx_end();
 }
@@ -301,10 +284,6 @@ void render_delta(struct gui *gui)
 	cro_color_override(gfx_user(gui->delta_ab.gfx), COLOR_LIGHT_GREY);
 	cro_color_override(gfx_user(gui->delta_a.gfx), COLOR_RED);
 	cro_color_override(gfx_user(gui->delta_b.gfx), COLOR_GREEN2);
-
-	cro_color_override(gfx_user(gui->delta_ab.gfx_extra), COLOR_LIGHT_GREY);
-	cro_color_override(gfx_user(gui->delta_a.gfx_extra), COLOR_RED);
-	cro_color_override(gfx_user(gui->delta_b.gfx_extra), COLOR_GREEN2);
 
 	// @@@ clean up when leaving sheet
 #endif

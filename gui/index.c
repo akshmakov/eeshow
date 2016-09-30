@@ -279,7 +279,7 @@ static void index_render_sheet(const struct gui *gui,
 
 	xo = -(xmin + w / 2) * f + thumb_w / 2;
 	yo = -(ymin + h / 2) * f + thumb_h / 2;
-	cro_img(gfx_user(sheet->gfx_thumb), NULL,
+	cro_img(gfx_user(sheet->gfx_thumb), 0,
 	    xo, yo, thumb_w, thumb_h,  f, 0, NULL, &stride);
 
 	sheet->thumb_surf = cro_img_surface(gfx_user(sheet->gfx_thumb));

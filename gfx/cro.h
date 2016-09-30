@@ -50,9 +50,9 @@ void cro_img_destroy(struct cro_ctx *cc);
 void cro_canvas_end(struct cro_ctx *cc, int *w, int *h, int *xmin, int *ymin);
 void cro_canvas_prepare(cairo_t *cr);
 void cro_canvas_draw(struct cro_ctx *cc, cairo_t *cr,
-    int x, int y, float scale);
+    int x, int y, float scale, enum gfx_extra extra);
 
-uint32_t *cro_img(struct cro_ctx *cc, struct cro_ctx *cc_extra,
+uint32_t *cro_img(struct cro_ctx *cc, enum gfx_extra extra,
     int x0, int yo, int w, int h,
     float scale, double alpha, cairo_t **res_cr, int *res_stride);
 cairo_surface_t *cro_img_surface(struct cro_ctx *cc);

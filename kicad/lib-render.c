@@ -631,7 +631,7 @@ static void draw_pin(const struct comp *comp, const struct lib_pin *pin,
 /* ----- Pin extras -------------------------------------------------------- */
 
 
-static void draw_pin_extra(const struct comp *comp, const struct lib_pin *pin,
+static void draw_pin_type(const struct comp *comp, const struct lib_pin *pin,
     struct gfx *gfx, const int m[6])
 {
 	int dx = 0, dy = 0;
@@ -752,25 +752,9 @@ static void draw(const struct comp *comp, const struct lib_obj *obj,
 		break;
 	case lib_obj_pin:
 		draw_pin(comp, &obj->u.pin, gfx, m);
-		break;
-	default:
-		BUG("invalid object type %d", obj->type);
-	}
-}
-
-
-static void draw_extra(const struct comp *comp, const struct lib_obj *obj,
-    struct gfx *gfx, const int m[6])
-{
-	switch (obj->type) {
-	case lib_obj_poly:
-	case lib_obj_rect:
-	case lib_obj_circ:
-	case lib_obj_arc:
-	case lib_obj_text:
-		break;
-	case lib_obj_pin:
-		draw_pin_extra(comp, &obj->u.pin, gfx, m);
+		gfx_set_extra(gfx, gfx_pin_type);
+		draw_pin_type(comp, &obj->u.pin, gfx, m);
+		gfx_set_extra(gfx, 0);
 		break;
 	default:
 		BUG("invalid object type %d", obj->type);
@@ -817,11 +801,4 @@ void lib_render(const struct comp *comp, struct gfx *gfx,
    unsigned unit, unsigned convert, const int m[4])
 {
 	render_lib(comp, gfx, unit, convert, m, draw);
-}
-
-
-void lib_render_extra(const struct comp *comp, struct gfx *gfx,
-    unsigned unit, unsigned convert, const int m[4])
-{
-	render_lib(comp, gfx, unit, convert, m, draw_extra);
 }
