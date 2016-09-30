@@ -566,6 +566,10 @@ static void sheet_key(void *user, int x, int y, int keyval)
 		show_extra ^= gfx_footprint;
 		redraw(gui);
 		break;
+	case GDK_KEY_R:	/* Shift + R */
+		show_extra ^= gfx_reference;
+		redraw(gui);
+		break;
 
 	case GDK_KEY_n:
 		gui->diff_mode = diff_new;

@@ -22,6 +22,7 @@
 enum gfx_extra {
 	gfx_pin_type	= 1 << 1,
 	gfx_footprint	= 1 << 2,
+	gfx_reference	= 1 << 3,
 };
 
 struct gfx;

@@ -123,15 +123,16 @@ static void render_comp(const struct sch_comp *comp, struct gfx *gfx)
 
 	lib_render(comp->comp, gfx, comp->unit, comp->convert, comp->m);
 	for (field = comp->fields; field; field = field->next) {
-		if (field->visible) {
-			dump_field(field, gfx, comp->m);
-		} else {
-			if (field->n == 2) {
+		if (!field->visible) {
+			if (field->n == 0)
+				gfx_set_extra(gfx, gfx_reference);
+			else if (field->n == 2)
 				gfx_set_extra(gfx, gfx_footprint);
-				dump_field(field, gfx, comp->m);
-				gfx_set_extra(gfx, 0);
-			}
+			else
+				continue;
 		}
+		dump_field(field, gfx, comp->m);
+		gfx_set_extra(gfx, 0);
 	}
 }
 
