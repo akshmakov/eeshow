@@ -109,7 +109,7 @@ int main(int argc, char **argv)
 	}
 
 	if (history) {
-		dump_hist(vcs_git_history(history));
+		dump_hist(vcs_git_history(history, 0));
 		return 0;
 	}
 
