@@ -12,6 +12,7 @@ Tab         toggle between old and new revision
 Esc         cancel current action (exit history, close
             pop-up, de-highlight glabel, close help)
 E           show/hide extra information (pin types)
+F           toggle showing footprints, even if invisible
 Shift+D     toggle between "diff" and experimental
 	    "delta" mode
 H           show/hide help window
