@@ -19,6 +19,11 @@
 #include "gfx/text.h"
 
 
+enum gfx_extra {
+	gfx_pin_type	= 1 << 1,
+	gfx_footprint	= 1 << 2,
+};
+
 struct gfx;
 
 struct gfx_ops {
@@ -44,6 +49,8 @@ struct gfx_ops {
 	    int points, const int x[points], const int y[points]);
 	unsigned (*text_width)(void *ctx, const char *s, unsigned size,
 	    enum text_style style);
+
+	void (*set_extra)(void *ctx, enum gfx_extra extra);
 
 	void *(*init)(void);
 	bool (*args)(void *ctx, int argc, char *const *argv, const char *opts);
@@ -73,6 +80,8 @@ void gfx_tag(struct gfx *gfx, const char *s,
     unsigned points, const int x[points], int const y[points]);
 unsigned gfx_text_width(struct gfx *gfx, const char *s, unsigned size,
     enum text_style style);
+
+enum gfx_extra gfx_set_extra(struct gfx *gfx, enum gfx_extra extra);
 
 /* inititalization and termination */
 

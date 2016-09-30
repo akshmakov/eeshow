@@ -33,6 +33,8 @@ struct record_obj {
 		ro_text,
 	} type;
 
+	enum gfx_extra extra;
+
 	int x, y;
 	int color, fill_color;
 	union {
@@ -114,6 +116,7 @@ static struct record_obj *new_obj(struct record *rec, enum ro_type type,
 this_layer:
 	new_obj = alloc_type(struct record_obj);
 	new_obj->type = type;
+	new_obj->extra = rec->extra;
 	new_obj->color = color;
 	new_obj->fill_color = fill_color;
 	new_obj->next = NULL;
@@ -250,6 +253,14 @@ void record_text(void *ctx, int x, int y, const char *s, unsigned size,
 	obj->u.text.align = align;
 	obj->u.text.rot = rot;
 	obj->u.text.style = style;
+}
+
+
+void record_set_extra(void *ctx, enum gfx_extra extra)
+{
+	struct record *rec = ctx;
+
+	rec->extra = extra;
 }
 
 

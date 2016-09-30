@@ -30,6 +30,7 @@ struct record_layer {
 struct record {
 	const struct gfx_ops *ops;
 	void *user;
+	enum gfx_extra extra;
 	int xmin, xmax;
 	int ymin, ymax;
 	struct record_layer *layers;
@@ -50,6 +51,8 @@ void record_arc(void *ctx, int x, int y, int r, int sa, int ea,
 void record_text(void *ctx, int x, int y, const char *s, unsigned size,
     enum text_align align, int rot, enum text_style style,
     unsigned color, unsigned layer);
+
+void record_set_extra(void *ctx, enum gfx_extra extra);
 
 void record_init(struct record *rec, const struct gfx_ops *ops, void *user);
 void record_wipe(struct record *rec);

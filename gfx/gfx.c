@@ -24,10 +24,11 @@
 struct gfx {
 	const struct gfx_ops *ops;
 	void *user;
+	enum gfx_extra extra;
 };
 
 
-/* ----- Wrappers for graphis primitives ----------------------------------- */
+/* ----- Wrappers for graphics primitives ---------------------------------- */
 
 
 void gfx_line(struct gfx *gfx,
@@ -107,6 +108,17 @@ unsigned gfx_text_width(struct gfx *gfx, const char *s, unsigned size,
 }
 
 
+enum gfx_extra gfx_set_extra(struct gfx *gfx, enum gfx_extra extra)
+{
+	enum gfx_extra old = gfx->extra;
+
+	if (gfx->ops->set_extra)
+		gfx->ops->set_extra(gfx->user, extra);
+	gfx->extra = extra;
+	return old;
+}
+
+
 /* ----- Initialization ---------------------------------------------------- */
 
 
@@ -117,6 +129,7 @@ struct gfx *gfx_init(const struct gfx_ops *ops)
 	new = alloc_type(struct gfx);
 	new->user = ops->init();
 	new->ops = ops;
+	new->extra = 0;
 	return new;
 }
 
