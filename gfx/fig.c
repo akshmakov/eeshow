@@ -365,10 +365,11 @@ static bool fig_args(void *ctx, int argc, char *const *argv, const char *opts)
 }
 
 
-static int fig_end(void *ctx)
+static int fig_end(void *ctx, enum gfx_extra extra)
 {
 	struct fig_ctx *fig = ctx;
 
+	/* @@@ support extra */
 	if (fclose(fig->file) < 0)
 		diag_pfatal("fclose");
 	free(ctx);

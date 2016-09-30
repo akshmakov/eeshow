@@ -196,7 +196,6 @@ void *diff_process_file(struct diff *diff, struct file_names *file_names,
 	if (!gfx_args(diff->gfx, argc, argv, opts))
 		goto fail_open;
 	sch_render(sch.sheets, diff->gfx);
-	/* @@@ filter extra */
 
 	sch_free(&sch);
 	lib_free(&lib);
@@ -453,7 +452,7 @@ static cairo_t *make_diff(cairo_t *cr, int cx, int cy, float scale,
 /* ----- Diff to file ------------------------------------------------------ */
 
 
-static int diff_end(void *ctx)
+static int diff_end(void *ctx, enum gfx_extra extra)
 {
 	struct diff *diff = ctx;
 	cairo_t *old_cr;
@@ -467,7 +466,7 @@ static int diff_end(void *ctx)
 	cro_img_reset(gfx_user(diff->gfx));
 
 	old_cr = make_diff(NULL, 0, 0, diff->scale,
-	    gfx_user(diff->gfx), gfx_user(diff->new_gfx), 0, NULL,
+	    gfx_user(diff->gfx), gfx_user(diff->new_gfx), extra, NULL,
 	    &changed);
 	s = cairo_get_target(old_cr);
 

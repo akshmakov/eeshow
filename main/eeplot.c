@@ -239,7 +239,6 @@ int main(int argc, char **argv)
 
 	if (one_sheet) {
 		sch_render(sch_ctx.sheets, gfx);
-		/* @@@ filter extra */
 		if (pl)
 			pl_render(pl, gfx, sch_ctx.sheets, sch_ctx.sheets);
 	} else {
@@ -248,14 +247,13 @@ int main(int argc, char **argv)
 		for (sheet = sch_ctx.sheets; sheet; sheet = sheet->next) {
 			gfx_sheet_name(gfx, sheet->title);
 			sch_render(sheet, gfx);
-			/* @@@ filter extra */
 			if (pl)
 				pl_render(pl, gfx, sch_ctx.sheets, sheet);
 			if (sheet->next)
 				gfx_new_sheet(gfx);
 		}
 	}
-	retval = gfx_end(gfx);
+	retval = gfx_end(gfx, extra ? gfx_pin_type : 0);
 
 	sch_free(&sch_ctx);
 	lib_free(&lib);

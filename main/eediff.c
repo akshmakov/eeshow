@@ -130,7 +130,7 @@ int main(int argc, char **argv)
 	free_file_names(&file_names_b);
 	free(opts);
 
-	retval = gfx_end(gfx);
+	retval = gfx_end(gfx, 0);
 
 	file_cleanup();
 	cairo_debug_reset_static_data();

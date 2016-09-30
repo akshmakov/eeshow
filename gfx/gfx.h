@@ -56,7 +56,7 @@ struct gfx_ops {
 	bool (*args)(void *ctx, int argc, char *const *argv, const char *opts);
 	void (*sheet_name)(void *ctx, const char *name);
 	void (*new_sheet)(void *ctx);
-	int (*end)(void *ctx);
+	int (*end)(void *ctx, enum gfx_extra extra);
 };
 
 
@@ -94,6 +94,6 @@ bool gfx_multi_sheet(struct gfx *gfx);
 void *gfx_user(struct gfx *gfx);	/* transitional kludge */
 
 void gfx_destroy(struct gfx *gfx);
-int gfx_end(struct gfx *gfx);
+int gfx_end(struct gfx *gfx, enum gfx_extra extra);
 
 #endif /* !GFX_GFX_H */

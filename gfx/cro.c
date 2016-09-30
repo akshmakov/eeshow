@@ -698,7 +698,7 @@ static void cr_pdf_new_sheet(void *ctx)
 }
 
 
-static int cr_pdf_end(void *ctx)
+static int cr_pdf_end(void *ctx, enum gfx_extra extra)
 {
 	struct cro_ctx *cc = ctx;
 	int w, h;
@@ -730,13 +730,13 @@ static int cr_pdf_end(void *ctx)
 		set_color(cc, COLOR_WHITE);
 		cairo_paint(cc->cr);
 
-		record_replay(cc->sheets + i, 0);
+		record_replay(cc->sheets + i, extra);
 		record_destroy(cc->sheets + i);
 
 		cairo_show_page(cc->cr);
 	}
 
-	record_replay(&cc->record, 0);
+	record_replay(&cc->record, extra);
 	record_destroy(&cc->record);
 
 	cairo_show_page(cc->cr);
@@ -796,7 +796,7 @@ static void cr_ps_new_sheet(void *ctx)
 }
 
 
-static int ps_end(struct cro_ctx *cc, int eps)
+static int ps_end(struct cro_ctx *cc, enum gfx_extra extra, int eps)
 {
 	int w, h;
 	unsigned i;
@@ -826,13 +826,13 @@ static int ps_end(struct cro_ctx *cc, int eps)
 		set_color(cc, COLOR_WHITE);
 		cairo_paint(cc->cr);
 
-		record_replay(cc->sheets + i, 0);
+		record_replay(cc->sheets + i, extra);
 		record_destroy(cc->sheets + i);
 
 		cairo_show_page(cc->cr);
 	}
 
-	record_replay(&cc->record, 0);
+	record_replay(&cc->record, extra);
 	record_destroy(&cc->record);
 
 	cairo_show_page(cc->cr);
@@ -847,15 +847,15 @@ static int ps_end(struct cro_ctx *cc, int eps)
 }
 
 
-static int cr_ps_end(void *ctx)
+static int cr_ps_end(void *ctx, enum gfx_extra extra)
 {
-	return ps_end(ctx, 0);
+	return ps_end(ctx, extra, 0);
 }
 
 
-static int cr_eps_end(void *ctx)
+static int cr_eps_end(void *ctx, enum gfx_extra extra)
 {
-	return ps_end(ctx, 1);
+	return ps_end(ctx, extra, 1);
 }
 
 
@@ -879,7 +879,7 @@ static void *cr_svg_init(void)
 }
 
 
-static int cr_svg_end(void *ctx)
+static int cr_svg_end(void *ctx, enum gfx_extra extra)
 {
 	struct cro_ctx *cc = ctx;
 	int w, h;
@@ -908,13 +908,13 @@ static int cr_svg_end(void *ctx)
 		set_color(cc, COLOR_WHITE);
 		cairo_paint(cc->cr);
 
-		record_replay(cc->sheets + i, 0);
+		record_replay(cc->sheets + i, extra);
 		record_destroy(cc->sheets + i);
 
 		cairo_show_page(cc->cr);
 	}
 
-	record_replay(&cc->record, 0);
+	record_replay(&cc->record, extra);
 	record_destroy(&cc->record);
 
 	cairo_show_page(cc->cr);
@@ -946,13 +946,13 @@ static void *cr_png_init(void)
 }
 
 
-static int cr_png_end(void *ctx)
+static int cr_png_end(void *ctx, enum gfx_extra extra)
 {
 	struct cro_ctx *cc = ctx;
 	int w, h, stride;
 	uint32_t *data;
 
-	data = cro_img_end(cc, &w, &h, &stride);
+	data = cro_img_end(cc, &w, &h, &stride, extra);
 	cro_img_write(cc->s, cc->output_name);
 
 	cairo_surface_destroy(cc->s);
@@ -967,7 +967,8 @@ static int cr_png_end(void *ctx)
 /* ----- Images (auto-sizing, using redraw) -------------------------------- */
 
 
-uint32_t *cro_img_end(struct cro_ctx *cc, int *w, int *h, int *stride)
+uint32_t *cro_img_end(struct cro_ctx *cc, int *w, int *h, int *stride,
+    enum gfx_extra extra)
 {
 	uint32_t *data;
 
@@ -990,7 +991,7 @@ uint32_t *cro_img_end(struct cro_ctx *cc, int *w, int *h, int *stride)
 	cairo_set_line_width(cc->cr, 2);
 	cairo_set_line_cap(cc->cr, CAIRO_LINE_CAP_ROUND);
 
-	record_replay(&cc->record, 0);
+	record_replay(&cc->record, extra);
 	record_destroy(&cc->record);
 
 	cairo_surface_flush(cc->s);

@@ -187,12 +187,12 @@ void gfx_destroy(struct gfx *gfx)
 }
 
 
-int gfx_end(struct gfx *gfx)
+int gfx_end(struct gfx *gfx, enum gfx_extra extra)
 {
 	int res = 0;
 
 	if (gfx->ops->end)
-		res = gfx->ops->end(gfx->user);
+		res = gfx->ops->end(gfx->user, extra);
 	gfx_destroy(gfx);
 	return res;
 }
