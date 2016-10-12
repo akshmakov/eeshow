@@ -252,7 +252,7 @@ static bool hover_glabel(void *user, bool on, int dx, int dy)
 	 * Probably the only way to fix this is by making overlay_add do the
 	 * layout calculation and create the AoI immediately.
 	 *
-	 * Another problem occurs as deep zoom levels, when the label is larger
+	 * Another problem occurs at deep zoom levels, when the label is larger
 	 * than the pop-up. Then we can trigger pop-up creation from a location
 	 * that will be outside the pop-up.
 	 *
@@ -262,7 +262,7 @@ static bool hover_glabel(void *user, bool on, int dx, int dy)
 	 *
 	 * Another way to avoid the problem would be to size the pop-up such
 	 * that it always includes the mouse position. But that could lead to
-	 * rather weird-looking results at deep high zoom levels.
+	 * rather weird-looking results at deep zoom levels.
 	 *
 	 * Yet another option would be to move the mouse pointer onto the
 	 * pop-up. The problem with this is that forced mouse pointer movement
