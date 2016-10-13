@@ -9,7 +9,7 @@ Bugs:
   No other problems were observed. "Home" usually solves this.
 - when switching from label pop-up to label pop-up (e.g., on Neo900 sheet 20),
   the logic may get confused and cause a segfault, apparently as the result of
-  infinite recursion
+  infinite recursion [removed call to input_update as work-around]
 
 Parsing and input processing:
 - unify alignment, direction

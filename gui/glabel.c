@@ -275,7 +275,15 @@ static bool hover_glabel(void *user, bool on, int dx, int dy)
 	 * - clicking, or
 	 * - pressing Escape.
 	 */
-	input_update();
+
+	/*
+	 * @@@ Calling input_update here caused an infinite recursion through
+	 * input_update -> hover_consider -> sheet_hover_update -> aoi_hover
+	 * -> hover_d -> hover_glabel -> input_update -> etc.
+	 * if we have overlapping global labels. The recursion altered between
+	 * both AoIs.
+	 */
+//	input_update();
 	redraw(gui);
 	return 0;
 }
