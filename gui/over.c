@@ -471,12 +471,18 @@ void overlay_text_raw(struct overlay *over, const char *s)
 }
 
 
+void overlay_vtext(struct overlay *over, const char *fmt, va_list ap)
+{
+	overlay_text_raw(over, vfmt_pango(fmt, ap));
+}
+
+
 void overlay_text(struct overlay *over, const char *fmt, ...)
 {
 	va_list ap;
 
 	va_start(ap, fmt);
-	overlay_text_raw(over, vfmt_pango(fmt, ap));
+	overlay_vtext(over, fmt, ap);
 	va_end(ap);
 }
 

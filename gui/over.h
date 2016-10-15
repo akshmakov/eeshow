@@ -13,6 +13,7 @@
 #ifndef GUI_OVER_H
 #define	GUI_OVER_H
 
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -60,6 +61,7 @@ struct overlay *overlay_add(struct overlay **overlays, struct aoi **aois,
     void (*click)(void *user), void *user);
 
 void overlay_text_raw(struct overlay *over, const char *s);
+void overlay_vtext(struct overlay *over, const char *fmt, va_list ap);
 void overlay_text(struct overlay *over, const char *fmt, ...);
 void overlay_icon(struct overlay *over, cairo_surface_t *icon);
 void overlay_style(struct overlay *over, const struct overlay_style *style);
