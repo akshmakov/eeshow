@@ -23,5 +23,6 @@ void add_pop_header(struct gui *gui, unsigned width, const char *label);
 void add_pop_item(struct gui *gui, void (*click)(void *user), void *user,
     unsigned width, bool dim, const char *fmt, ...);
 void add_pop_frame(struct gui *gui);
+void place_pop(struct gui *gui, const struct dwg_bbox *bbox);
 
 #endif /* !GUI_POP_H */

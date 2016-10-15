@@ -26,10 +26,6 @@
 #include "gui/common.h"
 
 
-/* small offset to hide rounding errors */
-#define	CHEAT	1
-
-
 struct glabel_aoi_ctx {
 	const struct gui_sheet *sheet;
 	const struct sch_obj *obj;
@@ -74,8 +70,6 @@ static bool hover_glabel(void *user, bool on, int dx, int dy)
 {
 	struct glabel_aoi_ctx *aoi_ctx = user;
 	struct gui *gui = aoi_ctx->sheet->gui;
-	const struct gui_sheet *curr_sheet = gui->curr_sheet;
-	const struct dwg_bbox *bbox = &aoi_ctx->bbox;
 
 	if (!on) {
 		dehover_pop(gui);
@@ -87,8 +81,6 @@ static bool hover_glabel(void *user, bool on, int dx, int dy)
 		dehover_pop(gui);
 	}
 
-	GtkAllocation alloc;
-	int sx, sy, ex, ey, mx, my;
 	unsigned n = 0;
 	struct gui_sheet *sheet;
 
@@ -104,29 +96,7 @@ static bool hover_glabel(void *user, bool on, int dx, int dy)
 		add_dest_overlay(gui, aoi_ctx->obj->u.text.s, sheet, ++n);
 	add_pop_frame(gui);
 
-	eeschema_coord(gui,
-	    bbox->x - curr_sheet->xmin, bbox->y - curr_sheet->ymin,
-	    &sx, &sy);
-	eeschema_coord(gui, bbox->x + bbox->w - curr_sheet->xmin,
-	    bbox->y + bbox->h - curr_sheet->ymin, &ex, &ey);
-
-	gtk_widget_get_allocation(gui->da, &alloc);
-	mx = (sx + ex) / 2;
-	my = (sy + ey) / 2;
-	if (mx < alloc.width / 2) {
-		gui->pop_x = sx - CHEAT;
-		gui->pop_dx = 1;
-	} else {
-		gui->pop_x = ex + CHEAT;
-		gui->pop_dx = -1;
-	}
-	if (my < alloc.height / 2) {
-		gui->pop_y = sy - CHEAT;
-		gui->pop_dy = 1;
-	} else {
-		gui->pop_y = ey + CHEAT;
-		gui->pop_dy = -1;
-	}
+	place_pop(gui, &aoi_ctx->bbox);
 
 	/*
 	 * @@@ The idea is to get input to trigger hovering over the pop-up.

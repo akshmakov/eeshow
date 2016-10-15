@@ -21,6 +21,10 @@
 #include "gui/pop.h"
 
 
+/* small offset to hide rounding errors */
+#define	CHEAT	1
+
+
 void eeschema_coord(const struct gui *gui, int x, int y, int *rx, int *ry)
 {
 	GtkAllocation alloc;
@@ -148,4 +152,37 @@ void add_pop_frame(struct gui *gui)
 	 * destination overlays. This suppresses dehovering.
 	 */
 	overlay_set_related_all(gui->pop_overlays, over);
+}
+
+
+void place_pop(struct gui *gui, const struct dwg_bbox *bbox)
+{
+	const struct gui_sheet *curr_sheet = gui->curr_sheet;
+	GtkAllocation alloc;
+	int sx, sy, ex, ey, mx, my;
+
+	eeschema_coord(gui,
+	    bbox->x - curr_sheet->xmin, bbox->y - curr_sheet->ymin,
+	    &sx, &sy);
+	eeschema_coord(gui, bbox->x + bbox->w - curr_sheet->xmin,
+	    bbox->y + bbox->h - curr_sheet->ymin, &ex, &ey);
+
+	gtk_widget_get_allocation(gui->da, &alloc);
+	mx = (sx + ex) / 2;
+	my = (sy + ey) / 2;
+	if (mx < alloc.width / 2) {
+		gui->pop_x = sx - CHEAT;
+		gui->pop_dx = 1;
+	} else {
+		gui->pop_x = ex + CHEAT;
+		gui->pop_dx = -1;
+	}
+	if (my < alloc.height / 2) {
+		gui->pop_y = sy - CHEAT;
+		gui->pop_dy = 1;
+	} else {
+		gui->pop_y = ey + CHEAT;
+		gui->pop_dy = -1;
+	}
+
 }
