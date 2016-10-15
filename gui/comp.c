@@ -18,6 +18,7 @@
 
 #include "misc/util.h"
 #include "kicad/dwg.h"
+#include "gfx/misc.h"
 #include "gui/aoi.h"
 #include "gui/over.h"
 #include "gui/pop.h"
@@ -68,6 +69,8 @@ static struct dwg_bbox get_bbox(const struct sch_obj *sch_obj)
 	int xa = 0, ya = 0, xb = 0, yb = 0;
 	bool first = 1;
 	int i;
+	struct dwg_bbox bbox;
+	const int *m = sch_obj->u.comp.m;
 
 	for (obj = sch_obj->u.comp.comp->objs; obj; obj = obj->next)
 		switch (obj->type) {
@@ -95,12 +98,19 @@ static struct dwg_bbox get_bbox(const struct sch_obj *sch_obj)
 			break;
 		}
 
-	struct dwg_bbox bbox = {
-		.x	= xa + sch_obj->x,
-		.y	= ya + sch_obj->y,
-		.w	= xb - xa + 1,
-		.h	= yb - ya + 1,
-	};
+	bbox.x = mx(xa, ya, m);
+	bbox.y = my(xa, ya, m);
+	bbox.w = mx(xb, yb, m) - bbox.x + 1;
+	bbox.h = my(xb, yb, m) - bbox.y + 1;
+	if (bbox.w < 0) {
+		bbox.w = -bbox.w;
+		bbox.x -= bbox.w;
+	}
+	if (bbox.h < 0) {
+		bbox.h = -bbox.h;
+		bbox.y -= bbox.h;
+	}
+
 	return bbox;
 }
 
