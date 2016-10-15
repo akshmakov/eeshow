@@ -34,6 +34,7 @@ EESHOW_OBJS = main/eeshow.o main/common.o \
 	$(OBJS_FILE) \
 	gfx/style.o gfx/fig.o gfx/record.o gfx/cro.o gfx/diff.o gfx/gfx.o \
 	gfx/text.o gfx/misc.o gfx/pdftoc.o \
+	db/doc.o \
 	$(OBJS_MISC)
 EEPLOT_OBJS = main/eeplot.o main/common.o \
 	$(OBJS_KICAD) \
