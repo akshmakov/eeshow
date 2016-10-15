@@ -29,7 +29,7 @@ EESHOW_OBJS = main/eeshow.o main/common.o \
 	$(OBJS_KICAD) \
 	gui/gui.o gui/over.o gui/style.o gui/aoi.o gui/fmt-pango.o gui/input.o \
 	gui/progress.o gui/glabel.o gui/sheet.o gui/history.o gui/render.o \
-	gui/help.o gui/icons.o gui/index.o gui/timer.o gui/pop.o \
+	gui/help.o gui/icons.o gui/index.o gui/timer.o gui/pop.o gui/comp.o \
 	$(OBJS_FILE) \
 	gfx/style.o gfx/fig.o gfx/record.o gfx/cro.o gfx/diff.o gfx/gfx.o \
 	gfx/text.o gfx/misc.o gfx/pdftoc.o \

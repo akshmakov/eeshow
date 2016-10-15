@@ -161,6 +161,10 @@ void render_setup(struct gui *gui);
 
 void add_glabel_aoi(struct gui_sheet *sheet, const struct sch_obj *obj);
 
+/* comp.c */
+
+void add_comp_aoi(struct gui_sheet *sheet, const struct sch_obj *obj);
+
 /* sheet.c */
 
 void go_to_sheet(struct gui *gui, struct gui_sheet *sheet);

@@ -150,6 +150,10 @@ void mark_aois(struct gui *gui, struct gui_sheet *sheet)
 			break;
 		case sch_obj_glabel:
 			add_glabel_aoi(sheet, obj);
+			break;
+		case sch_obj_comp:
+			add_comp_aoi(sheet, obj);
+			break;
 		default:
 			break;
 		}
