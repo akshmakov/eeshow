@@ -18,8 +18,7 @@
 
 #include "misc/util.h"
 #include "kicad/dwg.h"
-#include "gui/style.h"
-#include "gui/input.h"
+//#include "gui/input.h"
 #include "gui/aoi.h"
 #include "gui/over.h"
 #include "gui/pop.h"
