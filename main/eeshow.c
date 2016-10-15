@@ -26,6 +26,7 @@
 #include "kicad/ext.h"
 #include "kicad/pl.h"	// for suppress_page_layout
 #include "gfx/cro.h"	// for disable_overline, use_pango
+#include "db/doc.h"
 #include "gui/gui.h"
 #include "version.h"
 #include "main/common.h"
@@ -35,7 +36,7 @@
 void usage(const char *name)
 {
 	fprintf(stderr,
-"usage: %s [gtk_flags] [-1] [-N n] kicad_file ...\n"
+"usage: %s [gtk_flags] [-1] [-d file.doc_db] [-N n] kicad_file ...\n"
 "       %s -V\n"
 "       %s gdb ...\n"
 "\n"
@@ -44,6 +45,8 @@ void usage(const char *name)
 "    rev       git revision\n"
 "\n"
 "  -1    show only one sheet - do not recurse into sub-sheets\n"
+"  -d file.doc_db\n"
+"        load documentation database file\n"
 "  -v    increase verbosity of diagnostic output\n"
 "  -E shell_command ...\n"
 "        execute the specified shell command when the GUI is ready.\n"
@@ -65,16 +68,20 @@ int main(int argc, char **argv)
 	int limit = 0;
 	char c;
 	struct file_names file_names;
+	const char *doc_db = NULL;
 
 	run_under_gdb(argc, argv);
 
 	gtk_init(&argc, &argv);
 	setlocale(LC_ALL, "C");	/* restore sanity */
 
-	while ((c = getopt(argc, argv, "1hvE:LN:OPV")) != EOF)
+	while ((c = getopt(argc, argv, "1d:hvE:LN:OPV")) != EOF)
 		switch (c) {
 		case '1':
 			one_sheet = 1;
+			break;
+		case 'd':
+			doc_db = optarg;
 			break;
 		case 'v':
 			verbose++;
@@ -106,6 +113,10 @@ int main(int argc, char **argv)
 
 	if (argc - optind < 1)
 		usage(*argv);
+
+	/* @@@ support versioning */
+	if (doc_db && !doc_load(doc_db, NULL))
+		fatal("cannot load \"%s\"", doc_db);
 
 	classify_files(&file_names, argv + optind, argc - optind);
 	if (!file_names.pro && !file_names.sch)

@@ -17,6 +17,7 @@
 #include <gtk/gtk.h>
 
 #include "misc/util.h"
+#include "db/doc.h"
 #include "kicad/dwg.h"
 #include "gfx/misc.h"
 #include "gui/aoi.h"
@@ -126,6 +127,14 @@ static void comp_click(void *user)
 }
 
 
+static void add_doc(void *user, const char *tag, const char *s)
+{
+	struct gui *gui = user;
+
+	add_pop_item(gui, comp_click, (void *) s, COMP_W, 0, "%s", tag);
+}
+
+
 static bool hover_comp(void *user, bool on, int dx, int dy)
 {
 	struct comp_aoi_ctx *aoi_ctx = user;
@@ -165,6 +174,7 @@ static bool hover_comp(void *user, bool on, int dx, int dy)
 	add_pop_header(gui, COMP_W, ref ? ref : "???");
 	if (doc)
 		add_pop_item(gui, comp_click, (void *) doc, COMP_W, 0, "Doc");
+	doc_find(ref, add_doc, gui);
 	add_pop_frame(gui);
 
 	place_pop(gui, &aoi_ctx->bbox);
