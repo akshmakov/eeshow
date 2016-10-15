@@ -23,6 +23,7 @@
 #include "gui/aoi.h"
 #include "gui/over.h"
 #include "gui/pop.h"
+#include "gui/viewer.h"
 #include "gui/common.h"
 
 
@@ -113,7 +114,7 @@ static void comp_click(void *user)
 {
 	const char *doc = user;
 
-	fprintf(stderr, "%s\n", doc);
+	viewer(doc);
 }
 
 
