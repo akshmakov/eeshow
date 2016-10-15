@@ -138,7 +138,7 @@ struct gui {
 #define	VCS_OVERLAYS_X		5
 #define	VCS_OVERLAYS_Y		5
 
-#define	GLABEL_STACK_PADDING	5
+#define	POP_STACK_PADDING	5
 
 
 /* progress.c */
@@ -159,7 +159,6 @@ void render_setup(struct gui *gui);
 
 /* glabel.c */
 
-void dehover_glabel(struct gui *gui);
 void add_glabel_aoi(struct gui_sheet *sheet, const struct sch_obj *obj);
 
 /* sheet.c */

@@ -22,6 +22,7 @@
 #include "gui/input.h"
 #include "gui/aoi.h"
 #include "gui/over.h"
+#include "gui/pop.h"
 #include "gui/common.h"
 
 
@@ -40,20 +41,6 @@ struct glabel_aoi_ctx {
 #define	GLABEL_W	100
 
 
-/* ----- Tools ------------------------------------------------------------- */
-
-
-static void eeschema_coord(const struct gui *gui,
-    int x, int y, int *rx, int *ry)
-{
-	GtkAllocation alloc;
-
-	gtk_widget_get_allocation(gui->da, &alloc);
-	*rx = ((x - gui->x) * gui->scale) + alloc.width / 2;
-	*ry = ((y - gui->y) * gui->scale) + alloc.height / 2;
-}
-
-
 /* ----- AoIs -------------------------------------------------------------- */
 
 
@@ -65,122 +52,21 @@ static void glabel_dest_click(void *user)
 }
 
 
-void dehover_glabel(struct gui *gui)
-{
-	overlay_remove_all(&gui->pop_overlays);
-	overlay_remove_all(&gui->pop_underlays);
-	gui->pop_origin = NULL;
-	redraw(gui);
-}
-
-
-static void add_dest_header(struct gui *gui, const char *label)
-{
-	struct overlay_style style = {
-		.font	= BOLD_FONT,
-		.wmin	= GLABEL_W,
-		.wmax	= GLABEL_W,
-		.radius	= 0,
-		.pad	= 0,
-		.skip	= 6,
-		.fg	= { 0.5, 0.0, 0.0, 1.0 },
-		.bg	= { 0.0, 0.0, 0.0, 0.0 },
-		.frame	= { 1.0, 1.0, 1.0, 1.0 }, /* debugging */
-		.width	= 0,
-	};
-	struct overlay *over;
-
-	over = overlay_add(&gui->pop_overlays, NULL, NULL, NULL, NULL);
-	overlay_text(over, "%s", label);
-	overlay_style(over, &style);
-}
-
-
 static void add_dest_overlay(struct gui *gui, const char *label,
     struct gui_sheet *sheet, unsigned n)
 {
-	struct overlay_style style = {
-		.font	= BOLD_FONT,
-		.wmin	= GLABEL_W,
-		.wmax	= GLABEL_W,
-		.radius	= 0,
-		.pad	= 0,
-		.skip	= 4,
-		.fg	= { 0.0, 0.0, 0.0, 1.0 },
-		.bg	= { 0.0, 0.0, 0.0, 0.0 },
-		.frame	= { 1.0, 1.0, 1.0, 1.0 }, /* debugging */
-		.width	= 0,
-	};
 	const struct sch_obj *obj;
-	struct overlay *over;
-
-	if (sheet == gui->curr_sheet)
-		style.fg = RGBA(0.5, 0.5, 0.5, 1.0);
 
 	for (obj = sheet->sch->objs; obj; obj = obj->next) {
 		if (obj->type != sch_obj_glabel)
 			continue;
 		if (strcmp(obj->u.text.s, label))
 			continue;
-		over = overlay_add(&gui->pop_overlays,
-		    &gui->aois, NULL, glabel_dest_click, sheet);
-		overlay_text(over, "%d %s", n,
+		add_pop_item(gui, glabel_dest_click, sheet, GLABEL_W,
+		    sheet == gui->curr_sheet, "%d %s", n,
 		    sheet->sch->title ? sheet->sch->title : "(unnamed)");
-		overlay_style(over, &style);
 		break;
 	}
-}
-
-
-static bool pop_hover(void *user, bool on, int dx, int dy)
-{
-	struct gui *gui = user;
-
-	if (!on)
-		dehover_glabel(gui);
-	return 1;
-}
-
-
-static void add_dest_frame(struct gui *gui)
-{
-	int w, h;
-
-	overlay_size_all(gui->pop_overlays,
-	    gtk_widget_get_pango_context(gui->da), 0, 1, &w, &h);
-
-	struct overlay_style style = {
-		.font	= BOLD_FONT,
-		.wmin	= w,
-		.hmin	= h,
-		.radius	= 0,
-		.pad	= GLABEL_STACK_PADDING,
-		.skip	= 0,
-		.fg	= { 0.0, 0.0, 0.0, 1.0 },
-		.bg	= { 0.9, 0.9, 0.3, 0.8 },
-		.frame	= { 0.0, 0.0, 0.0, 1.0 }, /* debugging */
-		.width	= 1,
-	};
-	struct overlay *over;
-
-	over = overlay_add(&gui->pop_underlays, &gui->aois,
-	    pop_hover, NULL, gui);
-	overlay_text_raw(over, "");
-	overlay_style(over, &style);
-
-	/*
-	 * This makes it all work. When we receive a click while hovering, it
-	 * goes to the hovering overlay if that overlay accepts clicks.
-	 * However, if the overlay accepting the click is different, we first
-	 * de-hover.
-	 *
-	 * Now, in the case of the frame overlay, dehovering would destroy the
-	 * destination overlays right before trying to deliver the click.
-	 *
-	 * We solve this by declaring the frame overlay to be "related" to the
-	 * destination overlays. This suppresses dehovering.
-	 */
-	overlay_set_related_all(gui->pop_overlays, over);
 }
 
 
@@ -192,13 +78,13 @@ static bool hover_glabel(void *user, bool on, int dx, int dy)
 	const struct dwg_bbox *bbox = &aoi_ctx->bbox;
 
 	if (!on) {
-		dehover_glabel(gui);
+		dehover_pop(gui);
 		return 1;
 	}
 	if (gui->pop_underlays) {
 		if (gui->pop_origin == aoi_ctx)
 			return 0;
-		dehover_glabel(gui);
+		dehover_pop(gui);
 	}
 
 	GtkAllocation alloc;
@@ -213,10 +99,10 @@ static bool hover_glabel(void *user, bool on, int dx, int dy)
 	overlay_remove_all(&gui->pop_overlays);
 	overlay_remove_all(&gui->pop_underlays);
 
-	add_dest_header(gui, aoi_ctx->obj->u.text.s);
+	add_pop_header(gui, GLABEL_W, aoi_ctx->obj->u.text.s);
 	for (sheet = gui->new_hist->sheets; sheet; sheet = sheet->next)
 		add_dest_overlay(gui, aoi_ctx->obj->u.text.s, sheet, ++n);
-	add_dest_frame(gui);
+	add_pop_frame(gui);
 
 	eeschema_coord(gui,
 	    bbox->x - curr_sheet->xmin, bbox->y - curr_sheet->ymin,

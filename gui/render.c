@@ -217,8 +217,8 @@ static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
 	overlay_draw_all_d(gui->pop_underlays, cr, gui->pop_x, gui->pop_y,
 	    gui->pop_dx, gui->pop_dy);
 	overlay_draw_all_d(gui->pop_overlays, cr,
-	    gui->pop_x + gui->pop_dx * GLABEL_STACK_PADDING,
-	    gui->pop_y + gui->pop_dy * GLABEL_STACK_PADDING,
+	    gui->pop_x + gui->pop_dx * POP_STACK_PADDING,
+	    gui->pop_y + gui->pop_dy * POP_STACK_PADDING,
 	    gui->pop_dx, gui->pop_dy);
 
 	switch (gui->mode) {

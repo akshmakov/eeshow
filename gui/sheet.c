@@ -24,6 +24,7 @@
 #include "gui/style.h"
 #include "gui/aoi.h"
 #include "gui/over.h"
+#include "gui/pop.h"
 #include "gui/input.h"
 #include "gui/help.h"
 #include "gui/icons.h"
@@ -457,7 +458,7 @@ static bool sheet_hover_update(void *user, int x, int y)
 
 static bool sheet_drag_begin(void *user, int x, int y)
 {
-	dehover_glabel(user);
+	dehover_pop(user);
 	return 1;
 }
 
@@ -492,7 +493,7 @@ static void sheet_scroll(void *user, int x, int y, int dy)
 		if (!zoom_out(gui, ex, ey))
 			return;
 	}
-	dehover_glabel(gui);
+	dehover_pop(gui);
 	input_update();
 }
 
@@ -553,7 +554,7 @@ static void sheet_key(void *user, int x, int y, int keyval)
 		break;
 
 	case GDK_KEY_Escape:
-		dehover_glabel(user);
+		dehover_pop(user);
 		gui->glabel = NULL;
 		redraw(gui);
 		break;
