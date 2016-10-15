@@ -86,7 +86,7 @@ GUI:
 - maybe allow changing diff contrast
 - define consistent concept for keybord shortcuts
 - would be nice to be able to reload design without quit, restart
-- would be nice to be able to invoke PDF viewer on data sheets
+- would be nice to be able to invoke PDF viewer on data sheets [WIP]
 - if invoked without file name, eeshow should show file dialog
 
 GUI/history
