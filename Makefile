@@ -225,7 +225,7 @@ leak:		eediff
 
 #----- Install / uninstall ---------------------------------------------------
 
-install:	eeshow eeplot eediff
+install:	eeshow eeplot eediff eeshow-viewer
 		mkdir -p $(DESTDIR)/$(PREFIX)/bin/
 		install -m 755 $^ $(DESTDIR)/$(PREFIX)/bin/
 
