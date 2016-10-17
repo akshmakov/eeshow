@@ -57,11 +57,27 @@ fi
 
 [ "$1" ] || exit 0
 
-hash=`echo -n "$1" | tr -c '[[:alnum:].\-]' _`
+url=${1%\#[0-9]*}
+page=
+if [ "$url" != "$1" ]; then
+	page=${1##*#}
+fi
+
+hash=`echo -n "$url" | tr -c '[[:alnum:].\-]' _`
 file=$dir/$hash
 if [ ! -r "$file" ]; then
-	wget -O "$file" "$1" || { rm -f "$file"; exit 1; }
+	wget -O "$file" "$url" || { rm -f "$file"; exit 1; }
 fi
 
 $cache_only && exit
-${EESHOW_VIEWER_VIEWER:-xdg-open} "$file"
+
+if [ "$page" ]; then
+	v=${EESHOW_PDF_VIEWER:-${PDF_VIEWER:-xdg-open}}
+	case "$v" in
+	*xpdf)	"$v" "$file" "$page";;
+	*evince)"$v" --page-index="$page" "$file";;
+	*)	"$v" "$file";;
+	esac
+else
+	${EESHOW_VIEWER_VIEWER:-xdg-open} "$file"
+fi
