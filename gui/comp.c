@@ -73,7 +73,9 @@ static struct dwg_bbox get_bbox(const struct sch_obj *sch_obj)
 	struct dwg_bbox bbox;
 	const int *m = sch_obj->u.comp.m;
 
-	for (obj = sch_obj->u.comp.comp->objs; obj; obj = obj->next)
+	for (obj = sch_obj->u.comp.comp->objs; obj; obj = obj->next) {
+		if (obj->unit && sch_obj->u.comp.unit != obj->unit)
+			continue;
 		switch (obj->type) {
 		case lib_obj_poly:
 			for (i = 0; i != obj->u.poly.points; i++)
@@ -98,6 +100,7 @@ static struct dwg_bbox get_bbox(const struct sch_obj *sch_obj)
 		default:
 			break;
 		}
+	}
 
 	bbox.x = mx(xa, ya, m);
 	bbox.y = my(xa, ya, m);
