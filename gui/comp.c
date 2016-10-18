@@ -17,6 +17,7 @@
 #include <gtk/gtk.h>
 
 #include "misc/util.h"
+#include "misc/diag.h"
 #include "db/doc.h"
 #include "kicad/dwg.h"
 #include "gfx/misc.h"
@@ -27,11 +28,21 @@
 #include "gui/common.h"
 
 
+struct comp_pop_item {
+	struct comp_aoi_ctx *ctx;
+	const char *tag;
+	const char *s;
+	struct comp_pop_item *next;
+};
+
 struct comp_aoi_ctx {
 	struct gui * gui;
 	const struct sch_obj *obj;
 	struct dwg_bbox bbox;
 	struct overlay *over;
+	const char *ref;
+	const char *doc;		/* may be NULL */
+	struct comp_pop_item *items;
 };
 
 
@@ -124,73 +135,81 @@ static struct dwg_bbox get_bbox(const struct sch_obj *sch_obj)
 
 static void comp_click(void *user)
 {
-	const char *doc = user;
+	const struct comp_pop_item *item = user;
+	const struct comp_aoi_ctx *ctx = item->ctx;
+	struct gui *gui = ctx->gui;
 
-	viewer(doc);
-}
-
-
-static void add_doc(void *user, const char *tag, const char *s)
-{
-	struct gui *gui = user;
-
-	add_pop_item(gui, comp_click, (void *) s, COMP_W, 0, "%s", tag);
+	viewer(item->s);
+	dehover_pop(gui);
 }
 
 
 static bool hover_comp(void *user, bool on, int dx, int dy)
 {
-	struct comp_aoi_ctx *aoi_ctx = user;
-	struct gui *gui = aoi_ctx->gui;
-	const struct comp_field *f;
-	const char *ref = NULL;
-	const char *doc = NULL;
+	struct comp_aoi_ctx *ctx = user;
+	struct gui *gui = ctx->gui;
+	const struct comp_pop_item *item;
 
 	if (!on) {
 		dehover_pop(gui);
 		return 1;
 	}
 	if (gui->pop_underlays) {
-		if (gui->pop_origin == aoi_ctx)
+		if (gui->pop_origin == ctx)
 			return 0;
 		dehover_pop(gui);
 	}
 
-	gui->pop_origin = aoi_ctx;
+	gui->pop_origin = ctx;
 
 	aoi_dehover();
 	overlay_remove_all(&gui->pop_overlays);
 	overlay_remove_all(&gui->pop_underlays);
 
-	for (f = aoi_ctx->obj->u.comp.fields; f; f = f->next)
-		switch (f->n) {
-		case 0:
-			ref = f->txt.s;
-			break;
-		case 3:
-			doc = f->txt.s;
-			break;
-		default:
-			break;
-		}
-
-	add_pop_header(gui, COMP_W, ref ? ref : "???");
-	if (doc)
-		add_pop_item(gui, comp_click, (void *) doc, COMP_W, 0, "Doc");
-	doc_find(ref, add_doc, gui);
+	add_pop_header(gui, COMP_W, ctx->ref);
+	for (item = ctx->items; item; item = item->next)
+		add_pop_item(gui, comp_click, (void *) item, COMP_W, 0,
+		    item->tag);
 	add_pop_frame(gui);
 
-	place_pop(gui, &aoi_ctx->bbox);
+	place_pop(gui, &ctx->bbox);
 
 	redraw(gui);
 	return 0;
 }
 
 
+/* ----- Setup ------------------------------------------------------------- */
+
+
+static void add_item(struct comp_aoi_ctx *ctx, const char *tag, const char *s)
+{
+	struct comp_pop_item **item;
+
+	for (item = &ctx->items; *item; item = &(*item)->next);
+	*item = alloc_type(struct comp_pop_item);
+	(*item)->ctx = ctx;
+	(*item)->tag = tag;
+	(*item)->s = s;
+	(*item)->next = NULL;
+}
+
+
+static void add_doc(void *user, const char *tag, const char *s)
+{
+	struct comp_aoi_ctx *ctx = user;
+
+	/* avoid duplication */
+	if (ctx->doc && !strcmp(ctx->doc, s))
+		ctx->doc = NULL;
+	add_item(ctx, tag, s);
+}
+
+
 void add_comp_aoi(struct gui_sheet *sheet, const struct sch_obj *obj)
 {
 	const struct dwg_bbox bbox = get_bbox(obj);
-	struct comp_aoi_ctx *aoi_ctx = alloc_type(struct comp_aoi_ctx);
+	struct comp_aoi_ctx *ctx = alloc_type(struct comp_aoi_ctx);
 	const struct comp_field *f;
 
 	struct aoi cfg = {
@@ -199,17 +218,38 @@ void add_comp_aoi(struct gui_sheet *sheet, const struct sch_obj *obj)
 		.w	= bbox.w,
 		.h	= bbox.h,
 		.hover	= hover_comp,
-		.user	= aoi_ctx,
+		.user	= ctx,
 	};
 
-	/* ignore power symbols */
+	ctx->gui = sheet->gui;
+	ctx->obj = obj;
+	ctx->bbox = bbox;
+	ctx->ref = NULL;
+	ctx->items = NULL;
+	ctx->doc = NULL;
+
 	for (f = obj->u.comp.fields; f; f = f->next)
-		if (!f->n && *f->txt.s == '#')
-			return;
+		switch (f->n) {
+		case 0:
+			/* ignore power symbols */
+			if (*f->txt.s == '#') {
+				free(ctx);
+				return;
+			}
+			ctx->ref = f->txt.s;
+			break;
+		case 3:
+			ctx->doc = f->txt.s;
+			break;
+		default:
+			break;
+		}
 
-	aoi_ctx->gui = sheet->gui;
-	aoi_ctx->obj = obj;
-	aoi_ctx->bbox = bbox;
-
+	if (!ctx->ref)
+		BUG("component without reference");
+	doc_find(ctx->ref, add_doc, ctx);
+	if (ctx->doc)
+		add_item(ctx, "Doc", ctx->doc);
+	
 	aoi_add(&sheet->aois, &cfg);
 }
