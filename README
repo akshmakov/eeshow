@@ -237,3 +237,83 @@ D			when comparing revisions, show difference (default)
 N			show newer sheet
 O			show older sheet
 Q			quit the viewer
+
+
+Providing documentation
+-----------------------
+
+Eeshow can display documentation of components, such as data sheets.
+To provide such documentation, create a file consisting of records of
+the following form:
+
+component_reference
+tag (will be displayed by eeshow)
+url (will be passed to the external viewer)
+
+Records are separated by one or more blank lines. The file may contain
+comment lines, which begin with a hash sign (#). Comment lines are
+ignored and do not act as record separators (unless accompanied by one
+or more empty lines).
+
+Example:
+
+U201
+Data sheet
+http://www.nxp.com/documents/data_sheet/IP4220CZ6.pdf
+
+P201A
+Data sheet
+http://www.molex.com/pdm_docs/sd/475900001_sd.pdf
+
+To make eeshow use the documentation database, specify the name of the
+file with the -d option.
+
+Eeshow will also look for the documentation field (F 3) in schematics
+sheets, and use its content.
+
+Note: this feature is experimental. The documentation database is not
+versioned and its format is likely to change.
+
+
+Viewing documentation
+---------------------
+
+When hovering over a component, a pop-up with the component reference and
+the corresponding documentation items (if any) appears. Clicking on a
+documentation entry invokes an external viewer.
+
+In the above example, hovering over the U201 component would produce a
+pop-up with
+
+U201
+Data sheet
+
+and clicking on "Data sheet" would invoke the viewer with the argument
+"http://www.nxp.com/documents/data_sheet/IP4220CZ6.pdf"
+
+Eeshow invokes the program named in the environment variable EESHOW_VIEWER.
+If EESHOW_VIEWER is not set, it uses xdg-open.
+
+
+Caching PDF documentation
+-------------------------
+
+A caching wrapper for PDF document viewers is provided as "eeshow-viewer".
+To use it with eeshow,
+
+EESHOW_VIEWER=eeshow-viewer
+export EESHOW_VIEWER
+
+Data sheets are cached in the directory $HOME/.eeshow-viewer-cache
+This can be overridden with the environment variable EESHOW_VIEWER_CACHE.
+
+Create the cache directory either with "mkdir", or run
+eeshow-viewer -m
+
+The viewer launched by eeshow-viewer is determined as follows:
+- the value of EESHOW_PDF_VIEWER
+- if not set, the value of PDF_VIEWER
+- if not set, xdg-open
+
+With xpdf or evince, eeshow-viewer supports the URL#page syntax for PDF
+documents.
