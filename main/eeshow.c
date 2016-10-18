@@ -46,7 +46,7 @@ void usage(const char *name)
 "\n"
 "  -1    show only one sheet - do not recurse into sub-sheets\n"
 "  -d file.doc_db\n"
-"        load documentation database file\n"
+"        load documentation database file (experimental)\n"
 "  -v    increase verbosity of diagnostic output\n"
 "  -E shell_command ...\n"
 "        execute the specified shell command when the GUI is ready.\n"
