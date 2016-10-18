@@ -2,7 +2,7 @@ UPLOAD = wpwrak@neo900.org:pub/eeshow/
 SCP = rsync -e "neo900 --ssh" -v
 
 FIGS = wt-start wt-plain wt-pin-type wt-glabel wt-index wt-history wt-diff \
-       wt-diff-old wt-diff-new wt-diff-index
+       wt-diff-old wt-diff-new wt-diff-index wt-doc
 
 .PHONY:		upload
 
