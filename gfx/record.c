@@ -61,6 +61,7 @@ struct record_obj {
 			enum text_align align;
 			int rot;
 			enum text_style style;
+			struct record_bbox bbox;
 		} text;
 	} u;
 	struct record_obj *next;
@@ -235,24 +236,30 @@ void record_text(void *ctx, int x, int y, const char *s, unsigned size,
 	struct record *rec = ctx;
 	struct record_obj *obj =
 	    new_obj(ctx, ro_text, color, COLOR_NONE, layer);
+	struct record_bbox bbox;
 	int width = rec->ops->text_width(rec->user, s, size, style);
 
+	bb_init(&bbox);
 	switch (align) {
 	case text_min:
-		bb_rot(&rec->bbox, x, y, 0, -size, rot);
-		bb_rot(&rec->bbox, x, y, width, 0, rot);
+		bb_rot(&bbox, x, y, 0, -size, rot);
+		bb_rot(&bbox, x, y, width, 0, rot);
 		break;
 	case text_mid:
-		bb_rot(&rec->bbox, x, y, -(width + 1) / 2, -size, rot);
-		bb_rot(&rec->bbox, x, y, (width + 1) / 2, 0, rot);
+		bb_rot(&bbox, x, y, -(width + 1) / 2, -size, rot);
+		bb_rot(&bbox, x, y, (width + 1) / 2, 0, rot);
 		break;
 	case text_max:
-		bb_rot(&rec->bbox, x, y, -width, -size, rot);
-		bb_rot(&rec->bbox, x, y, 0, 0, rot);
+		bb_rot(&bbox, x, y, -width, -size, rot);
+		bb_rot(&bbox, x, y, 0, 0, rot);
 		break;
 	default:
 		BUG("invalid alignment %d", align);
 	}
+
+	obj->u.text.bbox = bbox;
+	bb(&rec->bbox, bbox.xmin, bbox.ymin);
+	bb(&rec->bbox, bbox.xmax, bbox.ymax);
 
 	obj->x = x;
 	obj->y = y;
