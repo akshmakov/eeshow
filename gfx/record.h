@@ -27,12 +27,16 @@ struct record_layer {
 	struct record_layer *next;
 };
 
+struct record_bbox {
+	int xmin, xmax;
+	int ymin, ymax;
+};
+
 struct record {
 	const struct gfx_ops *ops;
 	void *user;
 	enum gfx_extra extra;
-	int xmin, xmax;
-	int ymin, ymax;
+	struct record_bbox bbox;
 	struct record_layer *layers;
 };
 

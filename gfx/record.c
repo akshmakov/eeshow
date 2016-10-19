@@ -70,24 +70,32 @@ struct record_obj {
 /* ----- Helper functions -------------------------------------------------- */
 
 
-static void bb(struct record *rec, int x, int y)
+static void bb_init(struct record_bbox *bbox)
 {
-	if (rec->xmin > x)
-		rec->xmin = x;
-	if (rec->ymin > y)
-		rec->ymin = y;
-	if (rec->xmax < x)
-		rec->xmax = x;
-	if (rec->ymax < y)
-		rec->ymax = y;
+	bbox->xmin = bbox->ymin = INT_MAX;
+	bbox->xmax = bbox->ymax = INT_MIN;
 }
 
 
-static void bb_rot(struct record *rec, int x, int y, int dx, int dy, int rot)
+static void bb(struct record_bbox *bbox, int x, int y)
+{
+	if (bbox->xmin > x)
+		bbox->xmin = x;
+	if (bbox->ymin > y)
+		bbox->ymin = y;
+	if (bbox->xmax < x)
+		bbox->xmax = x;
+	if (bbox->ymax < y)
+		bbox->ymax = y;
+}
+
+
+static void bb_rot(struct record_bbox *bbox,
+    int x, int y, int dx, int dy, int rot)
 {
 	double a = rot / 180.0 * M_PI;
 
-	bb(rec, x + cos(a) * dx + sin(a) * dy, y + cos(a) * dy - sin(a) * dx);
+	bb(bbox, x + cos(a) * dx + sin(a) * dy, y + cos(a) * dy - sin(a) * dx);
 }
 
 
@@ -138,8 +146,8 @@ void record_line(void *ctx, int sx, int sy, int ex, int ey,
 	struct record_obj *obj =
 	    new_obj(rec, ro_line, color, COLOR_NONE, layer);
 
-	bb(rec, sx, sy);
-	bb(rec, ex, ey);
+	bb(&rec->bbox, sx, sy);
+	bb(&rec->bbox, ex, ey);
 
 	obj->x = sx;
 	obj->y = sy;
@@ -155,8 +163,8 @@ void record_rect(void *ctx, int sx, int sy, int ex, int ey,
 	struct record_obj *obj =
 	    new_obj(rec, ro_rect, color, fill_color, layer);
 
-	bb(rec, sx, sy);
-	bb(rec, ex, ey);
+	bb(&rec->bbox, sx, sy);
+	bb(&rec->bbox, ex, ey);
 
 	obj->x = sx;
 	obj->y = sy;
@@ -176,7 +184,7 @@ void record_poly(void *ctx,
 	unsigned  size;
 
 	for (i = 0; i != points; i++)
-		bb(rec, x[i], y[i]);
+		bb(&rec->bbox, x[i], y[i]);
 
 	obj->u.poly.n = points;
 	size = sizeof(int) * points;
@@ -194,8 +202,8 @@ void record_circ(void *ctx, int x, int y, int r,
 	struct record_obj *obj =
 	    new_obj(ctx, ro_circ, color, fill_color, layer);
 
-	bb(rec, x - r, y - r);
-	bb(rec, x + r, y + r);
+	bb(&rec->bbox, x - r, y - r);
+	bb(&rec->bbox, x + r, y + r);
 
 	obj->x = x;
 	obj->y = y;
@@ -209,8 +217,8 @@ void record_arc(void *ctx, int x, int y, int r, int sa, int ea,
 	struct record *rec = ctx;
 	struct record_obj *obj = new_obj(ctx, ro_arc, color, fill_color, layer);
 
-	bb(rec, x - r, y - r);
-	bb(rec, x + r, y + r);
+	bb(&rec->bbox, x - r, y - r);
+	bb(&rec->bbox, x + r, y + r);
 
 	obj->x = x;
 	obj->y = y;
@@ -231,16 +239,16 @@ void record_text(void *ctx, int x, int y, const char *s, unsigned size,
 
 	switch (align) {
 	case text_min:
-		bb_rot(rec, x, y, 0, -size, rot);
-		bb_rot(rec, x, y, width, 0, rot);
+		bb_rot(&rec->bbox, x, y, 0, -size, rot);
+		bb_rot(&rec->bbox, x, y, width, 0, rot);
 		break;
 	case text_mid:
-		bb_rot(rec, x, y, -(width + 1) / 2, -size, rot);
-		bb_rot(rec, x, y, (width + 1) / 2, 0, rot);
+		bb_rot(&rec->bbox, x, y, -(width + 1) / 2, -size, rot);
+		bb_rot(&rec->bbox, x, y, (width + 1) / 2, 0, rot);
 		break;
 	case text_max:
-		bb_rot(rec, x, y, -width, -size, rot);
-		bb_rot(rec, x, y, 0, 0, rot);
+		bb_rot(&rec->bbox, x, y, -width, -size, rot);
+		bb_rot(&rec->bbox, x, y, 0, 0, rot);
 		break;
 	default:
 		BUG("invalid alignment %d", align);
@@ -272,8 +280,7 @@ void record_init(struct record *rec, const struct gfx_ops *ops, void *user)
 	rec->ops = ops;
 	rec->user = user;
 	rec->extra = 0;
-	rec->xmin = rec->ymin = INT_MAX;
-	rec->xmax = rec->ymax = INT_MIN;
+	bb_init(&rec->bbox);
 	rec->layers = NULL;
 }
 
@@ -351,13 +358,13 @@ void record_replay(const struct record *rec, enum gfx_extra extra)
 void record_bbox(const struct record *rec, int *x, int *y, int *w, int *h)
 {
 	if (x)
-		*x = rec->xmin;
+		*x = rec->bbox.xmin;
 	if (y)
-		*y = rec->ymin;
+		*y = rec->bbox.ymin;
 	if (w)
-		*w = rec->xmax - rec->xmin + 1;
+		*w = rec->bbox.xmax - rec->bbox.xmin + 1;
 	if (h)
-		*h = rec->ymax - rec->ymin + 1;
+		*h = rec->bbox.ymax - rec->bbox.ymin + 1;
 }
 
 
