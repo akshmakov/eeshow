@@ -16,6 +16,7 @@
 
 #include <gtk/gtk.h>
 
+#include "gfx/record.h"
 #include "gfx/gfx.h"
 #include "file/git-hist.h"
 #include "kicad/sch.h"
@@ -417,8 +418,11 @@ static bool sheet_click(void *user, int x, int y)
 	struct gui *gui = user;
 	const struct gui_sheet *curr_sheet = gui->curr_sheet;
 	int ex, ey;
+	const char *s;
 
 	canvas_coord(gui, x, y, &ex, &ey);
+	ex += curr_sheet->xmin;
+	ey += curr_sheet->ymin;
 
 	if (gui->old_hist && gui->diff_mode == diff_old)
 		curr_sheet = find_corresponding_sheet(gui->old_hist->sheets,
@@ -426,13 +430,20 @@ static bool sheet_click(void *user, int x, int y)
 
 	if (aoi_click(&gui->aois, x, y))
 		return 1;
-	if (aoi_click(&curr_sheet->aois,
-	    ex + curr_sheet->xmin, ey + curr_sheet->ymin))
+	if (aoi_click(&curr_sheet->aois, ex, ey))
 		return 1;
 
-	overlay_remove_all(&gui->pop_overlays);
-	overlay_remove_all(&gui->pop_underlays);
-	redraw(gui);
+	if (gui->pop_overlays || gui->pop_underlays) {
+		overlay_remove_all(&gui->pop_overlays);
+		overlay_remove_all(&gui->pop_underlays);
+		redraw(gui);
+		return 1;
+	}
+
+	s = record_find_text(gfx_user(curr_sheet->gfx), show_extra, ex, ey);
+	if (s)
+		fprintf(stderr, "%s\n", s);
+
 	return 1;
 }
 
