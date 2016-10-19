@@ -419,7 +419,6 @@ static bool sheet_click(void *user, int x, int y)
 	struct gui *gui = user;
 	const struct gui_sheet *curr_sheet = gui->curr_sheet;
 	int ex, ey;
-	const char *s;
 
 	canvas_coord(gui, x, y, &ex, &ey);
 	ex += curr_sheet->xmin;
@@ -440,10 +439,6 @@ static bool sheet_click(void *user, int x, int y)
 		redraw(gui);
 		return 1;
 	}
-
-	s = record_find_text(gfx_user(curr_sheet->gfx), show_extra, ex, ey);
-	if (s)
-		copy_to_clipboard(s);
 
 	return 1;
 }
@@ -470,7 +465,23 @@ static bool sheet_hover_update(void *user, int x, int y)
 
 static bool sheet_drag_begin(void *user, int x, int y)
 {
+	struct gui *gui = user;
+	const struct gui_sheet *curr_sheet = gui->curr_sheet;
+	int ex, ey;
+
 	dehover_pop(user);
+
+	canvas_coord(gui, x, y, &ex, &ey);
+	ex += curr_sheet->xmin;
+	ey += curr_sheet->ymin;
+
+	if (gui->old_hist && gui->diff_mode == diff_old)
+		curr_sheet = find_corresponding_sheet(gui->old_hist->sheets,
+		    gui->new_hist->sheets, gui->curr_sheet);
+
+	gui->drag_text = record_find_text(gfx_user(curr_sheet->gfx),
+	    show_extra, ex, ey);
+
 	return 1;
 }
 
@@ -478,6 +489,9 @@ static bool sheet_drag_begin(void *user, int x, int y)
 static void sheet_drag_move(void *user, int dx, int dy)
 {
 	struct gui *gui = user;
+
+	if (gui->drag_text)
+		return;
 
 	gui->x -= dx / gui->scale;
 	gui->y -= dy / gui->scale;
@@ -487,6 +501,13 @@ static void sheet_drag_move(void *user, int dx, int dy)
 
 static void sheet_drag_end(void *user)
 {
+	struct gui *gui = user;
+
+	if (gui->drag_text) {
+		copy_to_clipboard(gui->drag_text);
+		gui->drag_text = NULL;
+		
+	}
 	input_update();
 }
 

@@ -126,6 +126,8 @@ struct gui {
 	struct gui_hist *new_hist;
 	struct gui_hist *old_hist; /* NULL if not comparing */
 
+	const char *drag_text;	/* text being "dragged" (marked); or NULL */
+
 	int hist_y_offset;	/* history list y offset */
 
 	/* progress bar */
