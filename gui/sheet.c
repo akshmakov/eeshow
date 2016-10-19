@@ -30,6 +30,7 @@
 #include "gui/help.h"
 #include "gui/icons.h"
 #include "gui/timer.h"
+#include "gui/clipboard.h"
 #include "gui/common.h"
 
 
@@ -442,7 +443,7 @@ static bool sheet_click(void *user, int x, int y)
 
 	s = record_find_text(gfx_user(curr_sheet->gfx), show_extra, ex, ey);
 	if (s)
-		fprintf(stderr, "%s\n", s);
+		copy_to_clipboard(s);
 
 	return 1;
 }

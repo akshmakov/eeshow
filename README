@@ -46,6 +46,8 @@ If building with USE_WEBKIT=y:
 
 libwebkit2gtk-4.0-dev
 
+Furthermore, the xsel command-line utility is required for copy & paste.
+
 
 Development status
 ------------------
