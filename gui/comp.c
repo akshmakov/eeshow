@@ -208,9 +208,14 @@ static void add_doc(void *user, const char *tag, const char *s)
 
 void add_comp_aoi(struct gui_sheet *sheet, const struct sch_obj *obj)
 {
-	const struct dwg_bbox bbox = get_bbox(obj);
+	struct dwg_bbox bbox;
 	struct comp_aoi_ctx *ctx = alloc_type(struct comp_aoi_ctx);
 	const struct comp_field *f;
+
+	if (!obj->u.comp.comp)
+		return;
+
+	bbox = get_bbox(obj);
 
 	struct aoi cfg = {
 		.x	= bbox.x,
