@@ -186,3 +186,23 @@ void place_pop(struct gui *gui, const struct dwg_bbox *bbox)
 	}
 
 }
+
+
+void place_pop_cover(struct gui *gui, const struct dwg_bbox *bbox,
+    struct overlay_style *style)
+{
+	const struct gui_sheet *curr_sheet = gui->curr_sheet;
+	int sx, sy, ex, ey;
+
+	eeschema_coord(gui,
+	    bbox->x - curr_sheet->xmin, bbox->y - curr_sheet->ymin,
+	    &sx, &sy);
+	eeschema_coord(gui, bbox->x + bbox->w - curr_sheet->xmin,
+	    bbox->y + bbox->h - curr_sheet->ymin, &ex, &ey);
+
+	gui->pop_x = sx - style->pad;
+	gui->pop_y = sy - style->pad;
+	style->wmin = style->wmax = ex - sx + 1;
+	style->hmin = style->hmax = ey - sy + 1;
+	gui->pop_dx = gui->pop_dy = 0;
+}
