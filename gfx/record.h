@@ -61,6 +61,8 @@ void record_set_extra(void *ctx, enum gfx_extra extra);
 void record_init(struct record *rec, const struct gfx_ops *ops, void *user);
 void record_wipe(struct record *rec);
 void record_replay(const struct record *rec, enum gfx_extra extra);
+const char *record_find_text_bbox(const struct record *rec, 
+    enum gfx_extra extra, int x, int y, struct record_bbox *bbox);
 const char *record_find_text(const struct record *rec, enum gfx_extra extra,
     int x, int y);
 void record_bbox(const struct record *rec, int *x, int *y, int *w, int *h);

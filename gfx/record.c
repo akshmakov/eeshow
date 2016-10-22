@@ -362,12 +362,11 @@ void record_replay(const struct record *rec, enum gfx_extra extra)
 /* ----- Find text by position --------------------------------------------- */
 
 
-const char *record_find_text(const struct record *rec, enum gfx_extra extra,
-    int x, int y)
+const char *record_find_text_bbox(const struct record *rec,
+    enum gfx_extra extra, int x, int y, struct record_bbox *bbox)
 {
 	const struct record_layer *layer;
 	const struct record_obj *obj;
-	struct record_bbox bbox;
 
 	for (layer = rec->layers; layer; layer = layer->next)
 		for (obj = layer->objs; obj; obj = obj->next) {
@@ -375,12 +374,21 @@ const char *record_find_text(const struct record *rec, enum gfx_extra extra,
 				continue;
 			if (obj->type != ro_text)
 				continue;
-			bbox = obj->u.text.bbox;
-			if (x >= bbox.xmin && x <= bbox.xmax &&
-			    y >= bbox.ymin && y <= bbox.ymax)
+			*bbox = obj->u.text.bbox;
+			if (x >= bbox->xmin && x <= bbox->xmax &&
+			    y >= bbox->ymin && y <= bbox->ymax)
 				return obj->u.text.s;
 		}
 	return NULL;
+}
+
+
+const char *record_find_text(const struct record *rec, enum gfx_extra extra,
+    int x, int y)
+{
+	struct record_bbox bbox;
+
+	return record_find_text_bbox(rec, extra, x, y, &bbox);
 }
 
 
