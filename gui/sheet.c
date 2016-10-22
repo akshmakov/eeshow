@@ -468,6 +468,7 @@ static bool sheet_drag_begin(void *user, int x, int y)
 	struct gui *gui = user;
 	const struct gui_sheet *curr_sheet = gui->curr_sheet;
 	int ex, ey;
+	struct record_bbox rec_bbox;
 
 	dehover_pop(user);
 
@@ -479,8 +480,31 @@ static bool sheet_drag_begin(void *user, int x, int y)
 		curr_sheet = find_corresponding_sheet(gui->old_hist->sheets,
 		    gui->new_hist->sheets, gui->curr_sheet);
 
-	gui->drag_text = record_find_text(gfx_user(curr_sheet->gfx),
-	    show_extra, ex, ey);
+	gui->drag_text = record_find_text_bbox(gfx_user(curr_sheet->gfx),
+	    show_extra, ex, ey, &rec_bbox);
+	if (gui->drag_text) {
+		struct overlay *over;
+		struct overlay_style style = {
+			.radius	= 5,
+			.pad	= 3,
+			.skip	= 0,
+			.fg	= RGBA(0, 0, 0, 0),
+			.bg	= RGBA(0, 0, 0, 0.15),
+			.frame	= RGBA(0, 0, 0, 0),
+			.width	= 0
+		};
+		struct dwg_bbox bbox = {
+			.x	= rec_bbox.xmin,
+			.y	= rec_bbox.ymin,
+			.w	= rec_bbox.xmax - rec_bbox.xmin,
+			.h	= rec_bbox.ymax - rec_bbox.ymin,
+		};
+
+		over = overlay_add(&gui->pop_overlays, NULL, NULL, NULL, NULL);
+		place_pop_cover(gui, &bbox, &style);
+		overlay_style(over, &style);
+		redraw(gui);
+	}
 
 	return 1;
 }
@@ -504,8 +528,10 @@ static void sheet_drag_end(void *user)
 	struct gui *gui = user;
 
 	if (gui->drag_text) {
+		overlay_remove_all(&gui->pop_overlays);
 		copy_to_clipboard(gui->drag_text);
 		gui->drag_text = NULL;
+		redraw(gui);
 		
 	}
 	input_update();
