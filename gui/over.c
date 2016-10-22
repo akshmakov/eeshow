@@ -258,10 +258,19 @@ static unsigned overlay_draw_icon(struct overlay *over, cairo_t *cr,
 unsigned overlay_draw(struct overlay *over, cairo_t *cr,
     int x, int y, int dx, int dy)
 {
+	const struct overlay_style *style = &over->style;
+	unsigned w, h;
+
 	if (over->s)
 		return overlay_draw_text(over, cr, x, y, dx, dy);
-	else
+	if (over->icon)
 		return overlay_draw_icon(over, cr, x, y, dx, dy);
+
+	w = style->wmin + 2 * style->pad;
+	h = style->hmin + 2 * style->pad;
+	background(over, cr, x, y, w, h);
+	post_aoi(over, x, y, w, h);
+	return h;
 }
 
 
@@ -384,10 +393,18 @@ static void overlay_size_icon(const struct overlay *over, int *w, int *h)
 void overlay_size(const struct overlay *over, PangoContext *pango_context,
     int *w, int *h)
 {
+	const struct overlay_style *style = &over->style;
+
 	if (over->s)
 		overlay_size_text(over, pango_context, w, h);
-	else
+	else if (over->icon)
 		overlay_size_icon(over, w, h);
+	else {
+		if (w)
+			*w = style->wmin + 2 * style->pad;
+		if (h)
+			*h = style->hmin + 2 * style->pad;
+	}
 }
 
 
