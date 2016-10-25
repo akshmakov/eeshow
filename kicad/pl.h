@@ -25,6 +25,7 @@ struct pl_ctx;
 
 
 extern bool suppress_page_layout;
+extern const char *date_override;
 
 
 void pl_render(struct pl_ctx *pl, struct gfx *gfx,

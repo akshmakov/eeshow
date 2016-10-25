@@ -35,6 +35,8 @@
 
 bool suppress_page_layout = 0;
 
+const char *date_override = NULL;
+
 
 /*
  * Eeschema works in mil
@@ -88,7 +90,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			}
 			break;
 		case 'D':		// date
-			cx = sheet->date;
+			cx = date_override ? date_override : sheet->date;
 			break;
 		case 'F':		// file name
 			cx = sheet->file;
