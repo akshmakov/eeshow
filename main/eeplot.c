@@ -92,7 +92,7 @@ static const struct gfx_ops *find_by_output(int argc, char **argv)
 void usage(const char *name)
 {
 	fprintf(stderr,
-"usage: %s -o [type:]output_file [-1] [-e] [-v ...] [driver_opts]\n"
+"usage: %s -o [type:]output_file [-1] [-d date] [-e] [-v ...] [driver_opts]\n"
 "       %*skicad_file ...\n"
 "       %s -V\n"
 "       %s gdb ...\n"
@@ -102,6 +102,8 @@ void usage(const char *name)
 "    rev       git revision\n"
 "\n"
 "  -1    show only one sheet - do not recurse into sub-sheets\n"
+"  -d date\n"
+"        use the specified string instead of date entries in sheets\n"
 "  -e    show extra information (e.g., pin types)\n"
 "  -o [type:]output_file\n"
 "        output file. - for standard output. File type is derived from\n"
@@ -132,7 +134,7 @@ void usage(const char *name)
 }
 
 
-#define	OPTIONS	"1ehvL:OPV"
+#define	OPTIONS	"1d:ehvL:OPV"
 
 
 int main(int argc, char **argv)
@@ -161,6 +163,9 @@ int main(int argc, char **argv)
 		switch (c) {
 		case '1':
 			one_sheet = 1;
+			break;
+		case 'd':
+			date_override = optarg;
 			break;
 		case 'e':
 			extra = 1;
