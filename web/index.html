@@ -34,6 +34,10 @@ Sections:
   <LI><A href="#motivation">Motivation</A>
   <LI><A href="#walk-through">Walk-through</A>
   <LI><A href="#experimental">Experimental features</A>
+    <UL>
+      <LI><A href="#documentation">Documentation</A>
+      <LI><A href="#copy-paste">Copy and paste</A>
+    </UL>
   <LI><A href="#non-interactive">Non-interactive use</A>
 </UL>
 
@@ -228,6 +232,12 @@ Delta mode can also be selected for visualization, by pressing Shift-D.
 <A name="experimental">
 <H2>Experimental features</H2>
 
+The following features are experimental and may exhibit quirks.
+
+
+<A name="documentation">
+<H3>Documentation</H3>
+
 Eeshow can be given a list of documents to show for components (identified
 by their component reference).
 <BR>
@@ -246,6 +256,21 @@ The Neo900 project makes use of this functionality, as explained in
 the section "Viewing documentation" in
 <BR>
 <A href="https://neo900.org/git?p=ee;a=blob;f=README"><code>https://neo900.org/git?p=ee;a=blob;f=README</code></A>
+<P>
+
+
+<A name="copy-paste">
+<H3>Copy and paste</H3>
+
+To copy text from schematics to the clipboard, move the mouse on the text
+in question, push and hold the mouse button, and swipe/drag it a little.
+<BR>
+The text is then highlighted and copied to the clipboard.
+<BR>
+This requires the <B>xsel</B> command-line utility to be installed.
+<P>
+<IMG src="wt-cp.png">
+<P>
 
 
 <A name="non-interactive">
