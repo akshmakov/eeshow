@@ -11,7 +11,7 @@
  */
 
 /*
- * Strongly influenced by https://neo900.org/git?p=misc;a=tree;f=schtoc
+ * Strongly influenced by https://neo900.org/git/misc/tree/schtoc
  *
  * PDF Reference:
  * http://www.adobe.com/content/dam/Adobe/en/devnet/acrobat/pdfs/pdf_reference_1-7.pdf

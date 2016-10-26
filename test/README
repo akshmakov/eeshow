@@ -1,7 +1,7 @@
 Setup
 -----
 
-git clone https://neo900.org/git/ee.git neo900-ee
+git clone https://neo900.org/git/ee neo900-ee
 cd neo900-ee
 git reset --hard 57eebdcf573311c049bc57527bc03a517aff0fef
 
