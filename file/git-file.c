@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -33,6 +34,7 @@ struct vcs_git {
 	const struct vcs_git *related;
 
 	git_repository *repo;
+	git_commit *commit;
 	git_tree *tree;
 	git_object *obj;
 
@@ -90,23 +92,17 @@ static git_repository *select_repo(const char *path)
 }
 
 
-static git_tree *pick_revision(git_repository *repo, const char *revision)
+static git_commit *pick_revision(git_repository *repo, const char *revision)
 {
-	git_commit *commit;
 	git_object *obj;
-	git_tree *tree;
 
 	if (git_revparse_single(&obj, repo, revision))
 		pfatal_git(git_repository_path(repo));
 
 	if (git_object_type(obj) != GIT_OBJ_COMMIT)
 		fatal("%s: not a commit", revision);
-	commit = (git_commit *) obj;
 
-	if (git_commit_tree(&tree, commit))
-		pfatal_git(revision);
-
-	return tree;
+	return (git_commit *) obj;
 }
 
 
@@ -469,7 +465,10 @@ struct vcs_git *vcs_git_open(const char *revision, const char *name,
 
 	if (!revision)
 		revision = "HEAD";
-	vcs_git->tree = pick_revision(vcs_git->repo, revision);
+	vcs_git->commit = pick_revision(vcs_git->repo, revision);
+
+	if (git_commit_tree(&vcs_git->tree, vcs_git->commit))
+		pfatal_git(revision);
 
 	if (!access_file_data(vcs_git, name))
 		goto fail;
@@ -479,6 +478,17 @@ struct vcs_git *vcs_git_open(const char *revision, const char *name,
 fail:
 	vcs_git_close(vcs_git);
 	return 0;
+}
+
+
+/* ----- Commit time ------------------------------------------------------- */
+
+
+time_t vcs_git_time(void *ctx)
+{
+	const struct vcs_git *vcs_git = ctx;
+
+	return git_commit_time(vcs_git->commit);
 }
 
 

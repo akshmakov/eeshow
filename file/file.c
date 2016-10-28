@@ -14,7 +14,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "misc/util.h"
 #include "misc/diag.h"
@@ -41,6 +44,19 @@ bool file_oid_eq(const void *a, const void *b)
 	 * can't tell if they're identical.
 	 */
 	return a && b && vcs_git_oid_eq(a, b);
+}
+
+
+static void get_time(struct file *file)
+{
+	struct stat st;
+
+	if (fstat(fileno(file->file), &st)) {
+		diag_perror("fstat");
+		file->mtime = 0;
+	} else {
+		file->mtime = st.st_mtime;
+	}
 }
 
 
@@ -97,6 +113,7 @@ static bool try_related(struct file *file)
 
 	free((char *) file->name);
 	file->name = tmp;
+	get_time(file);
 	return 1;
 }
 
@@ -140,18 +157,20 @@ static void *open_vcs(struct file *file)
 		    file->related ? file->related->vcs : NULL);
 		if (file->vcs) {
 			free(tmp);
-			return file->vcs;
+		} else {
+			progress(2, "could not open %s:%s", tmp, colon + 1);
+			return NULL;
 		}
-		progress(2, "could not open %s:%s", tmp, colon + 1);
-		return NULL;
 	} else {
 		file->vcs = vcs_git_open(NULL, file->name,
 		    file->related ? file->related->vcs : NULL);
-		if (file->vcs)
-			return file->vcs;
-		progress(2, "could not open %s", file->name);
-		return NULL;
+		if (!file->vcs) {
+			progress(2, "could not open %s", file->name);
+			return NULL;
+		}
 	}
+	file->mtime = vcs_git_time(file->vcs);
+	return file->vcs;
 }
 
 
@@ -188,6 +207,7 @@ bool file_open(struct file *file, const char *name, const struct file *related)
 
 	file->file = fopen(name, "r");
 	if (file->file) {
+		get_time(file);
 		progress(1, "reading %s", name);
 		return 1;
 	}
@@ -249,8 +269,10 @@ bool file_open_revision(struct file *file, const char *rev, const char *name,
 
 	file_init(file, name, related);
 	file->vcs = vcs_git_open(rev, name, related ? related->vcs : NULL);
-	if (file->vcs)
+	if (file->vcs) {
+		file->mtime = vcs_git_time(file->vcs);
 		return 1;
+	}
 	progress(2, "could not open %s at %s", name, rev);
 	return 0;
 }

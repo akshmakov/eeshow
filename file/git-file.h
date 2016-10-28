@@ -14,6 +14,7 @@
 #define	FILE_GIT_FILE_H
 
 #include <stdbool.h>
+#include <time.h>
 
 
 /*
@@ -37,6 +38,7 @@ bool vcs_git_oid_eq(const void *a, const void *b);
 
 struct vcs_git *vcs_git_open(const char *revision, const char *name,
     const struct vcs_git *related);
+time_t vcs_git_time(void *ctx);
 bool vcs_git_read(void *ctx, struct file *file,
     bool (*parse)(const struct file *file, void *user, const char *line),
     void *user);

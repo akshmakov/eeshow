@@ -15,6 +15,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <time.h>
 
 
 struct file {
@@ -22,6 +23,7 @@ struct file {
 	void *vcs;		/* VCS descriptor or NULL */
 	const char *name;	/* name/designator given to file_open */
 	unsigned lineno;
+	time_t mtime;		/* modification time */
 	const struct file *related; /* NULL if not related to anything */
 };
 
