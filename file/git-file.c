@@ -486,10 +486,21 @@ fail:
 /* ----- Commit time ------------------------------------------------------- */
 
 
+static int search(const char *root, const git_tree_entry *entry, void *payload)
+{
+	const git_oid *oid = payload;
+
+	return git_oid_equal(git_tree_entry_id(entry), oid) ? -1 : 0;
+}
+
+
 /*
  * @@@ Not very efficient. If there are branches, we will search the ancestry
  * for each branch, which could mean a lot of times. Should keep track of what
  * we we've already seen, like git-hist does.
+ *
+ * We have to use git_tree_walk instead of git_tree_entry_byid since the latter
+ * doesn't recurse into sub-trees.
  */
 
 static void recurse_time(const git_commit *commit, const git_oid *oid,
@@ -499,24 +510,29 @@ static void recurse_time(const git_commit *commit, const git_oid *oid,
 	git_commit *parent;
 	git_tree *tree;
 	const git_signature *sig;
+	int res;
 
 	sig = git_commit_author(commit);
 #if 0
 	if (!*best || sig->when.time < *best) {
 		if (git_commit_tree(&tree, commit))
 			pfatal_git("recurse_time");
-		if (git_tree_entry_byid(tree, oid))
+		res = git_tree_walk(tree, GIT_TREEWALK_PRE, search,
+		    (void *) oid);
+		if (res)
 			*best = sig->when.time;
 	}
 #else
 	/*
 	 * @@@ Stopping lookups when the object in question disappears from
 	 * the tree may not be entirely correct (not sure whether it's
-	 * actually wrong, though), but it speeds up things tremendously.
+	 * actually wrong, though), but it can speed up things tremendously.
 	 */
 	if (git_commit_tree(&tree, commit))
 		pfatal_git("recurse_time");
-	if (!git_tree_entry_byid(tree, oid))
+	res = git_tree_walk(tree, GIT_TREEWALK_PRE, search,
+	    (void *) oid);
+	if (!res)
 		return;
 	if (!*best || sig->when.time < *best)
 		*best = sig->when.time;
