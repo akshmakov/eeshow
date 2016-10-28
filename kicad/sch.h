@@ -111,6 +111,8 @@ struct sheet {
 	struct sch_obj **next_obj;
 	struct sheet *next;
 
+	time_t mtime;			/* file / commit time */
+
 	/* header items */
 	const char *size;		/* paper size, from $Descr */
 	int w, h;

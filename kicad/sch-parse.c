@@ -372,6 +372,7 @@ static struct sheet *new_sheet(struct sch_ctx *ctx)
 	sheet = alloc_type(struct sheet);
 	sheet->title = NULL;
 	sheet->file = NULL;
+	sheet->mtime = 0;
 	sheet->path = NULL;
 	sheet->objs = NULL;
 	sheet->next_obj = &sheet->objs;
@@ -415,6 +416,7 @@ static struct sheet *recurse_sheet(struct sch_ctx *ctx,
 	sheet = new_sheet(ctx);
 	// should get what file_open really uses @@@
 	sheet->file = stralloc(sanitize_file_name(file.name));
+	sheet->mtime = file.mtime;
 	alloc_printf(&tmp, "%s%s/", parent->path,
 	    ctx->obj.u.sheet.name ? ctx->obj.u.sheet.name : "");
 	sheet->path = tmp;
@@ -730,6 +732,7 @@ bool sch_parse(struct sch_ctx *ctx, struct file *file, const struct lib *lib,
     const struct sch_ctx *prev)
 {
 	ctx->curr_sheet->file = stralloc(sanitize_file_name(file->name));
+	ctx->curr_sheet->mtime = file->mtime;
 	ctx->curr_sheet->path = stralloc("/");
 	ctx->lib = lib;
 	ctx->prev = prev;
