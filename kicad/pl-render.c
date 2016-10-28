@@ -38,6 +38,9 @@ bool suppress_page_layout = 0;
 const char *date_override = NULL;
 
 
+/* ----- Coordinate transform ---------------------------------------------- */
+
+
 /*
  * Eeschema works in mil
  * Page layouts are in mm
@@ -54,6 +57,9 @@ static int coord(int v, int d, int o, int e)
 {
 	return d >= 0 ? o + v : e - v;
 }
+
+
+/* ----- String expansion -------------------------------------------------- */
 
 
 static char *expand(const struct pl_ctx *pl, const char *s,
@@ -148,6 +154,9 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 	memcpy(res + size, s, len + 1);
 	return res;
 }
+
+
+/* ----- Rendering --------------------------------------------------------- */
 
 
 static char *increment(char *s, int inc, const char *range)
