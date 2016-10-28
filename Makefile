@@ -50,6 +50,7 @@ EEDIFF_OBJS = main/eediff.o main/common.o \
 	$(OBJS_MISC)
 EETEST_OBJS = main/eetest.o main/common.o \
 	kicad/sexpr.o \
+	kicad/pl-render.o gfx/gfx.o gfx/text.o gfx/misc.o \
 	gui/fmt-pango.o \
 	$(OBJS_FILE) \
 	$(OBJS_MISC)

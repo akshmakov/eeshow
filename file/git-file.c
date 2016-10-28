@@ -547,13 +547,27 @@ static void recurse_time(const git_commit *commit, const git_oid *oid,
 }
 
 
+#include "kicad/pl.h"
+
+
 time_t vcs_git_time(void *ctx)
 {
 	const struct vcs_git *vcs_git = ctx;
 	const git_oid *oid = git_object_id(vcs_git->obj);
 	time_t t = 0;
 
-	recurse_time(vcs_git->commit, oid, &t);
+	/*
+	 * @@@ Retrieving time from git is rather slow, so we only do it if
+	 * there is any chance we'll actually need it.
+	 *
+	 * What would be better solutions:
+	 * - make the search more efficient (e.g., by avoiding searching the
+	 *   ancestry of merges multiple times),
+	 * - cache results,
+	 * - lazy evaluation.
+	 */
+	if (date_override)
+		recurse_time(vcs_git->commit, oid, &t);
 	return t;
 }
 
