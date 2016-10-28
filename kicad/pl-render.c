@@ -134,7 +134,7 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			cx = sheet->size;
 			break;
 		default:
-			x = "???";
+			cx = "???";
 			break;
 		}
 		if (!cx)
