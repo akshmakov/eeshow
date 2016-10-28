@@ -10,11 +10,14 @@
  * (at your option) any later version.
  */
 
+#define	_XOPEN_SOURCE		/* for strptime */
+#define	_XOPEN_SOURCE_EXTENDED	/* to not lose strdup */
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 #include <math.h>
 
 #include "version.h"
@@ -37,6 +40,9 @@ bool suppress_page_layout = 0;
 
 const char *date_override = NULL;
 
+#define DEFAULT_DATE_FORMAT	"%F %T %z"
+#define	KICAD_DATE_FORMAT	"%F"
+
 
 /* ----- Coordinate transform ---------------------------------------------- */
 
@@ -56,6 +62,104 @@ static int mil(float mm)
 static int coord(int v, int d, int o, int e)
 {
 	return d >= 0 ? o + v : e - v;
+}
+
+
+/* ----- Date formatting --------------------------------------------------- */
+
+
+static char *format_date(const char *fmt, const char *sheet_date)
+{
+	char *s = stralloc("");
+	time_t user_time = -1;
+	const char *p = fmt;
+	char *arg = NULL;
+	struct tm tm;
+	const char *end;
+	time_t t;
+
+	while (*p) {
+		int len;
+
+		free(arg);
+		arg = NULL;
+
+		len = strlen(s);
+
+		if (p[0] != '%' || p[1] == '%') {
+			if (*p == '%')
+				p++;
+			s = realloc_size(s, len + 2);
+			s[len] = *p;
+			s[len + 1] = 0;
+			p++;
+			continue;
+		}
+		if (*++p == '{') {
+			const char *start = ++p;
+
+			while (*p && *p != '}') {
+				if (p[0] == '%' && p[1] == '}')
+					p++;
+				p++;
+			}
+			if (!*p) {
+				error("incomplete argument in \"%s\"", fmt);
+				return s;
+			}
+			arg = alloc_size(p - start + 1);
+			memcpy(arg, start, p - start);
+			arg[p - start] = 0;
+			p++;
+		}
+		if (*p == '!') {
+			p++;
+			if (user_time != -1) {
+				p++;
+				continue;
+			}
+		}
+		switch (*p++) {
+		case 't':	/* local time */
+			time(&t);
+			break;
+		case 'i':	/* parse sheet_date */
+			memset(&tm, 0, sizeof(tm));
+			end = strptime(sheet_date,
+			    arg ? arg : KICAD_DATE_FORMAT, &tm);
+			if (end && !*end)
+			    user_time = mktime(&tm);
+			else
+				user_time = -1;
+			continue;
+		case 'u':	/* user time */
+			if (user_time == -1)
+				continue;
+			t = user_time;
+			break;
+		case 0:
+		default:
+			error("unrecognized date \"%c\"", p[-1]);
+			continue;
+		}
+
+		char buf[1000]; /* @@@ enough :) */
+		size_t size;
+
+		if (t == -1)
+			continue;
+		if (!localtime_r(&t, &tm))
+			continue;
+		size = strftime(buf, sizeof(buf),
+		    arg ? arg : DEFAULT_DATE_FORMAT, &tm);
+		s = realloc_size(s, len + size + 1);
+		memcpy(s + len, buf, size);
+		s[len + size] = 0;
+	}
+
+	free(arg);
+
+	return s;
 }
 
 
@@ -96,7 +200,11 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 			}
 			break;
 		case 'D':		// date
-			cx = date_override ? date_override : sheet->date;
+			if (date_override)
+				x = format_date(date_override,
+				    sheet->date ? sheet->date : "");
+			else
+				cx = sheet->date;
 			break;
 		case 'F':		// file name
 			cx = sheet->file;
