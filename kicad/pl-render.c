@@ -97,20 +97,20 @@ static char *format_date(const char *fmt, const char *sheet_date,
 			continue;
 		}
 		if (*++p == '{') {
-			const char *start = ++p;
+			char *to;
 
-			while (*p && *p != '}') {
+			/* allocate worst-case length */
+			arg = to = alloc_size(strlen(p) + 1);
+
+			for (p++; *p && *p != '}'; *to++ = *p++)
 				if (p[0] == '%' && p[1] == '}')
 					p++;
-				p++;
-			}
 			if (!*p) {
 				error("incomplete argument in \"%s\"", fmt);
+				free(arg);
 				return s;
 			}
-			arg = alloc_size(p - start + 1);
-			memcpy(arg, start, p - start);
-			arg[p - start] = 0;
+			*to = 0;
 			p++;
 		}
 		if (*p == '!') {
