@@ -361,6 +361,7 @@ static bool related_same_repo(struct vcs_git *vcs_git)
 	const struct vcs_git *related = vcs_git->related;
 
 	vcs_git->repo = related->repo;
+	vcs_git->commit = related->commit;
 	vcs_git->tree = related->tree;
 
 	return access_file_data(vcs_git, vcs_git->name);
@@ -407,6 +408,7 @@ static bool related_only_repo(struct vcs_git *vcs_git)
 	}
 
 	vcs_git->repo = related->repo;
+	vcs_git->commit = related->commit;
 	vcs_git->tree = related->tree;
 
 	if (!access_file_data(vcs_git, tmp)) {
