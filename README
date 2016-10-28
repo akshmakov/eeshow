@@ -133,6 +133,54 @@ should only be used if it is also kept in the repository. Otherwise,
 library changes in older revisions may get unnoticed.
 
 
+Overriding the sheet date (experimental)
+----------------------------------------
+
+Eeplot can override the sheet date when using the experimental option
+-d string  The specified string then replaces the date on all sheets.
+Example:
+
+eeplot -d "`git log -1 --format='%ai' -s .`" neo900.pro -o neo900.pdf
+
+The date string can also contain the following date formatting options:
+
+  %t	insert the current time
+  %s	insert the modification time of the sheet file, or the author
+	date of the commit containing the latest change to the sheet
+	file
+  %S	like %s, but use the date of the most recently modified sheet
+	that is part of the plot
+  %i	parse the date string in the sheet
+  %u	insert the date previously obtained with %i
+
+Example:
+
+eeplot -d "%s" ...
+
+All the above formatting options accept a format argument in the form
+%{format}x where "format" is a strftime-type string (or stfptime, in
+the case of %i) and "x" is the format character. Closing curly braces
+can be escaped with %}.
+
+If no format is specified, eeplot uses "%F" for %i (example: 2016-10-28)
+and "%F %T %z" for all other options (example: 2016-10-28 17:36:17 -0300).
+
+If %i fails to parse the date string, %u produces an empty string.
+An alternative can be selected with the ! prefix for the format
+character, which only expands the format if there is no user-provided
+date. Example:
+
+eeplot -d "%i%{%D}u%{%D}!s" HEAD:neo900.pro -o neo900.pdf
+
+The HEAD: in the above example makes eeplot retrieve the schematics
+from git. Without this prefix, it would use files (and thus the time
+they were checked out our locally modified, and not the time they were
+changed in the repository).
+
+Date support is still experimental and the syntax may change in future
+versions of eeplot.
+
+
 Non-interactive differences
 ===========================
 
