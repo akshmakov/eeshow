@@ -486,11 +486,59 @@ fail:
 /* ----- Commit time ------------------------------------------------------- */
 
 
+/*
+ * @@@ Not very efficient. If there are branches, we will search the ancestry
+ * for each branch, which could mean a lot of times. Should keep track of what
+ * we we've already seen, like git-hist does.
+ */
+
+static void recurse_time(const git_commit *commit, const git_oid *oid,
+    time_t *best)
+{
+	unsigned n, i;
+	git_commit *parent;
+	git_tree *tree;
+	const git_signature *sig;
+
+	sig = git_commit_author(commit);
+#if 0
+	if (!*best || sig->when.time < *best) {
+		if (git_commit_tree(&tree, commit))
+			pfatal_git("recurse_time");
+		if (git_tree_entry_byid(tree, oid))
+			*best = sig->when.time;
+	}
+#else
+	/*
+	 * @@@ Stopping lookups when the object in question disappears from
+	 * the tree may not be entirely correct (not sure whether it's
+	 * actually wrong, though), but it speeds up things tremendously.
+	 */
+	if (git_commit_tree(&tree, commit))
+		pfatal_git("recurse_time");
+	if (!git_tree_entry_byid(tree, oid))
+		return;
+	if (!*best || sig->when.time < *best)
+		*best = sig->when.time;
+#endif
+
+	n = git_commit_parentcount(commit);
+	for (i = 0; i != n; i++) {
+		if (git_commit_parent(&parent, commit, i))
+			pfatal_git("git_commit_parent");
+		recurse_time(parent, oid, best);
+	}
+}
+
+
 time_t vcs_git_time(void *ctx)
 {
 	const struct vcs_git *vcs_git = ctx;
+	const git_oid *oid = git_object_id(vcs_git->obj);
+	time_t t = 0;
 
-	return git_commit_time(vcs_git->commit);
+	recurse_time(vcs_git->commit, oid, &t);
+	return t;
 }
 
 
