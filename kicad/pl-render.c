@@ -68,7 +68,8 @@ static int coord(int v, int d, int o, int e)
 /* ----- Date formatting --------------------------------------------------- */
 
 
-static char *format_date(const char *fmt, const char *sheet_date)
+static char *format_date(const char *fmt, const char *sheet_date,
+    time_t mtime, time_t max_mtime)
 {
 	char *s = stralloc("");
 	time_t user_time = -1;
@@ -120,9 +121,6 @@ static char *format_date(const char *fmt, const char *sheet_date)
 			}
 		}
 		switch (*p++) {
-		case 't':	/* local time */
-			time(&t);
-			break;
 		case 'i':	/* parse sheet_date */
 			memset(&tm, 0, sizeof(tm));
 			end = strptime(sheet_date,
@@ -132,6 +130,15 @@ static char *format_date(const char *fmt, const char *sheet_date)
 			else
 				user_time = -1;
 			continue;
+		case 's':
+			t = mtime;
+			break;
+		case 'S':
+			t = max_mtime;
+			break;
+		case 't':	/* local time */
+			time(&t);
+			break;
 		case 'u':	/* user time */
 			if (user_time == -1)
 				continue;
@@ -164,6 +171,19 @@ static char *format_date(const char *fmt, const char *sheet_date)
 
 
 /* ----- String expansion -------------------------------------------------- */
+
+
+static time_t max_mtime(const struct sheet *sheets)
+{
+	time_t t = 0;
+
+	while (sheets) {
+		if (sheets->mtime > t)
+			t = sheets->mtime;
+		sheets = sheets->next;
+	}
+	return t;
+}
 
 
 static char *expand(const struct pl_ctx *pl, const char *s,
@@ -202,7 +222,8 @@ static char *expand(const struct pl_ctx *pl, const char *s,
 		case 'D':		// date
 			if (date_override)
 				x = format_date(date_override,
-				    sheet->date ? sheet->date : "");
+				    sheet->date ? sheet->date : "",
+				    sheet->mtime, max_mtime(sheets));
 			else
 				cx = sheet->date;
 			break;
