@@ -483,6 +483,49 @@ fail:
 }
 
 
+/* ----- Hash table for avoiding redundant passes through ancestry --------- */
+
+
+#define	HASH_BUCKETS	257
+
+
+static struct hash_bucket {
+	unsigned n;
+	const void **refs;
+} hash_buckets[HASH_BUCKETS];
+
+
+static void hash_init(void)
+{
+	memset(hash_buckets, 0, sizeof(hash_buckets));
+}
+
+
+static bool hash_test(const void *ref)
+{
+	unsigned h = (unsigned long) ref % HASH_BUCKETS;
+	struct hash_bucket *b = hash_buckets + h;
+	unsigned i;
+
+	for (i = 0; i != b->n; i++)
+		if (b->refs[i] == ref)
+			return 1;
+	b->refs = realloc_type_n(b->refs, const void *, b->n + 1);
+	b->refs[b->n] = ref;
+	b->n++;
+	return 0;
+}
+
+
+static void hash_free(void)
+{
+	unsigned i;
+
+	for (i = 0; i != HASH_BUCKETS; i++)
+		free((void *) hash_buckets[i].refs);
+}
+
+
 /* ----- Commit time ------------------------------------------------------- */
 
 
@@ -495,10 +538,6 @@ static int search(const char *root, const git_tree_entry *entry, void *payload)
 
 
 /*
- * @@@ Not very efficient. If there are branches, we will search the ancestry
- * for each branch, which could mean a lot of times. Should keep track of what
- * we we've already seen, like git-hist does.
- *
  * We have to use git_tree_walk instead of git_tree_entry_byid since the latter
  * doesn't recurse into sub-trees.
  */
@@ -542,7 +581,8 @@ static void recurse_time(const git_commit *commit, const git_oid *oid,
 	for (i = 0; i != n; i++) {
 		if (git_commit_parent(&parent, commit, i))
 			pfatal_git("git_commit_parent");
-		recurse_time(parent, oid, best);
+		if (!hash_test(parent))
+			recurse_time(parent, oid, best);
 	}
 }
 
@@ -566,8 +606,11 @@ time_t vcs_git_time(void *ctx)
 	 * - cache results,
 	 * - lazy evaluation.
 	 */
-	if (date_override)
+	if (date_override) {
+		hash_init();
 		recurse_time(vcs_git->commit, oid, &t);
+		hash_free();
+	}
 	return t;
 }
 
