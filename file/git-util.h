@@ -18,6 +18,9 @@
 #include <git2.h>
 
 
+int git_repository_open_ext_caching(git_repository **out, const char *path, 
+    unsigned int flags, const char *ceiling_dirs);
+
 bool git_repo_is_dirty(git_repository *repo);
 void git_init_once(void);
 

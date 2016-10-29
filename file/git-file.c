@@ -79,7 +79,7 @@ static git_repository *select_repo(const char *path)
 	 */
 	while (1) {
 		progress(3, "trying \"%s\"", tmp);
-		if (!git_repository_open_ext(&repo, *tmp ? tmp : "/",
+		if (!git_repository_open_ext_caching(&repo, *tmp ? tmp : "/",
 		    GIT_REPOSITORY_OPEN_CROSS_FS, NULL))
 			break;
 		slash = strrchr(tmp, '/');

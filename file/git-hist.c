@@ -210,7 +210,7 @@ bool vcs_git_try(const char *path)
 	 * exists, but then it would complain about the file not existing,
 	 * which would be at best confusing.
 	 */
-	if (git_repository_open_ext(&repo, path,
+	if (git_repository_open_ext_caching(&repo, path,
 	    GIT_REPOSITORY_OPEN_CROSS_FS, NULL))
 		return 0;
 	if (git_repository_is_empty(repo))
@@ -267,7 +267,7 @@ struct vcs_history *vcs_git_history(const char *path, unsigned depth)
 
 	git_init_once();
 
-	if (git_repository_open_ext(&history->repo, path,
+	if (git_repository_open_ext_caching(&history->repo, path,
 	    GIT_REPOSITORY_OPEN_CROSS_FS, NULL))
 		pfatal_git(path);
 

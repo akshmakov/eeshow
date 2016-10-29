@@ -10,11 +10,13 @@
  * (at your option) any later version.
  */
 
+#include <stddef.h>
 #include <stdbool.h>
 #include <assert.h>
 
 #include <git2.h>
 
+#include "misc/util.h"
 #include "file/git-util.h"
 
 
@@ -64,6 +66,39 @@ bool git_repo_is_dirty(git_repository *repo)
 	return res;
 }
 
+
+int git_repository_open_ext_caching(git_repository **out, const char *path,
+    unsigned int flags, const char *ceiling_dirs)
+{
+#if LIBGIT2_VER_MAJOR == 0 && LIBGIT2_VER_MINOR < 22
+	static struct repo_cache {
+		const char *path;
+		git_repository *repo;
+		struct repo_cache *next;
+	} *repo_cache = NULL;
+	struct repo_cache *c;
+	int res;
+
+	assert(flags == GIT_REPOSITORY_OPEN_CROSS_FS);
+	assert(ceiling_dirs == NULL);
+	for (c = repo_cache; c; c = c->next)
+		if (!strcmp(c->path, path)) {
+			*out = c->repo;
+			return 0;
+		}
+	res = git_repository_open_ext(out, path, flags, ceiling_dirs);
+	if (res)
+		return res;
+	c = alloc_type(struct repo_cache);
+	c->path = stralloc(path);
+	c->repo = *out;
+	c->next = repo_cache;
+	repo_cache = c;
+	return 0;
+#else
+	return git_repository_open_ext(out, path, flags, ceiling_dirs);
+#endif
+}
 
 /*
  * Git documentation says that git_libgit2_init can be called more then once
