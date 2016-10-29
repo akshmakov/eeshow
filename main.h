@@ -13,6 +13,6 @@
 #ifndef MAIN_H
 #define	MAIN_H
 
-void usage(const char *name);
+void __attribute__((noreturn)) usage(const char *name);
 
 #endif /* !MAIN_H */
