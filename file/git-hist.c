@@ -382,7 +382,6 @@ char *vcs_git_long_for_pango(struct vcs_hist *h,
     char *(*formatter)(const char *fmt, ...))
 {
 	git_buf buf = { 0 };
-	time_t commit_time;
 	const git_signature *sig;
 	char *s = NULL;
 	unsigned i;
@@ -391,8 +390,7 @@ char *vcs_git_long_for_pango(struct vcs_hist *h,
 		return stralloc("Uncommitted changes");
 	if (git_object_short_id(&buf, (git_object *) h->commit))
 		goto fail;
-	commit_time = git_commit_time(h->commit);
-	sig = git_commit_committer(h->commit);
+	sig = git_commit_author(h->commit);
 
 	for (i = 0; i != h->n_branches; i++)
 		s = append(s, formatter(
@@ -401,7 +399,7 @@ char *vcs_git_long_for_pango(struct vcs_hist *h,
 	s = append(s, formatter(
 	    "%s<b>%s</b> %s%s &lt;%s&gt;<small>\n%s</small>",
 	    h->n_branches ? "\n" : "",
-	    buf.ptr, ctime(&commit_time), sig->name, sig->email,
+	    buf.ptr, ctime(&sig->when.time), sig->name, sig->email,
 	    git_commit_summary(h->commit)));
 	git_buf_free(&buf);
 	return s;
