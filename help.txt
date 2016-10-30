@@ -17,6 +17,7 @@ Shift+R     idem, for component references
 Shift+D     toggle between "diff" and experimental
 	    "delta" mode
 H           show/hide help window
+V           if hovering on commit, show/hide commit viewer
 T           toggle performance timer
 D           when comparing revisions, show difference
 N           show newer sheet
