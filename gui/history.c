@@ -27,6 +27,7 @@
 #include "gui/aoi.h"
 #include "gui/over.h"
 #include "gui/input.h"
+#include "gui/help.h"
 #include "gui/common.h"
 
 
@@ -484,12 +485,16 @@ static void history_key(void *user, int x, int y, int keyval)
 	case GDK_KEY_Escape:
 		hide_history(gui);
 		break;
-	case GDK_KEY_q:
-		gtk_main_quit();
+	case GDK_KEY_h:
+	case GDK_KEY_Help:
+		help();
 		break;
 	case GDK_KEY_v:
 		if (gui->commit_hover)
 			view_full_commit(gui);
+		break;
+	case GDK_KEY_q:
+		gtk_main_quit();
 		break;
 	}
 }
