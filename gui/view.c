@@ -69,6 +69,8 @@ struct view *view_open(
 	gtk_label_set_line_wrap(GTK_LABEL(view->label), TRUE);
 	gtk_label_set_selectable(GTK_LABEL(view->label), TRUE);
 
+	gtk_widget_set_halign(view->label, GTK_ALIGN_START);
+	gtk_widget_set_valign(view->label, GTK_ALIGN_START);
 	gtk_container_add(GTK_CONTAINER(scroll), view->label);
 
 	gtk_container_add(GTK_CONTAINER(view->window), scroll);
