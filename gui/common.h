@@ -130,6 +130,9 @@ struct gui {
 
 	int hist_y_offset;	/* history list y offset */
 
+	const struct vcs_hist *commit_hover;
+				/* commit being hovered on; NULL if none */
+
 	/* progress bar */
 	int hist_size;		/* total number of revisions */
 	unsigned progress;	/* progress counter */
@@ -176,6 +179,8 @@ void sheet_setup(struct gui *gui);
 
 /* history.c */
 
+void view_full_commit(struct gui *gui);
+void commit_hover(struct gui *gui, const struct vcs_hist *vcs_hist);
 void history_draw_event(const struct gui *gui, cairo_t *cr);
 void show_history(struct gui *gui, enum selecting sel);
 

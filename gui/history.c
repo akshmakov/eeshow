@@ -22,11 +22,55 @@
 #include "misc/diag.h"
 #include "file/git-hist.h"
 #include "gui/fmt-pango.h"
+#include "gui/view.h"
 #include "gui/style.h"
 #include "gui/aoi.h"
 #include "gui/over.h"
 #include "gui/input.h"
 #include "gui/common.h"
+
+
+/* ----- Commit view ------------------------------------------------------- */
+
+
+static struct view *view = NULL;
+
+
+static void key_press(void *user, struct view *v, guint keyval)
+{
+	switch (keyval) {
+	case GDK_KEY_v:
+	case GDK_KEY_q:
+	case GDK_KEY_Escape:
+		view_visible(v, 0);
+		break;
+	}
+}
+
+
+void commit_hover(struct gui *gui, const struct vcs_hist *vcs_hist)
+{
+	char *s;
+
+	gui->commit_hover = vcs_hist;
+	/* should only update if visible */
+	if (view && vcs_hist) {
+		s = vcs_git_long_for_pango(vcs_hist, fmt_pango);
+		view_update(view, s, 1);
+		free(s);
+	}
+}
+
+
+void view_full_commit(struct gui *gui)
+{
+	if (!view || !view_visible_toggle(view)) {
+		if (view)
+			view_close(view);
+		view = view_open(key_press, NULL);
+	}
+	commit_hover(gui, gui->commit_hover);
+}
 
 
 /* ----- Render threads ---------------------------------------------------- */
@@ -169,6 +213,7 @@ static void hide_history(struct gui *gui)
 
 	gui->mode = showing_sheet;
 	do_revision_overlays(gui);
+	commit_hover(gui, NULL);
 	redraw(gui);
 }
 
@@ -251,10 +296,13 @@ static bool hover_history(void *user, bool on, int dx, int dy)
 	if (dy)
 		overlay_size(h->over, gtk_widget_get_pango_context(gui->da),
 		    NULL, &before);
-	if (on)
+	if (on) {
 		s = vcs_git_long_for_pango(h->vcs_hist, fmt_pango);
-	else
+		commit_hover(gui, h->vcs_hist);
+	} else {
 		s = vcs_git_summary_for_pango(h->vcs_hist, fmt_pango);
+		commit_hover(gui, NULL);
+	}
 	overlay_text_raw(h->over, s);
 	free(s);
 	set_history_style(h, on);
@@ -438,6 +486,8 @@ static void history_key(void *user, int x, int y, int keyval)
 		break;
 	case GDK_KEY_q:
 		gtk_main_quit();
+	case GDK_KEY_v:
+		view_full_commit(gui);
 	}
 }
 

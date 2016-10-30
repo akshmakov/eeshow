@@ -470,6 +470,7 @@ int run_gui(const struct file_names *fn, bool recurse, int limit,
 		.diff_mode	= diff_delta,
 		.old_hist	= NULL,
 		.hist_y_offset	= 0,
+		.commit_hover	= NULL,
 		.hist_size	= 0,
 	};
 

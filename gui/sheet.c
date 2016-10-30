@@ -155,9 +155,11 @@ static bool show_history_details(void *user, bool on, int dx, int dy)
 	if (on) {
 		s = vcs_git_long_for_pango(h->vcs_hist, fmt_pango);
 		overlay_text_raw(h->over, s);
+		commit_hover(gui, h->vcs_hist);
 		free(s);
 	} else {
 		overlay_text(h->over, "%.40s", vcs_git_summary(h->vcs_hist));
+		commit_hover(gui, NULL);
 	}
 	redraw(gui);
 	return 1;
@@ -660,6 +662,10 @@ static void sheet_key(void *user, int x, int y, int keyval)
 	case GDK_KEY_t:
 		timer_toggle();
 		redraw(gui);
+		break;
+
+	case GDK_KEY_v:
+		view_full_commit(gui);
 		break;
 
 	case GDK_KEY_q:
