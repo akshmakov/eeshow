@@ -20,7 +20,7 @@
 
 struct view {
 	GtkWidget *window;
-	GtkWidget *label;
+	GtkTextBuffer *buffer;
 	bool visible;
 	bool destroyed;
 	void (*key_press)(void *user, struct view *view, guint keyval);
@@ -51,7 +51,7 @@ struct view *view_open(
     void (*key_press)(void *user, struct view *view, guint keyval), void *user)
 {
 	struct view *view;
-	GtkWidget *scroll;
+	GtkWidget *scroll, *tv;
 
 	view = alloc_type(struct view);
 	view->visible = 1;
@@ -61,17 +61,23 @@ struct view *view_open(
 
 	view->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	scroll = gtk_scrolled_window_new(NULL, NULL);
-	view->label = gtk_label_new(NULL);
+
+	view->buffer = gtk_text_buffer_new(NULL);
+	tv = gtk_text_view_new_with_buffer(view->buffer);
+
+	gtk_text_view_set_left_margin(GTK_TEXT_VIEW(tv), 5);
+	gtk_text_view_set_right_margin(GTK_TEXT_VIEW(tv), 5);
+//	gtk_text_view_set_top_margin(GTK_TEXT_VIEW(tv), 5);
+//	gtk_text_view_set_bottom_margin(GTK_TEXT_VIEW(tv), 5);
 
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll),
 	    GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
 
-	gtk_label_set_line_wrap(GTK_LABEL(view->label), TRUE);
-	gtk_label_set_selectable(GTK_LABEL(view->label), TRUE);
+	gtk_text_view_set_editable(GTK_TEXT_VIEW(tv), FALSE);
+	gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(tv), FALSE);
+	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(tv), TRUE);
 
-	gtk_widget_set_halign(view->label, GTK_ALIGN_START);
-	gtk_widget_set_valign(view->label, GTK_ALIGN_START);
-	gtk_container_add(GTK_CONTAINER(scroll), view->label);
+	gtk_container_add(GTK_CONTAINER(scroll), tv);
 
 	gtk_container_add(GTK_CONTAINER(view->window), scroll);
 	gtk_window_set_default_size(GTK_WINDOW(view->window), 480, 360);
@@ -80,7 +86,7 @@ struct view *view_open(
 	gtk_widget_set_can_focus(scroll, TRUE);
 	gtk_widget_add_events(scroll, GDK_KEY_PRESS_MASK);
 
-	g_signal_connect(G_OBJECT(scroll), "key_press_event",
+	g_signal_connect(G_OBJECT(tv), "key_press_event",
 	    G_CALLBACK(key_press_event), view);
 	g_signal_connect(view->window, "destroy", G_CALLBACK(destroy_view),
 	    view);
@@ -124,9 +130,15 @@ bool view_update(struct view *view, const char *s, bool markup)
 {
 	if (view->destroyed)
 		return 0;
-	if (markup)
-		gtk_label_set_markup(GTK_LABEL(view->label), s);
-	else
-		gtk_label_set_text(GTK_LABEL(view->label), s);
+	if (markup) {
+		GtkTextIter iter;
+
+		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(view->buffer), "", 0);
+		gtk_text_buffer_get_iter_at_offset(view->buffer, &iter, 0);
+		gtk_text_buffer_insert_markup(GTK_TEXT_BUFFER(view->buffer),
+		    &iter, s, -1);
+	} else {
+		gtk_text_buffer_set_text(GTK_TEXT_BUFFER(view->buffer), s, -1);
+	}
 	return 1;
 }
