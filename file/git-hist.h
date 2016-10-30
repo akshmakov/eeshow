@@ -56,10 +56,10 @@ struct vcs_history *vcs_git_history(const char *path, unsigned depth);
 
 char *vcs_git_get_rev(struct vcs_hist *h);
 bool vcs_is_empty(const struct vcs_history *history);
-const char *vcs_git_summary(struct vcs_hist *hist);
-char *vcs_git_summary_for_pango(struct vcs_hist *hist,
+const char *vcs_git_summary(const struct vcs_hist *hist);
+char *vcs_git_summary_for_pango(const struct vcs_hist *hist,
     char *(*formatter)(const char *fmt, ...));
-char *vcs_git_long_for_pango(struct vcs_hist *hist,
+char *vcs_git_long_for_pango(const struct vcs_hist *hist,
     char *(*formatter)(const char *fmt, ...));
 
 unsigned threads_number(const struct vcs_history *history);

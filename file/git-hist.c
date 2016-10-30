@@ -322,7 +322,7 @@ char *vcs_git_get_rev(struct vcs_hist *h)
 }
 
 
-const char *vcs_git_summary(struct vcs_hist *h)
+const char *vcs_git_summary(const struct vcs_hist *h)
 {
 	const char *summary;
 
@@ -336,7 +336,7 @@ const char *vcs_git_summary(struct vcs_hist *h)
 }
 
 
-char *vcs_git_summary_for_pango(struct vcs_hist *h,
+char *vcs_git_summary_for_pango(const struct vcs_hist *h,
     char *(*formatter)(const char *fmt, ...))
 {
 	const char *summary;
@@ -378,7 +378,7 @@ static char *append(char *s, char *add)
  * the very specific constraints imposed by the markup format of Pango.
  */
 
-char *vcs_git_long_for_pango(struct vcs_hist *h,
+char *vcs_git_long_for_pango(const struct vcs_hist *h,
     char *(*formatter)(const char *fmt, ...))
 {
 	git_buf buf = { 0 };
