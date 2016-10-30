@@ -153,7 +153,7 @@ static bool show_history_details(void *user, bool on, int dx, int dy)
 	char *s;
 
 	if (on) {
-		s = vcs_git_long_for_pango(h->vcs_hist, fmt_pango);
+		s = vcs_git_long_for_pango(h->vcs_hist, fmt_pango, 0);
 		overlay_text_raw(h->over, s);
 		commit_hover(gui, h->vcs_hist);
 		free(s);

@@ -379,7 +379,7 @@ static char *append(char *s, char *add)
  */
 
 char *vcs_git_long_for_pango(const struct vcs_hist *h,
-    char *(*formatter)(const char *fmt, ...))
+    char *(*formatter)(const char *fmt, ...), bool full)
 {
 	git_buf buf = { 0 };
 	const git_signature *sig;
@@ -397,9 +397,11 @@ char *vcs_git_long_for_pango(const struct vcs_hist *h,
 		    "%s<span background=\"#00e00080\"><b> %s </b></span>",
 		    i ? " " : "", h->branches[i]));
 	s = append(s, formatter(
-	    "%s<b>%s</b> %s%s &lt;%s&gt;<small>\n%s</small>",
+	    "%s<b>%s</b> %s%s &lt;%s&gt;<small>\n%s%s</small>",
 	    h->n_branches ? "\n" : "",
 	    buf.ptr, ctime(&sig->when.time), sig->name, sig->email,
+	    full ? "\n" : "",
+	    full ? git_commit_message(h->commit) :
 	    git_commit_summary(h->commit)));
 	git_buf_free(&buf);
 	return s;

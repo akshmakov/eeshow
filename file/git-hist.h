@@ -60,7 +60,7 @@ const char *vcs_git_summary(const struct vcs_hist *hist);
 char *vcs_git_summary_for_pango(const struct vcs_hist *hist,
     char *(*formatter)(const char *fmt, ...));
 char *vcs_git_long_for_pango(const struct vcs_hist *hist,
-    char *(*formatter)(const char *fmt, ...));
+    char *(*formatter)(const char *fmt, ...), bool full);
 
 unsigned threads_number(const struct vcs_history *history);
 enum thread *threads_classify(const struct vcs_history *history,

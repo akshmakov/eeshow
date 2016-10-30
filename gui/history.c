@@ -55,7 +55,7 @@ void commit_hover(struct gui *gui, const struct vcs_hist *vcs_hist)
 	gui->commit_hover = vcs_hist;
 	/* should only update if visible */
 	if (view && vcs_hist) {
-		s = vcs_git_long_for_pango(vcs_hist, fmt_pango);
+		s = vcs_git_long_for_pango(vcs_hist, fmt_pango, 1);
 		view_update(view, s, 1);
 		free(s);
 	}
@@ -297,7 +297,7 @@ static bool hover_history(void *user, bool on, int dx, int dy)
 		overlay_size(h->over, gtk_widget_get_pango_context(gui->da),
 		    NULL, &before);
 	if (on) {
-		s = vcs_git_long_for_pango(h->vcs_hist, fmt_pango);
+		s = vcs_git_long_for_pango(h->vcs_hist, fmt_pango, 0);
 		commit_hover(gui, h->vcs_hist);
 	} else {
 		s = vcs_git_summary_for_pango(h->vcs_hist, fmt_pango);
