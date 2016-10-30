@@ -453,6 +453,7 @@ int run_gui(const struct file_names *fn, bool recurse, int limit,
 {
 	GtkWidget *window;
 	char *title;
+	GtkSettings *settings = gtk_settings_get_default();
 	struct gui gui = {
 		.scale		= 1 / 16.0,
 		.hist		= NULL,
@@ -507,6 +508,11 @@ int run_gui(const struct file_names *fn, bool recurse, int limit,
 	render_setup(&gui);
 
 //	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+
+	/* http://gtk.10911.n7.nabble.com/Question-on-gtk-label-set-selectable-td9717.html */
+	if (settings)
+		g_object_set(settings, "gtk-label-select-on-focus",
+		    FALSE, NULL);
 
 	go_to_sheet(&gui, gui.new_hist->sheets);
 	gtk_widget_show_all(window);

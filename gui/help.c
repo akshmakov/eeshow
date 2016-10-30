@@ -80,6 +80,7 @@ static GtkWidget *help_content(void)
 	    GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
 
 	gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
+	gtk_label_set_selectable(GTK_LABEL(label), TRUE);
 	gtk_label_set_markup(GTK_LABEL(label),
 #include "../help.inc"
 	    );
