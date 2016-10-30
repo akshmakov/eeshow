@@ -665,7 +665,8 @@ static void sheet_key(void *user, int x, int y, int keyval)
 		break;
 
 	case GDK_KEY_v:
-		view_full_commit(gui);
+		if (gui->commit_hover)
+			view_full_commit(gui);
 		break;
 
 	case GDK_KEY_q:
