@@ -14,10 +14,6 @@
 
 #include <gtk/gtk.h>
 
-#ifdef USE_WEBKIT
-#include <webkit2/webkit2.h>
-#endif
-
 #include "gui/help.h"
 
 
@@ -48,27 +44,6 @@ static gboolean key_press_event(GtkWidget *widget, GdkEventKey *event,
 }
 
 
-#ifdef USE_WEBKIT
-
-static GtkWidget *help_content(void)
-{
-	GtkWidget *view;
-	WebKitSettings *settings;
-
-	view = webkit_web_view_new();
-
-	settings = webkit_web_view_get_settings(WEBKIT_WEB_VIEW(view));
-	webkit_settings_set_default_font_size(settings, 10);
-
-	webkit_web_view_load_html(WEBKIT_WEB_VIEW(view),
-#include "../help.inc"
-	, NULL);
-
-	return view;
-}
-
-#else /* USE_WEBKIT */
-
 static GtkWidget *help_content(void)
 {
 	GtkWidget *scroll, *label;
@@ -89,8 +64,6 @@ static GtkWidget *help_content(void)
 
 	return scroll;
 }
-
-#endif /* !USE_WEBKIT */
 
 
 static void new_help_window(void)

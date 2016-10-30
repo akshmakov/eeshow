@@ -78,14 +78,6 @@ BUILD_DATE = $(shell date -u +'%Y%m%d-%H:%MZ')
 CFLAGS += -DVERSION='"$(GIT_VERSION)$(GIT_STATUS)"' \
 	  -DBUILD_DATE='"$(BUILD_DATE)"'
 
-ifneq ($(USE_WEBKIT),)
-	CFLAGS += -DUSE_WEBKIT `pkg-config --cflags webkit2gtk-4.0`
-	LDLIBS += `pkg-config --libs webkit2gtk-4.0`
-	HELP_TEXT = help.html
-else
-	HELP_TEXT = help.txt
-endif
-
 include Makefile.c-common
 
 .PHONY:		test neo900 sch test testref png pngref pdf diff view newref
@@ -117,7 +109,7 @@ eetest:		$(EETEST_OBJS) | eediff
 
 #----- Help texts -------------------------------------------------------------
 
-help.inc:	$(HELP_TEXT) Makefile
+help.inc:	help.txt Makefile
 		$(BUILD) sed 's/"/\\"/g;s/.*/"&\\n"/' $< >$@ || \
 		    { rm -f $@; exit 1; }
 
