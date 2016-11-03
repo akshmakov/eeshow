@@ -22,7 +22,8 @@ struct pdftoc;
 struct pdftoc *pdftoc_begin(void);
 bool pdftoc_set_file(struct pdftoc *ctx, const char *file);
 bool pdftoc_write(struct pdftoc *ctx, const void *data, unsigned length);
-void pdftoc_title(struct pdftoc *ctx, const char *title);
+void pdftoc_title(struct pdftoc *ctx, const char *fmt, ...)
+    __attribute__((format(printf, 2, 3)));
 void pdftoc_end(struct pdftoc *ctx);
 
 #endif /* !GFX_PDFTOC_H */

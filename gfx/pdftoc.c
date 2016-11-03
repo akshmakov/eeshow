@@ -238,12 +238,15 @@ bool pdftoc_write(struct pdftoc *ctx, const void *data, unsigned length)
 }
 
 
-void pdftoc_title(struct pdftoc *ctx, const char *title)
+void pdftoc_title(struct pdftoc *ctx, const char *fmt, ...)
 {
+	va_list ap;
 	struct title *t;
 
 	t = alloc_type(struct title);
-	t->s = stralloc(title);
+	va_start(ap, fmt);
+	alloc_vprintf(&t->s, fmt, ap);
+	va_end(ap);
 	*ctx->next_title = t;
 	t->next = NULL;
 	ctx->next_title = &t->next;
