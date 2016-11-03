@@ -128,6 +128,7 @@ void usage(const char *name)
 "  [-s scale] [-T]\n"
 "\n"
 "  see PNG for -s\n"
+"  -n  show page numbers in the table of contents\n"
 "  -T  do not add table of contents\n"
     , name, (int) strlen(name) + 1, "", name, name);
 	exit(1);

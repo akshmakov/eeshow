@@ -71,6 +71,7 @@ struct cro_ctx {
 	const char *output_name;
 
 	bool add_toc;
+	bool sheet_numbers;
 	struct pdftoc *toc;
 
 	int color_override;	/* FIG color, COLOR_NONE if no override */
@@ -528,6 +529,7 @@ static struct cro_ctx *new_cc(void)
 	cc->output_name = NULL;
 
 	cc->add_toc = 1;
+	cc->sheet_numbers = 0;
 	cc->toc = NULL;
 	/*
 	 * record_init does not perform allocations or such, so it's safe to
@@ -566,6 +568,9 @@ static bool cr_args(void *ctx, int argc, char *const *argv, const char *opts)
 		case 'o':
 			colon = strchr(optarg, ':');
 			cc->output_name = colon ? colon + 1 : optarg;
+			break;
+		case 'n':
+			cc->sheet_numbers = 1;
 			break;
 		case 's':
 			cc->scale = atof(optarg) * cc->default_scale;
@@ -682,8 +687,13 @@ static void cr_pdf_sheet_name(void *ctx, const char *name)
 {
 	struct cro_ctx *cc = ctx;
 
-	if (cc->toc)
-		pdftoc_title(cc->toc, name ? name : "???");
+	if (!cc->toc)
+		return;
+	if (cc->sheet_numbers)
+		pdftoc_title(cc->toc, "%u %s",
+		    cc->n_sheets + 1, name ? name : "???");
+	else
+		pdftoc_title(cc->toc, "%s", name ? name : "???");
 }
 
 
@@ -1166,7 +1176,7 @@ static const char *const cro_pdf_ext[] = { "pdf" };
 const struct gfx_ops cro_pdf_ops = {
 	.ext		= cro_pdf_ext,
 	.n_ext		= ARRAY_ELEMENTS(cro_pdf_ext),
-	.opts		= "o:s:T",
+	.opts		= "o:ns:T",
 
 	.line		= record_line,
 	.poly		= record_poly,
