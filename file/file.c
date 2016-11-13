@@ -98,7 +98,7 @@ static bool try_related(struct file *file)
 
 	tmp = file_graft_relative(file->related->name, file->name);
 	if (!tmp)
-		return NULL;
+		return 0;
 
 	if (*file->name == '/')
 		return 0;
