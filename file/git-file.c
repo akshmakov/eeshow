@@ -76,15 +76,25 @@ static git_repository *select_repo(const char *path)
 	 * If we can't find a repo, this may be due to the file or directory
 	 * the path points to not existing in the currently checked-out tree.
 	 * So we trim off elements until we find a repository.
+	 *
+	 * @@@ should we make relative paths absolute first ?
 	 */
 	while (1) {
-		progress(3, "trying \"%s\"", tmp);
-		if (!git_repository_open_ext_caching(&repo, *tmp ? tmp : "/",
+		const char *try = *tmp ? tmp : *path == '/' ? "/" : ".";
+
+		progress(3, "trying \"%s\"", try);
+		if (!git_repository_open_ext_caching(&repo, try,
 		    GIT_REPOSITORY_OPEN_CROSS_FS, NULL))
 			break;
-		slash = strrchr(tmp, '/');
-		if (!slash)
+		if (!*tmp)
 			break;
+		slash = strrchr(tmp, '/');
+		if (!slash) {
+			if (*path == '/')
+				break;
+			*tmp = 0;
+			continue;	/* try "." */
+		}
 		*slash = 0;
 	}
 	free(tmp);
