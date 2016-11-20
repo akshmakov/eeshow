@@ -74,6 +74,15 @@ struct gui_sheet *find_corresponding_sheet(struct gui_sheet *pick_from,
 }
 
 
+struct gui_sheet *current_sheet(const struct gui *gui)
+{
+	if (!gui->old_hist || gui->diff_mode != diff_old)
+		return gui->curr_sheet;
+	return find_corresponding_sheet(gui->old_hist->sheets,
+	    gui->new_hist->sheets, gui->curr_sheet);
+}
+
+
 /* ----- AoIs -------------------------------------------------------------- */
 
 

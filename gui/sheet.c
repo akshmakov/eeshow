@@ -419,16 +419,12 @@ static bool go_next_sheet(struct gui *gui)
 static bool sheet_click(void *user, int x, int y)
 {
 	struct gui *gui = user;
-	const struct gui_sheet *curr_sheet = gui->curr_sheet;
+	const struct gui_sheet *curr_sheet = current_sheet(gui);
 	int ex, ey;
 
 	canvas_coord(gui, x, y, &ex, &ey);
 	ex += curr_sheet->xmin;
 	ey += curr_sheet->ymin;
-
-	if (gui->old_hist && gui->diff_mode == diff_old)
-		curr_sheet = find_corresponding_sheet(gui->old_hist->sheets,
-		    gui->new_hist->sheets, gui->curr_sheet);
 
 	if (aoi_click(&gui->aois, x, y))
 		return 1;
@@ -449,14 +445,10 @@ static bool sheet_click(void *user, int x, int y)
 static bool sheet_hover_update(void *user, int x, int y)
 {
 	struct gui *gui = user;
-	const struct gui_sheet *curr_sheet = gui->curr_sheet;
+	const struct gui_sheet *curr_sheet = current_sheet(gui);
 	int ex, ey;
 
 	canvas_coord(gui, x, y, &ex, &ey);
-
-	if (gui->old_hist && gui->diff_mode == diff_old)
-		curr_sheet = find_corresponding_sheet(gui->old_hist->sheets,
-		    gui->new_hist->sheets, gui->curr_sheet);
 
 	if (aoi_hover(&gui->aois, x, y))
 		return 1;
@@ -468,7 +460,7 @@ static bool sheet_hover_update(void *user, int x, int y)
 static bool sheet_drag_begin(void *user, int x, int y)
 {
 	struct gui *gui = user;
-	const struct gui_sheet *curr_sheet = gui->curr_sheet;
+	const struct gui_sheet *curr_sheet = current_sheet(gui);
 	int ex, ey;
 	struct record_bbox rec_bbox;
 
@@ -477,10 +469,6 @@ static bool sheet_drag_begin(void *user, int x, int y)
 	canvas_coord(gui, x, y, &ex, &ey);
 	ex += curr_sheet->xmin;
 	ey += curr_sheet->ymin;
-
-	if (gui->old_hist && gui->diff_mode == diff_old)
-		curr_sheet = find_corresponding_sheet(gui->old_hist->sheets,
-		    gui->new_hist->sheets, gui->curr_sheet);
 
 	gui->drag_text = record_find_text_bbox(gfx_user(curr_sheet->gfx),
 	    show_extra, ex, ey, &rec_bbox);
