@@ -55,15 +55,6 @@ static void thumbnail_pos(GtkAllocation *alloc, unsigned n, int *ix, int *iy)
 /* ----- Drawing ----------------------------------------------------------- */
 
 
-static struct gui_sheet *sheets(const struct gui *gui)
-{
-	if (gui->old_hist && gui->diff_mode == diff_old)
-		return gui->old_hist->sheets;
-	else
-		return gui->new_hist->sheets;
-}
-
-
 void index_draw_event(const struct gui *gui, cairo_t *cr)
 {
 	GtkAllocation alloc;

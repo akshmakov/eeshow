@@ -192,6 +192,7 @@ void show_index(struct gui *gui);
 
 /* gui.c */
 
+struct gui_sheet *sheets(const struct gui *gui);
 struct gui_sheet *find_corresponding_sheet(struct gui_sheet *pick_from,
     struct gui_sheet *ref_in, const struct gui_sheet *ref);
 struct gui_sheet *current_sheet(const struct gui *gui);

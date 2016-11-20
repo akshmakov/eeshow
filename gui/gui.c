@@ -46,6 +46,15 @@
 /* ----- Helper functions -------------------------------------------------- */
 
 
+struct gui_sheet *sheets(const struct gui *gui)
+{
+	if (gui->old_hist && gui->diff_mode == diff_old)
+		return gui->old_hist->sheets;
+	else
+		return gui->new_hist->sheets;
+}
+
+
 struct gui_sheet *find_corresponding_sheet(struct gui_sheet *pick_from,
     struct gui_sheet *ref_in, const struct gui_sheet *ref)
 {
