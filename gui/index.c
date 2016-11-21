@@ -31,12 +31,14 @@
 #define	SHEET_PAD	3
 #define	SHEET_GAP	12	/* not counting the padding ! */
 #define	INDEX_MARGIN	10	/* margin on each side */
+#define	LABEL_GAP	6	/* gap between name and number */
 
 
 /* @@@ clean all this up and move into struct gui */
 static unsigned thumb_rows, thumb_cols;
 static unsigned thumb_w, thumb_h;
 static struct overlay *name_over = NULL;
+static struct overlay *number_over = NULL;
 static const struct gui_sheet *curr_sheet = NULL;
 
 
@@ -55,13 +57,24 @@ static void thumbnail_pos(GtkAllocation *alloc, unsigned n, int *ix, int *iy)
 /* ----- Drawing ----------------------------------------------------------- */
 
 
+static int center_x(const struct overlay *over, int w, int x, int width)
+{
+	x -= w / 2;
+	if (x < INDEX_MARGIN)
+		x = INDEX_MARGIN;
+	if (x + w >= width - INDEX_MARGIN)
+		x = width - w - INDEX_MARGIN;
+	return x;
+}
+
+
 void index_draw_event(const struct gui *gui, cairo_t *cr)
 {
 	GtkAllocation alloc;
 	const struct gui_sheet *sheet;
 	unsigned n = 0;
 	int ix, iy, x, y;
-	int w, h;
+	int name_w, name_h, number_w, number_h;
 	int named = -1;
 
 	gtk_widget_get_allocation(gui->da, &alloc);
@@ -85,14 +98,24 @@ void index_draw_event(const struct gui *gui, cairo_t *cr)
 		return;
 
 	thumbnail_pos(&alloc, named, &ix, &iy);
-	overlay_size(name_over,
-	    gtk_widget_get_pango_context(curr_sheet->gui->da), &w, &h);
-	x = ix - w / 2;
-	if (x < INDEX_MARGIN)
-		x = INDEX_MARGIN;
-	if (x + w >= alloc.width - INDEX_MARGIN)
-		x = alloc.width - w - INDEX_MARGIN;
-	overlay_draw(name_over, cr, x, iy - h / 2, 1, 1);
+	overlay_size(name_over, gtk_widget_get_pango_context(gui->da),
+	    &name_w, &name_h);
+	overlay_size(number_over, gtk_widget_get_pango_context(gui->da),
+	    &number_w, &number_h);
+
+	/* center overlay pair for name and number on thumbnail */
+	y = iy + (name_h - number_h) / 2;
+	if (y - name_h - LABEL_GAP / 2 < INDEX_MARGIN)
+		y = name_h + LABEL_GAP / 2 + INDEX_MARGIN;
+	if (y + number_h + LABEL_GAP / 2 >= alloc.height - INDEX_MARGIN)
+		y = alloc.height - number_h - LABEL_GAP / 2 - INDEX_MARGIN;
+
+	overlay_draw(name_over, cr,
+	    center_x(name_over, name_w, ix, alloc.width), y - LABEL_GAP / 2,
+	    1, -1);
+	overlay_draw(number_over, cr,
+	    center_x(number_over, number_w, ix, alloc.width), y + LABEL_GAP / 2,
+	    1, 1);
 }
 
 
@@ -102,7 +125,7 @@ void index_draw_event(const struct gui *gui, cairo_t *cr)
 static void close_index(struct gui *gui)
 {
 	overlay_remove_all(&gui->thumb_overlays);
-	name_over = NULL;
+	name_over = number_over = NULL;
 	gui->mode = showing_sheet;
 	input_pop();
 	redraw(gui);
@@ -140,6 +163,20 @@ static void thumb_set_style(struct gui_sheet *sheet, bool selected)
 }
 
 
+static unsigned sheet_number(const struct gui *gui, struct gui_sheet *sheet)
+{
+	const struct gui_sheet *s;
+	unsigned n = 1;
+
+	for (s = sheets(gui); s; s = s->next) {
+		if (s == sheet)
+			return n;
+		n++;
+	}
+	return 0; /* should never happen */
+}
+
+
 static bool thumb_hover(void *user, bool on, int dx, int dy)
 {
 	struct gui_sheet *sheet = user;
@@ -149,6 +186,7 @@ static bool thumb_hover(void *user, bool on, int dx, int dy)
 
 	if (on) {
 		thumb_set_style(sheet, 1);
+
 		name_over = overlay_add(&gui->thumb_overlays, &gui->aois,
 		    NULL, NULL, NULL);
 		file = sheet->sch->file;
@@ -158,15 +196,24 @@ static bool thumb_hover(void *user, bool on, int dx, int dy)
 			    file ? "\n" : "", file ? file : "");
 		else
 			overlay_text(name_over, "%s", file ? file : "");
+
+		number_over = overlay_add(&gui->thumb_overlays, &gui->aois,
+		    NULL, NULL, NULL);
+		overlay_text(number_over, "<big>%u</big>",
+		    sheet_number(gui, sheet));
+
 		style.font = BOLD_FONT_LARGE;
 		style.width = 1;
 		style.wmax = SHEET_MAX_NAME;
 		overlay_style(name_over, &style);
+		overlay_style(number_over, &style);
+
 		curr_sheet = sheet;
 	} else {
 		thumb_set_style(sheet, 0);
 		overlay_remove(&gui->thumb_overlays, name_over);
-		name_over = NULL;
+		overlay_remove(&gui->thumb_overlays, number_over);
+		name_over = number_over = NULL;
 	}
 	redraw(gui);
 	return 1;
@@ -361,7 +408,7 @@ static const struct input_ops index_input_ops = {
 void index_resize(struct gui *gui)
 {
 	overlay_remove_all(&gui->thumb_overlays);
-	name_over = NULL;
+	name_over = number_over = NULL;
 	if (best_ratio(gui))
 		index_render_sheets(gui);
 	else
