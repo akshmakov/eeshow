@@ -597,11 +597,13 @@ static void sheet_key(void *user, int x, int y, int keyval)
 		break;
 	case GDK_KEY_Up:
 	case GDK_KEY_KP_Up:
-		show_history(gui, sel_new);
+		if (have_history(gui))
+			show_history(gui, sel_new);
 		break;
 	case GDK_KEY_Down:
 	case GDK_KEY_KP_Down:
-		show_history(gui, sel_old);
+		if (have_history(gui))
+			show_history(gui, sel_old);
 		break;
 	case GDK_KEY_Tab:
 	case GDK_KEY_KP_Tab:
