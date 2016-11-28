@@ -211,10 +211,14 @@ bool vcs_git_try(const char *path)
 	 * which would be at best confusing.
 	 */
 	if (git_repository_open_ext_caching(&repo, path,
-	    GIT_REPOSITORY_OPEN_CROSS_FS, NULL))
+	    GIT_REPOSITORY_OPEN_CROSS_FS, NULL)) {
+		perror_git(path);
 		return 0;
-	if (git_repository_is_empty(repo))
+	}
+	if (git_repository_is_empty(repo)) {
+		error("%s: repository is empty", path);
 		return 0;
+	}
 
 	/* check that the file is really in the repo */
 	if (!file_open_vcs(&file, path))
