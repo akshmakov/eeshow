@@ -440,6 +440,8 @@ static bool try_related(struct vcs_git *vcs_git)
 	if (vcs_git->revision)
 		return 0;
 
+	progress(3, "try_related: %s %s",
+	    vcs_git->related->name, vcs_git->related->revision);
 	vcs_git->repo = select_repo(vcs_git->name);
 	if (vcs_git->repo) {
 		if (!strcmp(git_repository_path(vcs_git->related->repo),
