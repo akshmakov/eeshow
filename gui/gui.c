@@ -386,7 +386,9 @@ static void add_hist(void *user, struct vcs_hist *h,
 		age++;
 	}
 
-	progress(1, "processing revision %s", vcs_git_get_rev(h));
+	/* @@@ should free the string returned by vcs_git_get_rev */
+	progress(1, "processing revision %s",
+	    h && h->commit ? vcs_git_get_rev(h) : "(uncommitted)");
 
 	hist = alloc_type(struct gui_hist);
 	hist->gui = gui;
