@@ -12,11 +12,16 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <assert.h>
 
 #include <git2.h>
 
 #include "misc/util.h"
+#include "misc/diag.h"
 #include "file/git-util.h"
 
 
@@ -67,8 +72,8 @@ bool git_repo_is_dirty(git_repository *repo)
 }
 
 
-int git_repository_open_ext_caching(git_repository **out, const char *path,
-    unsigned int flags, const char *ceiling_dirs)
+static int do_git_repository_open_ext_caching(git_repository **out,
+    const char *path, unsigned int flags, const char *ceiling_dirs)
 {
 #if LIBGIT2_VER_MAJOR == 0 && LIBGIT2_VER_MINOR < 22
 	static struct repo_cache {
@@ -99,6 +104,46 @@ int git_repository_open_ext_caching(git_repository **out, const char *path,
 	return git_repository_open_ext(out, path, flags, ceiling_dirs);
 #endif
 }
+
+
+/*
+ * In some versions of libgit2 (apparently this can happen with Debian sid's
+ * 0.24), git_repository_open_ext interprets any regular file it is passed as
+ * "gitlink". This may be fixed in 0.25:
+ * https://github.com/libgit2/libgit2/commit/0f316096115513b5a07eb4df3883ba45ada28a07
+ *
+ * Since we depend heavily on git_repository_open_ext_caching being able to
+ * look up repositories when given a regular file, we detect this situation and
+ * use the corresponding directory instead.
+ */
+
+int git_repository_open_ext_caching(git_repository **out, const char *path,
+    unsigned int flags, const char *ceiling_dirs)
+{
+	struct stat st;
+	char *tmp, *slash;
+	int res;
+
+	if (stat(path, &st) == 0 && !S_ISREG(st.st_mode))
+		return do_git_repository_open_ext_caching(out, path, flags,
+		    ceiling_dirs);
+	if (!*path) /* just in case this somehow makes sense */
+		return do_git_repository_open_ext_caching(out, ".", flags,
+		    ceiling_dirs);
+
+	tmp = realpath(path, NULL);
+	if (!tmp)
+		diag_pfatal(path);
+	slash = strrchr(tmp, '/');
+	if (slash)
+		slash = 0;
+	else
+		strcpy(tmp, ".");
+	res = do_git_repository_open_ext_caching(out, ".", flags, ceiling_dirs);
+	free(tmp);
+	return res;
+}
+
 
 /*
  * Git documentation says that git_libgit2_init can be called more then once
