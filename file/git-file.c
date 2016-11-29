@@ -446,7 +446,22 @@ static bool try_related(struct vcs_git *vcs_git)
 	if (vcs_git->repo) {
 		if (!strcmp(git_repository_path(vcs_git->related->repo),
 		    git_repository_path(vcs_git->repo)))
+/*
+ * @@@ cd neo900/ee/hw; eeshow neo900.pro  works but
+ * cd neo900/ee; eeshow hw/neo900.pro  fails because eeshow tries to find
+ * files like bbcpu.sch in ee/ instead of ee/hw/.
+ *
+ * Changing the #if below to 0 makes this work in both cases but may produce
+ * other issues. One of them is that the path of the related VCS file becomes
+ * hw/hw/neo900.sch
+ *
+ * This needs more analysis.
+ */
+#if 1
 			return related_same_repo(vcs_git);
+#else
+			return related_only_repo(vcs_git);
+#endif
 		else
 			return related_other_repo(vcs_git);
 	}

@@ -10,6 +10,8 @@ Bugs:
 - when switching from label pop-up to label pop-up (e.g., on Neo900 sheet 20),
   the logic may get confused and cause a segfault, apparently as the result of
   infinite recursion [removed call to input_update as work-around]
+- eeshow fails to properly prepend path names when using relative paths inside
+  a repository (see comment in file/git-file.c:try_related)
 
 Parsing and input processing:
 - unify alignment, direction
