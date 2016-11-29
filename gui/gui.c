@@ -386,6 +386,8 @@ static void add_hist(void *user, struct vcs_hist *h,
 		age++;
 	}
 
+	progress(1, "processing revision %s", vcs_git_get_rev(h));
+
 	hist = alloc_type(struct gui_hist);
 	hist->gui = gui;
 	hist->vcs_hist = h;
