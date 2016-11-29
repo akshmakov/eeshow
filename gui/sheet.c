@@ -630,21 +630,29 @@ static void sheet_key(void *user, int x, int y, int keyval)
 		break;
 
 	case GDK_KEY_n:
+		if (!have_history(gui))
+			break;
 		gui->diff_mode = diff_new;
 		do_revision_overlays(gui);
 		redraw(gui);
 		break;
 	case GDK_KEY_o:
+		if (!have_history(gui))
+			break;
 		gui->diff_mode = diff_old;
 		do_revision_overlays(gui);
 		redraw(gui);
 		break;
 	case GDK_KEY_d:
+		if (!have_history(gui))
+			break;
 		gui->diff_mode = diff_delta;
 		do_revision_overlays(gui);
 		redraw(gui);
 		break;
 	case GDK_KEY_D:	/* Shift + D */
+		if (!have_history(gui))
+			break;
 		use_delta = !use_delta;
 		do_revision_overlays(gui);
 		redraw(gui);
