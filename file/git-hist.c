@@ -340,7 +340,13 @@ const char *vcs_git_summary(const struct vcs_hist *h)
 }
 
 
-#define	BRANCH_BG	"background=\"#00e000\" background_alpha=\"50%%\""
+/* Pango supports alpha values in background color only since 1.38 */
+
+#if PANGO_VERSION_MAJOR >= 1 || PANGO_VERSION_MINOR >= 38
+#define	BRANCH_BG	"background=\"#00e00080\""
+#else
+#define	BRANCH_BG	"background=\"#00e000\""
+#endif
 
 
 char *vcs_git_summary_for_pango(const struct vcs_hist *h,
