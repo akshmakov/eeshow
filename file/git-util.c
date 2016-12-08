@@ -132,8 +132,16 @@ int git_repository_open_ext_caching(git_repository **out, const char *path,
 		    ceiling_dirs);
 
 	tmp = realpath(path, NULL);
+	/*
+	 * If realpath failed, libgit2 will fail to open "path", too.
+	 * Since git_repository_open_ext_caching is supposed to be just like
+	 * git_repository_open_ext, including the handling of diagnostics, we
+	 * let do_git_repository_open_ext_caching generate the error, instead
+	 * of trying to return immediately.
+	 */
 	if (!tmp)
-		diag_pfatal(path);
+		tmp = stralloc(path);
+
 	slash = strrchr(tmp, '/');
 	if (slash)
 		slash = 0;
