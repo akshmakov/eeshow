@@ -102,6 +102,8 @@ GUI/history
   is not very clear.
 - list expansion: Joerg suggested to add pop-up, offset to the right, and
   keep list items fixed
+- slightly delay opening of expanded view of commit, to prevent list from
+  "jerking" when moving the mouse pointer
 
 GUI/sheets:
 - need a way to change new/old sheet association, in case automatic selection
