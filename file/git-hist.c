@@ -340,6 +340,9 @@ const char *vcs_git_summary(const struct vcs_hist *h)
 }
 
 
+#define	BRANCH_BG	"background=\"#00e000\" bgalpha=\"50%%\""
+
+
 char *vcs_git_summary_for_pango(const struct vcs_hist *h,
     char *(*formatter)(const char *fmt, ...))
 {
@@ -353,8 +356,7 @@ char *vcs_git_summary_for_pango(const struct vcs_hist *h,
 
 	if (h->n_branches)
 		return formatter(
-		    "<small><span background=\"#00e00080\"><b>%s</b>%s</span>"
-		    " %s</small>",
+		    "<small><span " BRANCH_BG "><b>%s</b>%s</span> %s</small>",
 		    h->branches[0], h->n_branches > 1 ? "+" : "", summary);
 	else
 		return formatter("<small>%s</small>", summary);
@@ -398,7 +400,7 @@ char *vcs_git_long_for_pango(const struct vcs_hist *h,
 
 	for (i = 0; i != h->n_branches; i++)
 		s = append(s, formatter(
-		    "%s<span background=\"#00e00080\"><b> %s </b></span>",
+		    "%s<span " BRANCH_BG "><b> %s </b></span>",
 		    i ? " " : "", h->branches[i]));
 	s = append(s, formatter(
 	    "%s<b>%s</b> %s%s &lt;%s&gt;<small>\n%s%s</small>",
