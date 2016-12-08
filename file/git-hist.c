@@ -340,7 +340,7 @@ const char *vcs_git_summary(const struct vcs_hist *h)
 }
 
 
-#define	BRANCH_BG	"background=\"#00e000\" bgalpha=\"50%%\""
+#define	BRANCH_BG	"background=\"#00e000\" background_alpha=\"50%%\""
 
 
 char *vcs_git_summary_for_pango(const struct vcs_hist *h,
