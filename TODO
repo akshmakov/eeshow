@@ -12,6 +12,8 @@ Bugs:
   infinite recursion [removed call to input_update as work-around]
 - eeshow fails to properly prepend path names when using relative paths inside
   a repository (see comment in file/git-file.c:try_related)
+- eeshow claims to support loading specific revisions with [rev:]file.ext,
+  but doesn't
 
 Parsing and input processing:
 - unify alignment, direction
