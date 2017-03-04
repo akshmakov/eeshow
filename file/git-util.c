@@ -147,7 +147,7 @@ int git_repository_open_ext_caching(git_repository **out, const char *path,
 		slash = 0;
 	else
 		strcpy(tmp, ".");
-	res = do_git_repository_open_ext_caching(out, ".", flags, ceiling_dirs);
+	res = do_git_repository_open_ext_caching(out, tmp, flags, ceiling_dirs);
 	free(tmp);
 	return res;
 }
