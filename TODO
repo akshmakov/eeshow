@@ -14,6 +14,8 @@ Bugs:
   a repository (see comment in file/git-file.c:try_related)
 - eeshow produces lots of complaints and generates a confusing history when
   loading a specific revision with [rev:]file.ext
+- recording bbox does not take into account "extra" flags. Thus, if we have an
+  invisible item placed far out, cro.c:end_common can produce weird sizes.
 
 Parsing and input processing:
 - unify alignment, direction
