@@ -1,8 +1,8 @@
 /*
  * kicad/sch-parse.c - Parse Eeschema .sch file
  *
- * Written 2016 by Werner Almesberger
- * Copyright 2016 by Werner Almesberger
+ * Written 2016-2017 by Werner Almesberger
+ * Copyright 2016-2017 by Werner Almesberger
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -615,10 +615,10 @@ static bool parse_line(const struct file *file, void *user, const char *line)
 		    &ctx->curr_sheet->comp) == 1)
 			return 1;
 		if (sscanf(line, "Comment%d \"%m[^\"]\"", &i, &s) == 2) {
-			if (i < 0)
+			if (i <= 0)
 				fatal("%s:%u: invalid comment index %d",
 				    file->name, file->lineno, i);
-			add_comment(ctx->curr_sheet, i, s);
+			add_comment(ctx->curr_sheet, i - 1, s);
 			return 1;
 		}
 
