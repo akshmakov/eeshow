@@ -48,6 +48,8 @@ struct comp_aoi_ctx {
 
 #define	COMP_W	100
 
+unsigned comp_pop_width = COMP_W;
+
 
 /* ----- Bounding box ------------------------------------------------------ */
 
@@ -166,9 +168,9 @@ static bool hover_comp(void *user, bool on, int dx, int dy)
 	overlay_remove_all(&gui->pop_overlays);
 	overlay_remove_all(&gui->pop_underlays);
 
-	add_pop_header(gui, COMP_W, ctx->ref);
+	add_pop_header(gui, comp_pop_width, ctx->ref);
 	for (item = ctx->items; item; item = item->next)
-		add_pop_item(gui, comp_click, (void *) item, COMP_W, 0,
+		add_pop_item(gui, comp_click, (void *) item, comp_pop_width, 0,
 		    "%s", item->tag);
 	add_pop_frame(gui);
 

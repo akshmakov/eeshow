@@ -1,8 +1,8 @@
 /*
  * main/eeshow.c - Visualize Eeschema schematics
  *
- * Written 2016 by Werner Almesberger
- * Copyright 2016 by Werner Almesberger
+ * Written 2016-2017 by Werner Almesberger
+ * Copyright 2016-2017 by Werner Almesberger
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,6 +48,8 @@ void usage(const char *name)
 "  -d file.doc_db\n"
 "        load documentation database file (experimental)\n"
 "  -v    increase verbosity of diagnostic output\n"
+"  -C width\n"
+"        set width of component pop-up (0: fit content; default is %u)\n"
 "  -E shell_command ...\n"
 "        execute the specified shell command when the GUI is ready.\n"
 "        Sets EESHOW_WINDOW_ID to the X11 window ID.\n"
@@ -55,7 +57,7 @@ void usage(const char *name)
 "  -P    use Pango to render text (experimental, slow)\n"
 "  -V    print revision (version) number and exit\n"
 "  gdb   run eeshow under gdb\n"
-    , name, name, name);
+    , name, name, name, comp_pop_width);
 	exit(1);
 }
 
@@ -75,7 +77,7 @@ int main(int argc, char **argv)
 	gtk_init(&argc, &argv);
 	setlocale(LC_ALL, "C");	/* restore sanity */
 
-	while ((c = getopt(argc, argv, "1d:hvE:LN:OPV")) != EOF)
+	while ((c = getopt(argc, argv, "1d:hvC:E:LN:OPV")) != EOF)
 		switch (c) {
 		case '1':
 			one_sheet = 1;
@@ -85,6 +87,9 @@ int main(int argc, char **argv)
 			break;
 		case 'v':
 			verbose++;
+			break;
+		case 'C':
+			comp_pop_width = atoi(optarg);
 			break;
 		case 'E':
 			commands = realloc_type_n(commands, const char *,
