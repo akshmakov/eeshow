@@ -1,8 +1,8 @@
 /*
  * gui/comp.c - Component pop-up
  *
- * Written 2016 by Werner Almesberger
- * Copyright 2016 by Werner Almesberger
+ * Written 2016-2017 by Werner Almesberger
+ * Copyright 2016-2017 by Werner Almesberger
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -169,7 +169,7 @@ static bool hover_comp(void *user, bool on, int dx, int dy)
 	add_pop_header(gui, COMP_W, ctx->ref);
 	for (item = ctx->items; item; item = item->next)
 		add_pop_item(gui, comp_click, (void *) item, COMP_W, 0,
-		    item->tag);
+		    "%s", item->tag);
 	add_pop_frame(gui);
 
 	place_pop(gui, &ctx->bbox);
