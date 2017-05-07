@@ -246,7 +246,8 @@ void add_comp_aoi(struct gui_sheet *sheet, const struct sch_obj *obj)
 			ctx->ref = f->txt.s;
 			break;
 		case 3:
-			ctx->doc = f->txt.s;
+			if (strcmp(f->txt.s, "~"))
+				ctx->doc = f->txt.s;
 			break;
 		default:
 			break;
