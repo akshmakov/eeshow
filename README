@@ -44,6 +44,12 @@ sudo dnf install gtk3-devel cairo-devel libgit2-devel transfig ImageMagick
 
 Furthermore, the xsel command-line utility is required for copy & paste.
 
+To build, simply run
+make
+
+To install, run as root (e.g., with sudo)
+make install
+
 
 Development status
 ------------------
