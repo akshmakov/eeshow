@@ -716,6 +716,18 @@ const struct comp *lib_find(const struct lib *lib, const char *name)
 	const struct comp *comp;
 	const struct comp_alias *alias;
 
+	// V5 Schematic Strip Library Reference (For Now)
+	const char * _name = strtok(name,":");
+	if (_name != NULL) {
+	  name = strtok(NULL, ":");
+	}
+	
+	  
+	
+	
+	
+	
+
 	for (comp = lib->comps; comp; comp = comp->next) {
 		if (!strcmp(comp->name, name))
 			return comp;
