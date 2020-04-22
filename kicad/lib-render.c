@@ -715,15 +715,29 @@ const struct comp *lib_find(const struct lib *lib, const char *name)
 {
 	const struct comp *comp;
 	const struct comp_alias *alias;
+	char* name_copy = strdup(name);
+
+	for(char* c = &name_copy[0]; *c != '\0'; c++) {
+		if (*c == ':') {
+			*c = '_';
+		}
+	}
 
 	for (comp = lib->comps; comp; comp = comp->next) {
-		if (!strcmp(comp->name, name))
+		if (!strcmp(comp->name, name_copy))
+		{
+			free(name_copy);
 			return comp;
-		for (alias = comp->aliases; alias; alias = alias->next)
-			if (!strcmp(alias->name, name))
+		}
+		for (alias = comp->aliases; alias; alias = alias->next) {
+			if (!strcmp(alias->name, name_copy)) {
+				free(name_copy);
 				return comp;
+			}
+		}
 	}
-	error("\"%s\" not found", name);
+	error("\"%s\" not found", name_copy);
+	free(name_copy);
 	return NULL;
 }
 
